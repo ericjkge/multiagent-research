@@ -1,0 +1,19 @@
+# Laptop smoke test: two Haiku agents, simulated GPU, a handful of runs.
+# Exercises the whole loop -- parallelism, the GPU mutex, worktrees, BoN,
+# selection, archiving -- for a few cents and a few minutes.
+cell_id: smoke
+harness: claude_code
+agents:
+  - {id: a0, model: haiku, effort: low}
+  - {id: a1, model: haiku, effort: low}
+bon: 1
+train_run_budget: 4
+train_timeout_s: 120
+max_train_attempts: 2
+autoresearch_repo: ~/.cache/arena-fake-autoresearch
+autoresearch_commit: ""
+max_budget_usd_per_session: 1.0
+cell_budget_usd: 5.0
+fake_gpu: true
+phase_timeout_s: {propose: 300, respond: 300, finalize: 900}
+seed: 7

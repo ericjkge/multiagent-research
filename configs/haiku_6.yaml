@@ -1,0 +1,23 @@
+# haiku x 6 agent(s).  Compute-matched: 6 agents x BoN=1 candidates per round.
+cell_id: haiku_6
+harness: claude_code
+agents:
+  - {id: a0, model: haiku, effort: medium}
+  - {id: a1, model: haiku, effort: medium}
+  - {id: a2, model: haiku, effort: medium}
+  - {id: a3, model: haiku, effort: medium}
+  - {id: a4, model: haiku, effort: medium}
+  - {id: a5, model: haiku, effort: medium}
+bon: 1
+
+# 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+max_budget_usd_per_session: 5.0
+cell_budget_usd: 120.0
+seed: 0

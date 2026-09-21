@@ -1,0 +1,191 @@
+"""Coding-agent harnesses.
+
+``Harness`` is a protocol rather than a class hierarchy so the mixed-model cell
+(OpenCode with Sonnet + GPT + Gemini) can be added later as one more
+implementation without touching the arena loop.
+
+The Claude Code implementation drives the CLI in headless mode.  Two features
+carry most of the weight:
+
+``--json-schema``
+    makes propose/respond return validated ``structured_output`` instead of
+    prose we would have to regex.
+
+``--resume`` / ``--fork-session``
+    let an agent's finalize step inherit the context of its own proposal and
+    the debate, and let best-of-N fork that context into N independent samples.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import time
+import uuid
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Protocol, Sequence
+
+
+class HarnessError(RuntimeError):
+    pass
+
+
+@dataclass
+class HarnessResult:
+    text: str
+    structured: dict | None
+    session_id: str
+    cost_usd: float
+    num_turns: int
+    is_error: bool
+    duration_s: float
+    usage: dict = field(default_factory=dict)
+    model_usage: dict = field(default_factory=dict)
+    raw: dict = field(default_factory=dict)
+
+    @property
+    def models_used(self) -> list[str]:
+        return sorted(self.model_usage)
+
+
+class Harness(Protocol):
+    name: str
+
+    def query(self, prompt: str, **kwargs: Any) -> HarnessResult: ...
+
+
+class ClaudeCodeHarness:
+    name = "claude_code"
+
+    def __init__(self, binary: str = "claude", inherit_user_settings: bool = False):
+        self.binary = binary
+        # Personal settings and CLAUDE.md files would make one researcher's run
+        # incomparable to another's, so they are excluded by default.
+        self.inherit_user_settings = inherit_user_settings
+
+    def query(
+        self,
+        prompt: str,
+        *,
+        cwd: Path,
+        model: str,
+        effort: str = "medium",
+        schema: dict | None = None,
+        tools: Sequence[str] | None = (),
+        resume: str | None = None,
+        fork: bool = False,
+        session_id: str | None = None,
+        permission_mode: str | None = None,
+        max_budget_usd: float | None = None,
+        timeout_s: float = 900,
+        append_system_prompt: str | None = None,
+        settings: str | Path | None = None,
+        add_dirs: Sequence[Path] = (),
+        env: dict[str, str] | None = None,
+        transcript_path: Path | None = None,
+    ) -> HarnessResult:
+        argv: list[str] = [self.binary, "-p", "--output-format", "json"]
+        argv += ["--model", model, "--effort", effort]
+
+        if tools is not None:
+            argv += ["--tools", ",".join(tools) if tools else ""]
+        if schema is not None:
+            argv += ["--json-schema", json.dumps(schema)]
+        if resume:
+            argv += ["--resume", resume]
+            if fork:
+                argv.append("--fork-session")
+        elif session_id:
+            argv += ["--session-id", session_id]
+        if permission_mode:
+            argv += ["--permission-mode", permission_mode]
+        if max_budget_usd:
+            argv += ["--max-budget-usd", str(max_budget_usd)]
+        if append_system_prompt:
+            argv += ["--append-system-prompt", append_system_prompt]
+        if settings:
+            argv += ["--settings", str(settings)]
+        if not self.inherit_user_settings:
+            argv += ["--setting-sources", ""]
+        for d in add_dirs:
+            argv += ["--add-dir", str(d)]
+
+        child_env = {**os.environ, **(env or {})}
+        started = time.time()
+        try:
+            proc = subprocess.run(
+                argv,
+                input=prompt,
+                cwd=str(cwd),
+                env=child_env,
+                capture_output=True,
+                text=True,
+                timeout=timeout_s,
+            )
+        except subprocess.TimeoutExpired:
+            raise HarnessError(
+                f"agent call exceeded {timeout_s:.0f}s (model={model}, cwd={cwd})"
+            ) from None
+        duration = time.time() - started
+
+        if transcript_path:
+            Path(transcript_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(transcript_path).write_text(
+                json.dumps(
+                    {
+                        "argv": argv[:2] + ["<prompt via stdin>"] + argv[2:],
+                        "prompt": prompt,
+                        "stdout": proc.stdout,
+                        "stderr": proc.stderr[-4000:],
+                        "returncode": proc.returncode,
+                        "duration_s": duration,
+                    },
+                    indent=2,
+                )
+            )
+
+        if not proc.stdout.strip():
+            raise HarnessError(
+                f"agent produced no output (rc={proc.returncode}): "
+                f"{proc.stderr.strip()[-600:]}"
+            )
+
+        try:
+            payload = json.loads(proc.stdout)
+        except json.JSONDecodeError as exc:
+            raise HarnessError(
+                f"could not parse agent output: {exc}\n{proc.stdout[:600]}"
+            ) from exc
+
+        structured = payload.get("structured_output")
+        if structured is None and schema is not None:
+            # The CLI validated against the schema, so the text is the object.
+            try:
+                structured = json.loads(payload.get("result", ""))
+            except (json.JSONDecodeError, TypeError):
+                structured = None
+
+        return HarnessResult(
+            text=payload.get("result", "") or "",
+            structured=structured,
+            session_id=payload.get("session_id", ""),
+            cost_usd=float(payload.get("total_cost_usd") or 0.0),
+            num_turns=int(payload.get("num_turns") or 0),
+            is_error=bool(payload.get("is_error")),
+            duration_s=duration,
+            usage=payload.get("usage") or {},
+            model_usage=payload.get("modelUsage") or {},
+            raw=payload,
+        )
+
+
+def new_session_id() -> str:
+    return str(uuid.uuid4())
+
+
+def build_harness(name: str) -> Harness:
+    if name == "claude_code":
+        return ClaudeCodeHarness()
+    raise ValueError(f"unknown harness {name!r}")

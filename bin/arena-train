@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""The only sanctioned way for an arena agent to train.
+
+Agents run in parallel but there is one GPU, so every training run funnels
+through an exclusive lock held here for the duration of the run.  The same
+critical section meters the cell's compute budget, which makes this file the
+single point where compute matching is enforced -- an agent cannot spend more
+GPU than its cell was allotted, and two agents can never overlap on the card.
+
+Exit codes:
+    0  training completed (the run may still have crashed on its own merits)
+    2  the cell's GPU budget is exhausted -- stop experimenting
+    3  the run exceeded the wall-clock timeout and was killed
+"""
+
+from __future__ import annotations
+
+import fcntl
+import hashlib
+import json
+import os
+import random
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+NOMINAL_RUN_SECONDS = 330.0
+
+
+def env(name: str, default: str | None = None) -> str:
+    value = os.environ.get(name, default)
+    if value is None:
+        sys.exit(f"arena-train: ${name} is not set (are you inside an arena worktree?)")
+    return value
+
+
+def charge_and_check(budget_path: Path, amount: float) -> dict:
+    """Read-modify-write the budget.  Caller must hold the GPU lock."""
+    state = json.loads(budget_path.read_text())
+    state["spent_s"] = state.get("spent_s", 0.0) + amount
+    state["runs"] = state.get("runs", 0) + (1 if amount > 0 else 0)
+    budget_path.write_text(json.dumps(state, indent=2))
+    return state
+
+
+def simulate(run_dir: Path, round_idx: str, agent: str, variant: str, seed: str) -> tuple[str, float]:
+    """Fake-GPU mode: a plausible run.log without an H100.
+
+    Deterministic in (seed, round, agent, variant) so smoke tests reproduce.
+    """
+    key = f"{seed}:{round_idx}:{agent}:{variant}".encode()
+    rng = random.Random(int(hashlib.sha256(key).hexdigest()[:16], 16))
+
+    base = float(os.environ.get("ARENA_FAKE_BASE_BPB", "0.997900"))
+    time.sleep(rng.uniform(2.0, 5.0))  # short, but long enough to expose races
+
+    if rng.random() < 0.12:  # crashes are part of the phenomenon under study
+        return (
+            "Traceback (most recent call last):\n"
+            '  File "train.py", line 412, in <module>\n'
+            "    loss.backward()\n"
+            "torch.OutOfMemoryError: CUDA out of memory (simulated)\n"
+        ), rng.uniform(15.0, 45.0)
+
+    val_bpb = max(0.5, base + rng.gauss(-0.0015, 0.004))
+    log = (
+        "---\n"
+        f"val_bpb:          {val_bpb:.6f}\n"
+        "training_seconds: 300.1\n"
+        "total_seconds:    325.9\n"
+        f"peak_vram_mb:     {rng.uniform(40000, 48000):.1f}\n"
+        "mfu_percent:      39.80\n"
+        "total_tokens_M:   499.6\n"
+        "num_steps:        953\n"
+        "num_params_M:     50.3\n"
+        "depth:            8\n"
+    )
+    return log, NOMINAL_RUN_SECONDS
+
+
+def main() -> int:
+    run_dir = Path(env("ARENA_RUN_DIR")).resolve()
+    agent = env("ARENA_AGENT")
+    variant = env("ARENA_VARIANT", "0")
+    round_idx = env("ARENA_ROUND", "0")
+    timeout_s = float(env("ARENA_TIMEOUT_S", "600"))
+    fake = env("ARENA_FAKE_GPU", "0") == "1"
+    seed = env("ARENA_SEED", "0")
+
+    lock_path = run_dir / "gpu.lock"
+    budget_path = run_dir / "budget.json"
+    timeline_path = run_dir / "gpu_timeline.jsonl"
+    workdir = Path.cwd()
+    log_path = workdir / "run.log"
+
+    lock_path.touch(exist_ok=True)
+    lock_file = open(lock_path, "w")
+
+    waiting_since = time.time()
+    print("arena-train: waiting for the GPU ...", flush=True)
+    fcntl.flock(lock_file, fcntl.LOCK_EX)
+    queued_s = time.time() - waiting_since
+
+    try:
+        budget = json.loads(budget_path.read_text())
+        remaining = budget["budget_s"] - budget.get("spent_s", 0.0)
+        if remaining <= 0:
+            print(
+                "arena-train: the cell's GPU budget is exhausted. Stop running "
+                "experiments and finish up.",
+                file=sys.stderr,
+            )
+            return 2
+
+        print(f"arena-train: GPU acquired (waited {queued_s:.0f}s, "
+              f"{remaining / 60:.0f} GPU-min left in the cell)", flush=True)
+
+        started = time.time()
+        timed_out = False
+
+        if fake:
+            log_text, charge_s = simulate(run_dir, round_idx, agent, variant, seed)
+            log_path.write_text(log_text)
+            exit_code = 0
+        else:
+            child_env = dict(os.environ)
+            # All worktrees share one venv: deps are frozen by the rules, and
+            # re-resolving per worktree would burn minutes of every round.
+            child_env.setdefault("UV_PROJECT_ENVIRONMENT", env("ARENA_UV_ENV", ""))
+            with open(log_path, "w") as log_file:
+                proc = subprocess.Popen(
+                    ["uv", "run", "train.py"],
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    cwd=workdir,
+                    env=child_env,
+                    start_new_session=True,
+                )
+                try:
+                    exit_code = proc.wait(timeout=timeout_s)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    proc.wait()
+                    exit_code = -9
+            charge_s = time.time() - started
+
+        elapsed = time.time() - started
+        state = charge_and_check(budget_path, charge_s)
+
+        # A crashed run can still exit 0, so the metric is the real signal.
+        produced_metric = any(
+            line.startswith("val_bpb:")
+            for line in log_path.read_text(errors="replace").splitlines()
+        )
+
+        record = {
+            "round": int(round_idx),
+            "agent": agent,
+            "variant": int(variant),
+            "workdir": str(workdir),
+            "started_at": started,
+            "ended_at": time.time(),
+            "elapsed_s": round(elapsed, 2),
+            "charged_s": round(charge_s, 2),
+            "queued_s": round(queued_s, 2),
+            "exit_code": exit_code,
+            "produced_metric": produced_metric,
+            "timed_out": timed_out,
+            "fake": fake,
+            "spent_s_after": round(state["spent_s"], 2),
+            "runs_after": state["runs"],
+        }
+        with open(timeline_path, "a") as fh:
+            fh.write(json.dumps(record) + "\n")
+        (workdir / "arena_run.json").write_text(json.dumps(record, indent=2))
+
+    finally:
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
+        lock_file.close()
+
+    if timed_out:
+        print(
+            f"arena-train: killed after {timeout_s:.0f}s. Treat this as a failed "
+            "experiment and revert it.",
+            file=sys.stderr,
+        )
+        return 3
+
+    # Echo the summary so the agent can read the metric without cat-ing the log.
+    for line in log_path.read_text().splitlines():
+        if line.startswith(("val_bpb:", "peak_vram_mb:", "training_seconds:")):
+            print(line)
+    print(f"arena-train: done in {elapsed:.0f}s (exit {exit_code})")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
