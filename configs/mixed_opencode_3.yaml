@@ -1,0 +1,33 @@
+# Cross-vendor cell, driven through OpenCode.
+#
+# The control is sonnet_3: same agent count, same budget, one vendor.  What
+# this cell adds over mixed_3 is vendor diversity rather than only capability
+# diversity -- different pretraining, different RL, different failure modes.
+#
+# NOT YET RUN.  Before using it: install opencode on the box, run
+# `opencode models` and replace the ids below with what it actually reports.
+# OpenCode has no --json-schema equivalent, so propose/respond are parsed out
+# of the reply text (see harness.parse_trailing_json) and are more fragile than
+# the Claude Code path; expect a higher unparsed-proposal rate and check
+# runs/<dir>/transcripts/ before trusting the numbers.
+#
+# OpenCode also does not report per-call spend, so `cell_budget_usd` cannot
+# see these calls.  Budget this cell by hand.
+cell_id: mixed_opencode_3
+agents:
+  - {id: sonnet, model: anthropic/claude-sonnet-5,  effort: medium, harness: opencode}
+  - {id: gpt,    model: openai/gpt-5.6-terra,       effort: medium, harness: opencode}
+  - {id: gemini, model: google/gemini-3.8-flash,    effort: medium, harness: opencode}
+bon: 2
+
+# 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+max_budget_usd_per_session: 10.0
+cell_budget_usd: 250.0
+seed: 0

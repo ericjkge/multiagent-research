@@ -69,6 +69,7 @@ class PhaseContext:
     train_py: str
     diff_vs_origin: str
     settings_path: Path
+    baseline_bpb: float = 0.0  # consumed by the fake-GPU stub
 
 
 def system_prompt(ctx: PhaseContext, agent: AgentSpec) -> str:
@@ -151,6 +152,7 @@ def run_propose(harness: Harness, agent: AgentSpec, ctx: PhaseContext) -> Harnes
         schema=PROPOSE_SCHEMA,
         tools=(),
         session_id=new_session_id(),
+        phase="propose",
         timeout_s=ctx.cfg.phase_timeout_s["propose"],
         append_system_prompt=system_prompt(ctx, agent),
         max_budget_usd=ctx.cfg.max_budget_usd_per_session,
@@ -179,6 +181,7 @@ def run_respond(
         schema=RESPOND_SCHEMA,
         tools=(),
         resume=session_id,
+        phase="respond",
         timeout_s=ctx.cfg.phase_timeout_s["respond"],
         append_system_prompt=system_prompt(ctx, agent),
         max_budget_usd=ctx.cfg.max_budget_usd_per_session,
@@ -211,6 +214,7 @@ def run_finalize(
         fork=bool(session_id),
         session_id=None if session_id else new_session_id(),
         permission_mode="bypassPermissions",
+        phase="finalize",
         timeout_s=ctx.cfg.phase_timeout_s["finalize"],
         append_system_prompt=system_prompt(ctx, agent),
         settings=ctx.settings_path,

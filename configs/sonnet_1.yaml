@@ -2,7 +2,7 @@
 cell_id: sonnet_1
 harness: claude_code
 agents:
-  - {id: a0, model: sonnet, effort: medium}
+  - {id: a0, model: claude-sonnet-5, effort: medium}
 bon: 5
 
 # 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.

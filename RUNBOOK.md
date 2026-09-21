@@ -4,84 +4,137 @@ Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before
 
 ## The compute reality
 
-A training run is 5 minutes plus about 1 minute of startup, compile and eval, so 6 minutes of GPU per run.
-Agent thinking happens while the GPU is idle unless cells overlap. The plan doc's "30 to 35 H100 hours total"
-assumed one run per round; with N agents each running its own idea, a round costs N runs.
+A training run is 5 minutes plus about 1 minute of startup, compile and eval, so ~6 minutes of GPU
+per run. Agent thinking happens while the GPU is idle unless cells overlap.
 
-| cell | runs per round | rounds | GPU hours (6 min/run) | agent calls |
-|---|---|---|---|---|
-| 1 agent, best-of-6 | 6 | 12 | 7.2 | 12 x 7 |
-| 3 agents | 3 | 12 | 3.6 | 12 x 9 |
-| 6 agents | 6 | 12 | 7.2 | 12 x 18 |
+The grid is **compute-matched on training runs**, not on rounds. Every cell gets the same
+`train_run_budget` (36 runs, ~3.3 H100-hours), and cells burn it at different rates per round:
 
-At 36 rounds the numbers triple: a six-agent cell is 21.6 GPU hours, and the full grid in the plan doc
-(9 Claude cells plus 2 mixed) is about 170 GPU hours, not 35. At 12 rounds the grid is about 60 GPU hours,
-around $180 on RunPod H100s at $2.99/h, and each cell fits in one night on one box.
+| cell | agents | BoN | candidates/round | rounds at 36 runs | agent calls |
+|---|---|---|---|---|---|
+| `*_1` | 1 | 5 | 5 | 7 | 7 x 11 |
+| `*_3` | 3 | 2 | 6 | 6 | 6 x 15 |
+| `*_6` | 6 | 1 | 6 | 6 | 6 x 18 |
 
-Rule for the team: **12 rounds, not 36**, unless the Monday smoke test shows the GPU is faster than expected.
-Compute matching: solo = best-of-6 ideas per round (6 runs), six agents = 6 runs, three agents = 3 runs
-(half the compute; that is a feature, it shows whether 3 agents beat 6 at half the cost).
+Rounds are therefore **not** a comparable x-axis between cells; training runs are. That is why
+`analysis.compare` plots against runs consumed.
 
-Agent cost per cell (rough): 12 rounds x 3 calls x N agents, 20k to 60k tokens per call. Haiku cells a few
-dollars, Sonnet cells $20 to $40, Opus cells $100 or more. Whoever runs a cell pays for it with their own key.
+Full grid: 9 Claude cells x 3.3 GPU-h ≈ 30 GPU-hours, about $90 on RunPod H100s at $2.99/h, each
+cell fitting in one night on one box. Agent spend is separate and larger for the big models: a few
+dollars per Haiku cell, $20–45 per Sonnet cell, $100+ per Opus cell. Whoever runs a cell pays for it
+with their own key.
 
-## Before any cell: the noise gate (Monday morning, 1 GPU hour)
+## Before any cell: the noise gate
 
-Run the unmodified train.py 6 times on the same box. If the spread (max minus min of val_bpb) is larger than
-about 0.003, single runs cannot distinguish ideas and everything downstream is noise. Then either lengthen
-runs (edit TIME_BUDGET in prepare.py to 600 on every box, same for all cells) or accept it and say so on the slide.
+**Do this first. Nothing downstream means anything without it.**
 
+```bash
+bash scripts/setup_gpu_box.sh --noise-gate
 ```
-cd work/autoresearch && for i in 1 2 3 4 5 6; do uv run train.py | grep '^val_bpb'; done
-```
+
+It runs the unmodified `train.py` six times on the same box and writes `noise_gate.json`. If the
+spread (max − min of `val_bpb`) is larger than about 0.003, single runs cannot distinguish ideas and
+every number in the grid is noise. Then either lengthen runs (`TIME_BUDGET` in `prepare.py`, the
+**same value on every box and every cell**) or accept it and say so explicitly on the slide.
+
+Quote the measured spread whenever you quote a gain.
 
 ## Running a cell
 
 1. Rent 1x H100 80GB (RunPod secure cloud, "runpod/pytorch" template; or Prime Intellect). SSH in.
 2. `git clone https://github.com/ericjkge/multiagent-research && cd multiagent-research`
-3. `bash scripts/setup_gpu.sh` (about 15 min: data download, tokenizer, one smoke run).
-4. `export ANTHROPIC_API_KEY=sk-ant-...` (your own key). OpenCode cells: install opencode and set its keys.
-5. `nohup python3 orchestrator/run.py --cell configs/cells.json:haiku_3 --out runs/haiku_3 > runs/haiku_3.out 2>&1 &`
-6. Watch: `tail -f runs/haiku_3/log.md`. The run is resumable: rerun the same command and it continues from the last completed round.
-7. When done, copy `runs/<cell>/` (results.jsonl, log.md, agent_calls.jsonl, state.json) into the repo under `results/<cell>/` and push.
+3. `export ANTHROPIC_API_KEY=sk-ant-...` — an API key, not a claude.ai login. The cells run
+   unattended; an expired OAuth token fails every call in the cell.
+4. `bash scripts/setup_gpu_box.sh --noise-gate` (~45 min: toolchain, data, baseline, noise gate).
+   It prints a commit hash. **Pin it as `autoresearch_commit` in every config** so all cells share a
+   substrate.
+5. Launch:
 
-Do not run two cells on one GPU at the same time. Do run different cells on different boxes in parallel.
+   ```bash
+   nohup python3 -m orchestrator.run --config configs/haiku_3.yaml > runs/haiku_3.out 2>&1 &
+   ```
 
-## Test without a GPU (do this first, on your laptop)
+6. Watch: `tail -f runs/haiku_3-*/log.md`.
+7. Interrupted? `python3 -m orchestrator.run --resume-run runs/haiku_3-20260921-140000`.
+8. When it finishes, **verify before believing anything**, then archive:
 
+   ```bash
+   python3 -m analysis.verify runs/haiku_3-<stamp>     # must print OK
+   python3 -m analysis.report runs/haiku_3-<stamp>
+   cp -r runs/haiku_3-<stamp> results/haiku_3 && git add results/haiku_3 && git commit
+   ```
+
+`runs/` is gitignored (it holds worktrees and transcripts); `results/` is committed. Copy the cell
+directory across when it is done and verified.
+
+Do not run two cells on one GPU at the same time — `arena-train`'s lock is per run directory, not
+per machine, so two concurrent cells would overlap on the card and both sets of timings would be
+void. Different cells on different boxes in parallel is exactly right.
+
+Order the grid cheapest-first (`haiku_1` → `haiku_6` → `sonnet_*` → `opus_*`) and confirm the first
+cell's wall clock and run count before committing the rest.
+
+## Testing without a GPU
+
+Two levels, both on a laptop:
+
+```bash
+# free: fake GPU AND fake agents. Exercises worktrees, the GPU mutex, the run
+# budget, selection, archiving and resume. No API calls, no money.
+bash scripts/smoke_test.sh --fake-agents
+
+# a few cents: real Claude Code agents, simulated training. Also exercises
+# prompts, structured output, session forking and the guard hook.
+bash scripts/smoke_test.sh
 ```
-python3 orchestrator/run.py --cell configs/cells.json:haiku_3 --out runs/test --fake-gpu --fake-agents --rounds 2
-python3 orchestrator/run.py --cell configs/cells.json:haiku_3 --out runs/test_real --fake-gpu --rounds 1   # real Claude Code calls, fake score
-```
+
+Run the free one after any orchestrator change. Run the paid one before touching a GPU.
 
 ## What the orchestrator does each round
 
-1. If `sync_to_best` (default), every agent's train.py is reset to the global best commit (shared-repo semantics).
-2. PROPOSE: each agent, in parallel, reads the shared log and proposes one idea (read-only tools).
-3. RESPOND: each agent writes one response to the others' proposals.
-4. FINALIZE + IMPLEMENT: each agent commits to a final idea and edits train.py in its own git worktree.
-5. The orchestrator runs each agent's train.py sequentially on the GPU, parses val_bpb, keeps the change on
-   that agent's branch if it beats the agent's best, else reverts. Everything is appended to `log.md` and `results.jsonl`.
-Solo cells: one agent proposes k ideas, implements each from the same starting point, all k run, the best one is kept.
+1. Every agent starts the round from the same baseline commit — the shared lineage.
+2. **Propose** — each agent, in parallel, reads the shared log and commits to one idea.
+3. **Select** — each agent claims a slot from the run budget, implements its idea in its own git
+   worktree, and trains it via `arena-train`, which serializes onto the one GPU.
+4. **Respond** — each agent reads the round's results and writes back to the group.
+5. The best *improving* candidate becomes the new baseline for **everyone**.
+
+`bin/arena-train` is the single enforcement point: it holds the GPU lock, claims a slot from the run
+budget in the same critical section, and refuses once the budget is gone. `bin/guard_hook.py` is a
+PreToolUse hook that blocks direct `train.py` invocation, edits to `prepare.py`, new dependencies and
+anything leaving the box — it fires even under `bypassPermissions`.
 
 ## Analysis
 
+```bash
+python3 -m analysis.verify  runs/<dir>          # invariants — run this FIRST
+python3 -m analysis.report  runs/<dir>          # the readable per-cell write-up
+python3 -m analysis.compare results/haiku_* --plot fig_haiku.png   # the headline figure
+python3 -m analysis.diversity runs/<dir> --classify
+python3 -m analysis.errors  runs/<dir>
 ```
-python3 orchestrator/analysis.py runs/haiku_1 runs/haiku_3 runs/haiku_6 --plot fig_haiku.png
-```
-Gives baseline, final best, gain, crash rate, prediction error, agent cost, plus best-so-far and diversity curves.
-Diversity = 1 minus mean pairwise word overlap of the round's proposals. Error propagation = crash rate by round
-and whether crashed ideas get re-proposed (grep the log).
+
+`analysis.verify` is not optional. **A cell that fails it is invalid, not merely weak.**
+
+Diversity = mean pairwise TF-IDF cosine between a round's proposals; rising over the cell is the
+signature of collapse. Error propagation = crash rate by round, plus whether a crashed idea gets
+re-proposed by *other* agents next round.
+
+## Known limits — say these on the slide
+
+- One seed per cell. Differences smaller than the noise gate spread are not results.
+- Agents can change anything in `train.py`, so ideas are not comparable across cells in kind, only
+  in outcome.
+- Agents never see the loss curve, only the final numbers in the log.
+- No optimizer floor. A TPE sweep over the top-of-file constants would be the honest
+  zero-intelligence baseline; if there is time, run one.
+- `mixed_opencode_3` has not been run. OpenCode has no structured-output mode, so its proposals are
+  parsed out of free text and its spend is not metered.
 
 ## Schedule
 
-- Mon: laptop tests by everyone; one person does the GPU setup and the noise gate; run `haiku_3` as the first real cell overnight.
-- Tue: run the rest of the Haiku and Sonnet cells in parallel on 3 or 4 boxes (each is 4 to 7 GPU hours). Opus and mixed cells only if budget allows.
-- Wed: analysis, plot, slides. Thu: present.
-
-## Known limits (say them on the slide)
-
-- One seed per cell. Differences smaller than the noise gate spread are not results.
-- Free code edits: agents can change anything in train.py, so "ideas" are not comparable across cells in kind, only in outcome.
-- The agents never run training themselves; they never see the loss curve, only the final numbers in the log.
-- No optimizer floor (TPE) in this version; if there is time, a TPE cell over the top-of-file constants would be the honest zero-intelligence baseline.
+- **Mon**: laptop tests by everyone (`--fake-agents` is free). One person does the GPU setup and the
+  noise gate. Start `haiku_3` overnight as the first real cell.
+- **Tue**: the rest of the Haiku and Sonnet cells in parallel on 3–4 boxes. Opus only if budget allows.
+- **Wed**: analysis, figures, slides.
+- **Thu**: present.

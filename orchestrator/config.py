@@ -24,7 +24,7 @@ import yaml
 # the human-facing "36 runs" budget into the seconds the arena actually meters.
 DEFAULT_NOMINAL_RUN_SECONDS = 330.0
 
-KNOWN_HARNESSES = {"claude_code"}
+KNOWN_HARNESSES = {"claude_code", "opencode", "fake"}
 
 
 @dataclass(frozen=True)

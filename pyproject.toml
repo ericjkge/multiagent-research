@@ -1,0 +1,25 @@
+[project]
+name = "multiagent-research"
+version = "0.1.0"
+description = "A multi-agent arena over Karpathy's autoresearch"
+requires-python = ">=3.10"
+
+# The orchestrator itself needs only PyYAML; everything else is analysis.
+# Deliberately tiny: this package runs on the GPU box next to autoresearch,
+# and anything installed here is something that can break a cell at 3am.
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+analysis = [
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["orchestrator", "analysis"]

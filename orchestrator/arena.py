@@ -61,7 +61,11 @@ class Arena:
         self.log = SharedLog(self.run_dir)
         self.tag = self.run_dir.name
         self.trees = WorktreeManager(cfg.repo_path, self.run_dir, self.tag)
-        self.harnesses = {a.id: build_harness(a.harness) for a in cfg.agents}
+        # Distinct seeds so fake agents do not all propose the same idea.
+        self.harnesses = {
+            a.id: build_harness(a.harness, seed=cfg.seed + i)
+            for i, a in enumerate(cfg.agents)
+        }
         self.settings_path = phases.write_agent_settings(self.run_dir)
         self.state = RunState.load(self.run_dir) if resume else self._fresh_state()
         if not resume:
@@ -159,8 +163,8 @@ class Arena:
             train_py=train_py,
             diff_vs_origin=diff,
             settings_path=self.settings_path,
+            baseline_bpb=self.state.baseline_bpb,
         )
-        ctx.baseline_bpb = self.state.baseline_bpb  # consumed by the fake-GPU stub
         return ctx
 
     def _charge(self, cost: float) -> None:

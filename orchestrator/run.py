@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from .arena import Arena
@@ -25,6 +26,9 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--run-dir", type=Path, help="override the run directory")
     ap.add_argument("--fake-gpu", action="store_true",
                     help="simulate training; exercises the whole loop without an H100")
+    ap.add_argument("--fake-agents", action="store_true",
+                    help="canned agent output instead of API calls; free, and with "
+                         "--fake-gpu gives an end-to-end test that costs nothing")
     ap.add_argument("--repo", type=Path, help="override autoresearch_repo")
     ap.add_argument("--budget", type=int, help="override train_run_budget (for smoke tests)")
     ap.add_argument("--dry-run", action="store_true",
@@ -48,6 +52,10 @@ def load(args: argparse.Namespace) -> tuple[CellConfig, Path, bool]:
     cfg = load_cell(args.config)
     if args.fake_gpu:
         cfg.fake_gpu = True
+    if args.fake_agents:
+        # Swap the harness, keep the model id: provenance still records which
+        # cell this was pretending to be.
+        cfg.agents = [replace(a, harness="fake") for a in cfg.agents]
     if args.repo:
         cfg.autoresearch_repo = str(args.repo)
     if args.budget:

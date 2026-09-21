@@ -1,0 +1,27 @@
+# Heterogeneous cell: three different models, same arena.
+#
+# This is the "does *diversity* help?" arm of the experiment, and its control
+# is sonnet_3 -- same agent count, same budget, one model family.  Compare the
+# two directly; comparing mixed_3 against haiku_3 confounds diversity with
+# capability.
+#
+# Heterogeneity is a pure config change: per-agent `model` and `harness`, no
+# orchestrator code involved.
+cell_id: mixed_3
+agents:
+  - {id: sonnet, model: claude-sonnet-5,             effort: medium, harness: claude_code}
+  - {id: haiku,  model: claude-haiku-4-5-20251001,   effort: medium, harness: claude_code}
+  - {id: opus,   model: claude-opus-5,               effort: medium, harness: claude_code}
+bon: 2
+
+# 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+max_budget_usd_per_session: 15.0
+cell_budget_usd: 250.0
+seed: 0

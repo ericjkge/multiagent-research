@@ -2,9 +2,9 @@
 cell_id: haiku_3
 harness: claude_code
 agents:
-  - {id: a0, model: haiku, effort: medium}
-  - {id: a1, model: haiku, effort: medium}
-  - {id: a2, model: haiku, effort: medium}
+  - {id: a0, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a1, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a2, model: claude-haiku-4-5-20251001, effort: medium}
 bon: 2
 
 # 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.

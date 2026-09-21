@@ -1,0 +1,22 @@
+# opus x 3 agent(s).  Compute-matched: 3 agents x BoN=2 candidates per round.
+# The most expensive cell in the grid -- run it last, and only if the Haiku and
+# Sonnet rows already show a signal worth spending on.
+cell_id: opus_3
+harness: claude_code
+agents:
+  - {id: a0, model: claude-opus-5, effort: medium}
+  - {id: a1, model: claude-opus-5, effort: medium}
+  - {id: a2, model: claude-opus-5, effort: medium}
+bon: 2
+
+# 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+max_budget_usd_per_session: 15.0
+cell_budget_usd: 400.0
+seed: 0
