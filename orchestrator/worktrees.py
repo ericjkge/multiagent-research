@@ -70,6 +70,14 @@ class WorktreeManager:
         git(self.repo, "worktree", "add", "--detach", str(path), base_commit)
         return path
 
+    def create_named(self, name: str, base_commit: str) -> Path:
+        """A long-lived worktree with a fixed name (the open protocol's private scratch)."""
+        path = self.work_root / name
+        if path.exists():
+            self.remove(path)
+        git(self.repo, "worktree", "add", "--detach", str(path), base_commit)
+        return path
+
     def keep(self, commit: str, round_idx: int, agent: str, variant: int) -> str:
         """Pin a candidate commit behind a ref so it is never gc'd."""
         ref = f"refs/arena/{self.tag}/r{round_idx:02d}_{agent}_v{variant}"

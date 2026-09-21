@@ -75,7 +75,9 @@ def check(run_dir: Path) -> list[str]:
         winner = end.get("winner")
         if not winner:
             continue
-        cands = [c for c in by_round.get(end["round"], []) if c.get("status") == "ok"]
+        pool = (of_type(records, "candidate") if cfg.get("protocol") == "open"
+                else by_round.get(end["round"], []))
+        cands = [c for c in pool if c.get("status") == "ok"]
         if not cands:
             failures.append(f"round {end['round']} declared a winner with no successful runs")
             continue
@@ -120,6 +122,32 @@ def check(run_dir: Path) -> list[str]:
 
     if summary.get("gpu_overlaps"):
         failures.append(f"summary.json reports {summary['gpu_overlaps']} GPU overlaps")
+
+    # 9. open protocol: every run on the GPU is on the score log, nobody
+    # exceeded their share, and an "independent" cell really was independent.
+    if cfg.get("protocol") == "open":
+        cands = of_type(records, "candidate")
+        if len(cands) != len(timeline):
+            failures.append(
+                f"open protocol: {len(timeline)} runs on the GPU timeline but {len(cands)} "
+                "score-log entries: a run trained without being recorded"
+            )
+        quota = budget.get("per_agent_quota") or 0
+        if quota:
+            per_agent: dict[str, int] = {}
+            for c in budget.get("claims", []):
+                per_agent[c["agent"]] = per_agent.get(c["agent"], 0) + 1
+            for agent, n in per_agent.items():
+                if n > quota:
+                    failures.append(f"open protocol: {agent} claimed {n} runs, share was {quota}")
+        if not cfg.get("open_share_log", True) and of_type(records, "adoption"):
+            failures.append("open protocol: adoption events in a cell that ran agents independently")
+        for a in of_type(records, "adoption"):
+            src = next((c for c in cands if c.get("commit") == a.get("commit")), None)
+            if src is None:
+                failures.append(f"adoption #{a.get('id')} points at a commit that is not on the score log")
+            elif src.get("agent") == a.get("agent"):
+                failures.append(f"adoption #{a.get('id')}: {a.get('agent')} adopted its own result")
 
     return failures
 

@@ -73,10 +73,27 @@ class CellConfig:
     cell_budget_usd: float = 100.0
 
     # Protocol knobs -----------------------------------------------------
+    # "rounds": propose -> select -> respond in lockstep, best candidate of the
+    #           round becomes everyone's baseline (the arena as first built).
+    # "open":   no rounds. Each agent works asynchronously in one long session
+    #           against its own share of the run budget, declares a distinct
+    #           approach in a slot, publishes findings and disconfirmations to
+    #           the shared log, and adopts a peer's approach only after a
+    #           clearly better measured result -- the protocol of Park et al.,
+    #           "Scaling Discovery through Test-Time Communication"
+    #           (arXiv 2609.21032).  With open_share_log: false the same agents
+    #           run blind to each other, which is that paper's independent
+    #           (best@k) control at matched compute.
+    protocol: str = "rounds"
     solo_self_critique: bool = False
     phase_timeout_s: dict[str, int] = field(
         default_factory=lambda: {"propose": 900, "select": 3600, "respond": 1200}
     )
+    # Open-protocol knobs (ignored under "rounds").
+    open_share_log: bool = True          # False: each agent sees only its own entries
+    open_per_agent_quota: bool = True    # each agent gets budget // n_agents runs
+    open_max_resumes: int = 8            # a session that stops early is resumed this many times
+    open_session_timeout_s: int = 5400   # wall clock per session segment
 
     # Execution ----------------------------------------------------------
     fake_gpu: bool = False
@@ -92,6 +109,17 @@ class CellConfig:
             raise ValueError("bon must be >= 1")
         if self.train_run_budget < 1:
             raise ValueError("train_run_budget must be >= 1")
+        if self.protocol not in {"rounds", "open"}:
+            raise ValueError(f"protocol must be 'rounds' or 'open', not {self.protocol!r}")
+        if self.protocol == "open" and self.bon != 1:
+            raise ValueError("the open protocol has no best-of-N: agents sample as they like; set bon: 1")
+
+    @property
+    def per_agent_quota(self) -> int:
+        """Runs each agent may claim under the open protocol (0 = unlimited)."""
+        if self.protocol != "open" or not self.open_per_agent_quota:
+            return 0
+        return max(1, self.train_run_budget // self.n_agents)
 
     # -- derived ----------------------------------------------------------
 
@@ -138,6 +166,13 @@ class CellConfig:
         return d
 
     def summary(self) -> str:
+        if self.protocol == "open":
+            share = "shared log" if self.open_share_log else "NO shared log (independent)"
+            quota = f"{self.per_agent_quota} runs each" if self.per_agent_quota else "first come first served"
+            return (
+                f"{self.cell_id}: open protocol, {self.n_agents} agent(s), {share}, "
+                f"{self.train_run_budget} runs ~ {self.nominal_gpu_hours:.2f} GPU-h ({quota})"
+            )
         return (
             f"{self.cell_id}: {self.n_agents} agent(s) x BoN={self.bon} "
             f"= {self.runs_per_round} candidates/round, "

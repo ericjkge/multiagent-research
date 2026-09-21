@@ -76,7 +76,12 @@ def main() -> int:
         return 0
 
     print(f"run directory: {run_dir}")
-    arena = Arena(cfg, run_dir, resume=resume)
+    if cfg.protocol == "open":
+        from .open_arena import OpenArena
+
+        arena = OpenArena(cfg, run_dir, resume=resume)
+    else:
+        arena = Arena(cfg, run_dir, resume=resume)
     state = arena.run()
     return 0 if state.stop_reason else 1
 

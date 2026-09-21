@@ -11,9 +11,20 @@ orchestrator takes, assigns the record's id inside that critical section, and
 stamps the round and agent from the environment so an agent cannot -- by
 accident or otherwise -- write a message attributed to someone else.
 
+Round protocol:
+
     arena-log message "two of us are proposing the same thing"
     arena-log message --reply-to 14 "disagree, that was tried in round 2"
     arena-log note "remember to check VRAM next round"
+
+Open protocol (Park et al., arXiv 2609.21032) adds the shared directory's
+channels.  Each is append-only and attributed:
+
+    arena-log approach "lr-schedule" "I will work on the warmup/warmdown schedule; I will not touch the architecture"
+    arena-log finding --commit 3f1c2ab "warmdown 0.5->0.25 gives 0.9931 vs baseline 0.9979 (1 run)"
+    arena-log finding --weak "depth 10 looked better but the run was noisy"
+    arena-log disconfirmation --commit 9a0b1cd "raising matrix_lr to 0.08 diverged; do not retry"
+    arena-log coordination "a1 and a3 both on the optimizer: a1 takes Muon, a3 takes Adam betas"
 
 Exit codes:
     0  written
@@ -29,7 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from orchestrator.sharedlog import append_record  # noqa: E402
+from orchestrator.sharedlog import SharedLog, append_record  # noqa: E402
 
 MAX_CHARS = 3000
 
@@ -46,6 +57,22 @@ def main() -> int:
     note = sub.add_parser("note", help="a note to yourself, on the record but not addressed")
     note.add_argument("text")
 
+    appr = sub.add_parser("approach", help="open protocol: claim your slot with a distinct approach")
+    appr.add_argument("family", help="a short family name, e.g. lr-schedule, optimizer, architecture")
+    appr.add_argument("text", help="what you will do and what you will NOT assume")
+
+    find = sub.add_parser("finding", help="open protocol: a measured result, broadcast to everyone")
+    find.add_argument("text")
+    find.add_argument("--commit", default="", help="the commit that reproduces it (from arena-train)")
+    find.add_argument("--weak", action="store_true", help="label the claim as weak (noisy, single run)")
+
+    dis = sub.add_parser("disconfirmation", help="open protocol: a negative result or a falsified idea")
+    dis.add_argument("text")
+    dis.add_argument("--commit", default="")
+
+    coord = sub.add_parser("coordination", help="open protocol: a convention agreed after a collision")
+    coord.add_argument("text")
+
     args = ap.parse_args()
 
     run_dir = os.environ.get("ARENA_RUN_DIR")
@@ -53,6 +80,10 @@ def main() -> int:
     if not run_dir or not agent:
         print("arena-log: not inside an arena session ($ARENA_RUN_DIR/$ARENA_AGENT unset)",
               file=sys.stderr)
+        return 1
+    protocol = os.environ.get("ARENA_PROTOCOL", "rounds")
+    if args.kind in {"approach", "finding", "disconfirmation", "coordination"} and protocol != "open":
+        print(f"arena-log: '{args.kind}' exists only under the open protocol", file=sys.stderr)
         return 1
 
     text = args.text.strip()
@@ -68,10 +99,29 @@ def main() -> int:
         "text": text,
         "source": "agent",
     }
-    if args.kind == "message" and args.reply_to is not None:
+    kind = args.kind
+    if kind == "message" and args.reply_to is not None:
         fields["reply_to"] = args.reply_to
+    if kind == "approach":
+        # Recorded as a proposal so the diversity analysis sees the slots as
+        # the round-0 idea set; the slot file mirrors the paper's directory.
+        kind = "proposal"
+        fields.update(subtype="approach", title=args.family.strip(), justification="",
+                      detail=text, degenerate="")
+        fields.pop("text")
+        slot = Path(run_dir) / "slots" / agent
+        slot.mkdir(parents=True, exist_ok=True)
+        (slot / "approach.md").write_text(f"# {args.family.strip()}\n\n{text}\n")
+    if kind in {"finding", "disconfirmation"} and args.commit:
+        fields["commit"] = args.commit.strip()
+    if kind == "finding" and args.weak:
+        fields["weak"] = True
 
-    record = append_record(Path(run_dir) / "log.jsonl", args.kind, **fields)
+    record = append_record(Path(run_dir) / "log.jsonl", kind, **fields)
+    if protocol == "open":
+        share = os.environ.get("ARENA_SHARE_LOG", "1") == "1"
+        agents = [a for a in os.environ.get("ARENA_AGENTS", "").split(",") if a]
+        SharedLog(Path(run_dir)).publish_open(share=share, agents=agents or None)
     print(f"arena-log: wrote #{record['id']} to the shared log")
     return 0
 

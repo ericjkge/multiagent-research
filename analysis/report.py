@@ -55,6 +55,36 @@ def build(run_dir: Path) -> str:
         "",
     ]
 
+    if cfg.get("protocol") == "open":
+        lines[lines.index("## Setup") + 2:lines.index("## Setup") + 2] = [
+            f"- protocol: open (Park et al. 2609.21032), shared log "
+            f"{'ON' if cfg.get('open_share_log', True) else 'OFF (independent agents)'}, "
+            f"share per agent {load_json(run_dir, 'budget.json').get('per_agent_quota') or 'unlimited'} runs",
+        ]
+        lines += ["## Open protocol activity", "",
+                  "| agent | runs | ok | best val_bpb | findings | disconfirm. | adoptions | segments | cost |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        agents = sorted({a["id"] for a in cfg.get("agents", [])})
+        per = summary.get("per_agent", {})
+        for a in agents:
+            mine = [c for c in of_type(records, "candidate") if c["agent"] == a]
+            ok = [c["val_bpb"] for c in mine if c.get("status") == "ok" and c.get("val_bpb") is not None]
+            lines.append(
+                f"| {a} | {len(mine)} | {len(ok)} | {min(ok):.6f} | " if ok else f"| {a} | {len(mine)} | 0 | — | "
+            )
+            lines[-1] += (
+                f"{sum(1 for f in of_type(records, 'finding') if f['agent'] == a)} | "
+                f"{sum(1 for f in of_type(records, 'disconfirmation') if f['agent'] == a)} | "
+                f"{sum(1 for f in of_type(records, 'adoption') if f['agent'] == a)} | "
+                f"{per.get(a, {}).get('segments', '?')} | ${per.get(a, {}).get('cost_usd', 0):.2f} |"
+            )
+        approaches = [p for p in of_type(records, "proposal") if p.get("subtype") == "approach"]
+        lines += ["", "Approaches claimed: " + ("; ".join(
+            f"{p['agent']}: {p.get('title', '')}" for p in approaches) or "none"), ""]
+        weak = sum(1 for f in of_type(records, "finding") if f.get("weak"))
+        lines += [f"Findings labelled weak: {weak} of {len(of_type(records, 'finding'))}. "
+                  f"Coordination notes: {len(of_type(records, 'coordination'))}.", ""]
+
     lines += ["## Progress per round", "", "| round | candidates | crashes | best val_bpb | winner |", "|---|---|---|---|---|"]
     for end_rec in sorted(of_type(records, "round_end"), key=lambda r: r["round"]):
         w = end_rec.get("winner")
@@ -116,7 +146,15 @@ def build(run_dir: Path) -> str:
         else:
             msgs.append(m)
 
-    if msgs or echoes:
+    if cfg.get("protocol") == "open":
+        kinds = ("finding", "disconfirmation", "coordination", "adoption", "message")
+        counts = {k: len(of_type(records, k)) for k in kinds}
+        lines += ["## Use of the shared directory", "",
+                  ", ".join(f"{k}s: {n}" for k, n in counts.items()),
+                  f"agents that published at least one finding: "
+                  f"{len({f['agent'] for f in of_type(records, 'finding')})} of {len(cfg.get('agents', []))}",
+                  ""]
+    elif msgs or echoes:
         replies = sum(1 for m in msgs if m.get("reply_to"))
         lines += [
             "## Use of the shared log",

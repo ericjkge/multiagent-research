@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Adopt a peer's approach: take their committed ``train.py`` as your new base.
+
+Open protocol only.  The rule of Park et al. is that an agent adopts a peer's
+approach *only after observing a clearly better measured result*, and keeps
+one meaningful variation of its own afterwards.  This command is how the
+adoption happens on the record: it checks the peer's commit out into your
+worktree (only ``train.py``) and writes an ``adoption`` event to the shared
+directory, so the lineage of every later result can be traced.
+
+    arena-adopt <commit> "why: their 0.9871 beat my best 0.9902; I keep my warmdown change"
+
+Exit codes:
+    0  adopted
+    1  refused (bad commit, not in an open-protocol worktree, sharing is off)
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from orchestrator.sharedlog import SharedLog, append_record  # noqa: E402
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        print(__doc__)
+        return 1
+    commit, why = sys.argv[1], " ".join(sys.argv[2:]).strip()
+
+    run_dir = os.environ.get("ARENA_RUN_DIR")
+    agent = os.environ.get("ARENA_AGENT")
+    if not run_dir or not agent or os.environ.get("ARENA_PROTOCOL") != "open":
+        print("arena-adopt: only available inside an open-protocol arena session", file=sys.stderr)
+        return 1
+    if os.environ.get("ARENA_SHARE_LOG", "1") != "1":
+        print("arena-adopt: this cell runs agents independently; there is nobody to adopt from",
+              file=sys.stderr)
+        return 1
+
+    run_dir = Path(run_dir)
+    records = SharedLog(run_dir).records()
+    source = next((c for c in records if c.get("t") == "candidate"
+                   and str(c.get("commit", "")).startswith(commit)), None)
+    if source is None:
+        print(f"arena-adopt: no result in the score log has commit {commit!r}", file=sys.stderr)
+        return 1
+    if source.get("agent") == agent:
+        print("arena-adopt: that is your own result; just `git checkout` it", file=sys.stderr)
+        return 1
+
+    full = source["commit"]
+    proc = subprocess.run(["git", "checkout", full, "--", "train.py"], capture_output=True, text=True)
+    if proc.returncode != 0:
+        print(f"arena-adopt: git checkout failed: {proc.stderr.strip()}", file=sys.stderr)
+        return 1
+    subprocess.run(["git", "-c", "user.name=arena", "-c", "user.email=arena@local", "commit", "-qam",
+                    f"[{agent}] adopt {full[:7]} from {source.get('agent')}"], capture_output=True)
+
+    rec = append_record(
+        run_dir / "log.jsonl", "adoption",
+        round=int(source.get("round", 0)), agent=agent, commit=full,
+        from_agent=source.get("agent"), from_val_bpb=source.get("val_bpb"),
+        text=why or "(no reason given)", source="agent",
+    )
+    SharedLog(run_dir).publish_open(share=True)
+    print(f"arena-adopt: train.py is now {source.get('agent')}'s {full[:7]} "
+          f"(val_bpb {source.get('val_bpb')}); wrote #{rec['id']}. Keep one variation of your own.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

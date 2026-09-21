@@ -21,10 +21,14 @@ def trajectory(run_dir: Path) -> list[dict]:
         of_type(records, "candidate"), key=lambda c: (c["round"], c["agent"], c["variant"])
     )
 
+    # Under the open protocol there is a single round_start (round 0) and every
+    # run is its own "round" in GPU order, so the baseline comes from it.
+    first_start = min(starts.values(), key=lambda r: r.get("round", 0)) if starts else {}
+
     rows: list[dict] = []
     best = None
     for i, c in enumerate(candidates, start=1):
-        baseline = starts.get(c["round"], {}).get("baseline_bpb")
+        baseline = starts.get(c["round"], first_start).get("baseline_bpb")
         if best is None:
             best = baseline
         if c.get("status") == "ok" and c.get("val_bpb") is not None:

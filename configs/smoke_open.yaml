@@ -1,0 +1,20 @@
+# Laptop smoke test of the OPEN protocol: three Haiku agents, simulated GPU, 9 runs (3 each).
+cell_id: smoke_open
+protocol: open
+harness: claude_code
+agents:
+  - {id: a0, model: claude-haiku-4-5-20251001, effort: low}
+  - {id: a1, model: claude-haiku-4-5-20251001, effort: low}
+  - {id: a2, model: claude-haiku-4-5-20251001, effort: low}
+bon: 1
+train_run_budget: 9
+train_timeout_s: 120
+max_train_attempts: 2
+autoresearch_repo: ~/.cache/arena-fake-autoresearch
+autoresearch_commit: ""
+max_budget_usd_per_session: 2.0
+cell_budget_usd: 8.0
+open_session_timeout_s: 1500
+open_max_resumes: 3
+fake_gpu: true
+seed: 7

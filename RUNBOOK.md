@@ -104,6 +104,26 @@ budget in the same critical section, and refuses once the budget is gone. `bin/g
 PreToolUse hook that blocks direct `train.py` invocation, edits to `prepare.py`, new dependencies and
 anything leaving the box — it fires even under `bypassPermissions`.
 
+## The open protocol (Park et al. 2609.21032)
+
+`configs/open_*.yaml` and `configs/indep_*.yaml` run the second protocol on the same 36-run budget.
+Differences that matter when running them:
+
+- Each agent is one long Claude Code session, resumed while its share of runs lasts
+  (`open_max_resumes`, `open_session_timeout_s`). Agent cost per cell is similar to the round
+  protocol; raise `max_budget_usd_per_session` for Sonnet.
+- Nothing is orchestrated between runs: the agent decides when to train, what to publish and whether
+  to adopt. Watch `runs/<dir>/log.md` change live.
+- The cell's result is the best measured run, whoever made it. `analysis.verify` additionally checks
+  that every GPU run is on the score log, that no agent exceeded its share, and that an independent
+  cell contains no adoption events.
+- The independent control (`indep_*`) gives each agent its own `log_<agent>.md`; agents cannot see
+  each other at all. Compare it against `open_*` with the same N to get the value of communication,
+  and both against `*_1` to get the value of copies.
+
+Smoke tests: `bash scripts/smoke_test.sh --config configs/smoke_open.yaml --fake-agents` (free) and
+without `--fake-agents` (a few dollars of Haiku), plus `configs/smoke_open_indep.yaml`.
+
 ## Analysis
 
 ```bash

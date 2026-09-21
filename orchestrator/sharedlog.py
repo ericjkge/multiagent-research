@@ -111,6 +111,121 @@ class SharedLog:
         )
         self.results_tsv.write_text(render_results_tsv(records))
 
+    def publish_open(self, budget: dict | None = None, agents: list[str] | None = None,
+                     share: bool = True) -> None:
+        """Regenerate the agent-facing view under the open protocol.
+
+        Called by the orchestrator at start and by ``arena-train`` /
+        ``arena-log`` / ``arena-adopt`` after every write, because under the
+        open protocol there is no phase boundary at which the orchestrator
+        could do it.  With ``share`` off each agent gets its own ``log_<id>.md``
+        holding only its own entries: the independent-agents control.
+        """
+        records = self.records()
+        if budget is None:
+            bp = self.run_dir / "budget.json"
+            budget = json.loads(bp.read_text()) if bp.exists() else None
+        self.results_tsv.write_text(render_results_tsv(records))
+        if share:
+            self.markdown.write_text(render_open_log_md(records, budget))
+            return
+        for agent in agents or sorted({r.get("agent") for r in records if r.get("agent")}):
+            mine = [r for r in records if r.get("agent") in (agent, None, "")]
+            (self.run_dir / f"log_{agent}.md").write_text(
+                render_open_log_md(mine, budget, only_agent=agent)
+            )
+
+
+def open_log_path(run_dir: Path, agent: str, share: bool) -> Path:
+    return Path(run_dir) / ("log.md" if share else f"log_{agent}.md")
+
+
+def render_open_log_md(records: list[dict], budget: dict | None = None,
+                       only_agent: str | None = None) -> str:
+    """The shared directory of the open protocol, rendered as one document.
+
+    Mirrors the layout of Park et al.: approaches (the slots), findings (an
+    append-only broadcast channel), disconfirmations, a score log with one
+    line per attempt, coordination notes, and adoption events.
+    """
+    by = {}
+    for r in records:
+        by.setdefault(r.get("t"), []).append(r)
+
+    out: list[str] = ["# Shared research directory (open protocol)", ""]
+    if only_agent:
+        out += [f"_You are `{only_agent}`. This cell runs agents independently: you see only "
+                "your own entries and results. There are no peers to read or reach._", ""]
+    starts = by.get("round_start", [])
+    if starts:
+        out += [f"Baseline at start of the cell: **val_bpb {starts[0].get('baseline_bpb', 0):.6f}** "
+                f"(commit {str(starts[0].get('baseline_commit', ''))[:7]})", ""]
+    if budget:
+        left = budget.get("budget_runs", 0) - budget.get("runs", 0)
+        quota = budget.get("per_agent_quota") or 0
+        out.append(f"**Training runs remaining in this cell: {left} of {budget.get('budget_runs', 0)}.**")
+        if quota:
+            used = {}
+            for c in budget.get("claims", []):
+                used[c["agent"]] = used.get(c["agent"], 0) + 1
+            shares = ", ".join(f"{a}: {quota - n} left" for a, n in sorted(used.items()))
+            out.append(f"Each agent's share is {quota} runs. Used so far: {shares or 'none yet'}.")
+        out.append("")
+
+    out += ["## Approaches (slots)", ""]
+    approaches = [p for p in by.get("proposal", []) if p.get("subtype") == "approach"]
+    if approaches:
+        for p in sorted(approaches, key=lambda x: x.get("id", 0)):
+            out.append(f"- `#{p.get('id', '?')}` **{p['agent']}** — {p.get('title', '')}: "
+                       f"{_truncate(p.get('detail', ''), 600)}")
+    else:
+        out.append("_No approach claimed yet._")
+    out.append("")
+
+    out += ["## Score log (one line per attempt, in GPU order)", "",
+            "| # | agent | val_bpb | status | commit | attempt |", "|---|---|---|---|---|---|"]
+    best = None
+    for c in sorted(by.get("candidate", []), key=lambda x: x.get("round", 0)):
+        vb = c.get("val_bpb")
+        metric = f"{vb:.6f}" if (c.get("status") == "ok" and vb is not None) else "—"
+        if c.get("status") == "ok" and vb is not None and (best is None or vb < best[0]):
+            best = (vb, c.get("agent"), c.get("commit", ""))
+        out.append(f"| {c.get('round', '?')} | {c.get('agent', '?')} | {metric} | {c.get('status', '?')} | "
+                   f"`{str(c.get('commit', ''))[:7]}` | {_truncate(c.get('description') or c.get('title', ''), 160)} |")
+    if best:
+        out += ["", f"**Best so far: val_bpb {best[0]:.6f} by {best[1]} at commit `{best[2][:7]}`.**"]
+    out.append("")
+
+    def section(title: str, kind: str, empty: str) -> None:
+        out.append(f"## {title}")
+        out.append("")
+        items = by.get(kind, [])
+        if not items:
+            out.append(f"_{empty}_")
+        for m in sorted(items, key=lambda x: x.get("id", 0)):
+            tag = " _(weak claim)_" if m.get("weak") else ""
+            ref = f" [commit `{str(m.get('commit'))[:7]}`]" if m.get("commit") else ""
+            reply = f" _(re: #{m.get('reply_to')})_" if m.get("reply_to") else ""
+            out.append(f"- `#{m.get('id', '?')}` **{m.get('agent', '?')}**{reply}{tag}{ref}: "
+                       f"{_truncate(m.get('text', ''), 900)}")
+        out.append("")
+
+    section("Findings (append-only broadcast)", "finding", "No findings published yet.")
+    section("Disconfirmations (negative results, attempts to falsify)", "disconfirmation",
+            "No disconfirmations yet.")
+    adoptions = by.get("adoption", [])
+    out += ["## Adoption events", ""]
+    if adoptions:
+        for a in sorted(adoptions, key=lambda x: x.get("id", 0)):
+            out.append(f"- `#{a.get('id', '?')}` **{a['agent']}** adopted `{str(a.get('commit', ''))[:7]}` "
+                       f"from {a.get('from_agent', '?')}: {_truncate(a.get('text', ''), 300)}")
+    else:
+        out.append("_No adoptions yet._")
+    out.append("")
+    section("Coordination (conventions agreed after collisions)", "coordination", "Nothing yet.")
+    section("Messages", "message", "No messages.")
+    return "\n".join(out) + "\n"
+
 
 def _truncate(text: str, limit: int = MAX_DETAIL_CHARS) -> str:
     text = (text or "").strip()

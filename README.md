@@ -26,6 +26,34 @@ The best improving candidate of the round becomes the baseline **for every agent
 lineage is what makes a cell a single comparable research trajectory rather than N private
 hill-climbs, and what makes the 1-agent cell a genuine control.
 
+### Two protocols, one budget
+
+The arena runs two communication structures over the same run budget, so they can be compared directly:
+
+- **`protocol: rounds`** (above): lockstep propose → select → respond, one shared lineage, the best
+  candidate of the round becomes everyone's baseline.
+- **`protocol: open`**: the structure of Park, Kontonis, Garg, Krishnamurthy and Papailiopoulos,
+  *Scaling Discovery through Test-Time Communication* (arXiv 2609.21032, Sep 17 2026). No rounds and
+  no roles. Each agent gets one long autonomous session in a private worktree and a share of the run
+  budget (36 / N). It declares a distinct approach in a slot, publishes findings (with the commit that
+  reproduces them) and disconfirmations to an append-only shared directory, and adopts a peer's
+  approach **only after observing a clearly better measured result**, keeping one variation of its
+  own. `open_share_log: false` runs the same agents blind to each other: the paper's independent
+  (best@k) control at matched compute.
+
+| config | protocol | agents | what it measures |
+|---|---|---|---|
+| `haiku_1`, `haiku_3`, `haiku_6` | rounds | 1 / 3 / 6 | the round protocol vs agent count |
+| `open_haiku_1`, `open_haiku_3`, `open_haiku_6` | open | 1 / 3 / 6 | the paper's protocol vs agent count |
+| `indep_haiku_6` | open, no sharing | 6 | six agents that cannot talk (best@6 at fixed compute) |
+| same three families with `sonnet_*` | | | does the answer change with model strength |
+
+Under `open`, `arena-train --title "..."` commits `train.py` before the run and writes the score-log
+line after it; `arena-log approach|finding|disconfirmation|coordination` are the directory's
+channels; `arena-adopt <commit> "why"` is adoption on the record. The rendered directory is
+`runs/<dir>/log.md` (or `log_<agent>.md` per agent when sharing is off) and every agent's runs are
+archived under `runs/<dir>/runs/<agent>/`.
+
 ### Compute matching
 
 Every cell gets the same budget of **training runs** — 36, about 3.3 H100-hours. A run is a run: a
@@ -73,6 +101,8 @@ clock and run count before committing 18 GPU-hours.
 ```bash
 bash scripts/smoke_test.sh --fake-agents   # free: no API calls at all
 bash scripts/smoke_test.sh                 # a few cents: real Haiku agents
+bash scripts/smoke_test.sh --config configs/smoke_open.yaml --fake-agents   # open protocol, free
+bash scripts/smoke_test.sh --config configs/smoke_open.yaml                 # open protocol, real agents
 ```
 
 `--fake-gpu` simulates training and `--fake-agents` simulates the researcher, so the whole loop —
@@ -105,12 +135,14 @@ resource held fixed across the grid.
 | path | role |
 |---|---|
 | `orchestrator/arena.py` | the round loop: propose → select → respond, selection, lineage |
+| `orchestrator/open_arena.py` | the open protocol: async sessions over a shared directory (Park et al.) |
 | `orchestrator/phases.py` | prompts and JSON schemas for the three phases |
 | `orchestrator/sharedlog.py` | the collaboration medium; flock'd, numbered, agent-writable |
 | `orchestrator/harness.py` | Claude Code, OpenCode and fake drivers behind one `Harness` protocol |
 | `orchestrator/worktrees.py` | one git worktree per candidate, one ref per result |
 | `bin/arena-train` | **the only way to train**: slot claim + GPU mutex |
 | `bin/arena-log` | **the only way to write to the log**: flock'd, attributed, numbered |
+| `bin/arena-adopt` | open protocol: adopt a peer's commit, on the record |
 | `bin/guard_hook.py` | PreToolUse hook enforcing the rules agents must not break |
 | `prompts/` | the agent-facing instrument — edit deliberately, it changes the science |
 | `analysis/` | verification, the per-cell report, and the cross-cell comparison |

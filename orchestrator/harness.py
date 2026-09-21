@@ -327,6 +327,9 @@ class FakeHarness:
                 "response": f"Noted. I would watch {knob} for a VRAM regression.",
                 "notes": "",
             }
+        elif phase == "open":
+            structured = None
+            self._do_open(Path(cwd), env or {})
         else:
             structured = None
             self._do_select(Path(cwd), title, knob, value, env or {})
@@ -372,6 +375,76 @@ class FakeHarness:
                 indent=2,
             )
         )
+
+
+    def _do_open(self, worktree: Path, env: dict[str, str]) -> None:
+        """A canned open-protocol researcher: claim a slot, loop attempts, publish, adopt, finish."""
+        run_env = {**dict(os.environ), **env}
+
+        def tool(*argv: str) -> subprocess.CompletedProcess:
+            return subprocess.run(list(argv), cwd=str(worktree), env=run_env,
+                                  capture_output=True, text=True, timeout=900)
+
+        with self._lock:
+            family, knob, value = self._rng.choice(_FAKE_IDEAS)
+        tool("arena-log", "approach", family.lower().replace(" ", "-"),
+             f"canned fake-agent approach: vary {knob} and nearby knobs; I will not touch the architecture")
+
+        best: tuple[float, str] | None = None
+        for attempt in range(1000):  # arena-train stops us when the share is spent
+            with self._lock:
+                title, knob, value = self._rng.choice(_FAKE_IDEAS)
+                adopt_roll, weak_roll = self._rng.random(), self._rng.random()
+            train_py = worktree / "train.py"
+            if train_py.exists():
+                src = train_py.read_text()
+                patched, n = re.subn(rf"^{re.escape(knob)} = .*$", f"{knob} = {value}", src,
+                                     count=1, flags=re.M)
+                if n:
+                    train_py.write_text(patched)
+            proc = tool("arena-train", "--title", f"{knob} = {value} (fake attempt {attempt + 1})")
+            if proc.returncode == 2:
+                break
+            m = re.search(r"^val_bpb:\s+([\d.]+)", proc.stdout, re.M)
+            commit = re.search(r"commit ([0-9a-f]{7})", proc.stdout)
+            commit_s = commit.group(1) if commit else ""
+            if m:
+                val = float(m.group(1))
+                if best is None or val < best[0]:
+                    best = (val, commit_s)
+                    tool("arena-log", "finding", "--commit", commit_s,
+                         *(["--weak"] if weak_roll < 0.3 else []),
+                         f"{knob} = {value} gives val_bpb {val:.6f} (fake agent, single run)")
+                else:
+                    tool("arena-log", "disconfirmation", "--commit", commit_s,
+                         f"{knob} = {value} did not beat my best ({val:.6f})")
+            else:
+                tool("arena-log", "disconfirmation", "--commit", commit_s,
+                     f"{knob} = {value} crashed (fake agent)")
+            # adopt a peer's better result now and then, as the protocol allows
+            if adopt_roll < 0.25 and env.get("ARENA_SHARE_LOG", "1") == "1":
+                log = Path(env["ARENA_RUN_DIR"]) / "log.jsonl"
+                peers = []
+                for line in log.read_text().splitlines():
+                    try:
+                        rec = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if (rec.get("t") == "candidate" and rec.get("status") == "ok"
+                            and rec.get("agent") != env.get("ARENA_AGENT")
+                            and rec.get("val_bpb") is not None
+                            and (best is None or rec["val_bpb"] < best[0])):
+                        peers.append(rec)
+                if peers:
+                    peer = min(peers, key=lambda r: r["val_bpb"])
+                    tool("arena-adopt", peer["commit"][:7],
+                         f"their {peer['val_bpb']:.6f} beats my best; keeping my {knob} change")
+        (worktree / "final.json").write_text(json.dumps({
+            "status": "finished",
+            "best_commit": best[1] if best else "",
+            "best_val_bpb": best[0] if best else None,
+            "summary": "fake agent; share spent",
+        }, indent=2))
 
 
 def parse_trailing_json(text: str) -> dict | None:

@@ -1,0 +1,24 @@
+      # sonnet x 3 agent(s), OPEN protocol (Park et al. 2609.21032): no rounds, shared directory,
+      # each agent works asynchronously against a 12-run share of the same 36-run budget.
+      cell_id: open_sonnet_3
+      protocol: open
+      harness: claude_code
+      agents:
+        - {id: a0, model: claude-sonnet-5, effort: medium}
+- {id: a1, model: claude-sonnet-5, effort: medium}
+- {id: a2, model: claude-sonnet-5, effort: medium}
+      bon: 1
+
+      train_run_budget: 36
+      train_timeout_s: 600
+      max_train_attempts: 3
+
+      autoresearch_repo: ~/autoresearch
+      autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+      # one long session per agent; segments are resumed while the share lasts
+      max_budget_usd_per_session: 25.0
+      cell_budget_usd: 200.0
+      open_session_timeout_s: 5400
+      open_max_resumes: 8
+      seed: 0

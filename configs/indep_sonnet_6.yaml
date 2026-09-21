@@ -1,0 +1,27 @@
+  # sonnet x 6 INDEPENDENT agents: open protocol with the shared log switched off.
+  # Each agent sees only its own entries; this is Park et al.'s best@k control at matched compute.
+  cell_id: indep_sonnet_6
+  protocol: open
+  open_share_log: false
+  harness: claude_code
+  agents:
+    - {id: a0, model: claude-sonnet-5, effort: medium}
+- {id: a1, model: claude-sonnet-5, effort: medium}
+- {id: a2, model: claude-sonnet-5, effort: medium}
+- {id: a3, model: claude-sonnet-5, effort: medium}
+- {id: a4, model: claude-sonnet-5, effort: medium}
+- {id: a5, model: claude-sonnet-5, effort: medium}
+  bon: 1
+
+  train_run_budget: 36
+  train_timeout_s: 600
+  max_train_attempts: 3
+
+  autoresearch_repo: ~/autoresearch
+  autoresearch_commit: ""
+
+  max_budget_usd_per_session: 25.0
+  cell_budget_usd: 200.0
+  open_session_timeout_s: 5400
+  open_max_resumes: 8
+  seed: 0

@@ -17,25 +17,37 @@ are free.  Seconds are still recorded, as telemetry.
 The slot is claimed *before* training starts, so a cell can never overshoot
 its budget even if the orchestrator's own accounting lags.
 
+Under the **open protocol** (``$ARENA_PROTOCOL=open``) there is no orchestrator
+phase around a run, so this command also does what the round loop would have
+done: it commits ``train.py`` before training (the commit hash is the
+reproduction pointer for the finding you will publish), records the result in
+the shared directory's score log afterwards, archives ``run.log`` and enforces
+the per-agent share of the budget.  ``arena-train --title "what this attempt
+changes"`` is how the score log knows what a line means.
+
 Exit codes:
     0  training completed (the run may still have crashed on its own merits)
-    2  no slots left in the cell's run budget -- stop experimenting
+    2  no slots left -- the cell's budget, or your share of it, is spent
     3  the run exceeded the wall-clock timeout and was killed
-    4  called outside the select phase
+    4  called outside the select phase (round protocol only)
 """
 
 from __future__ import annotations
 
+import argparse
 import fcntl
 import hashlib
 import json
 import os
 import random
+import shutil
 import signal
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 NOMINAL_RUN_SECONDS = 330.0
 
@@ -47,15 +59,17 @@ def env(name: str, default: str | None = None) -> str:
     return value
 
 
-def claim_slot(budget_path: Path, agent: str, round_idx: str) -> dict | None:
-    """Take one run slot, or return None if the cell has none left.
+def claim_slot(budget_path: Path, agent: str, round_idx: str, quota: int) -> dict | str:
+    """Take one run slot; return "cell" or "quota" when nothing is left.
 
     Caller must hold the GPU lock: this is a read-modify-write, and the whole
     point is that two agents cannot claim the last slot at once.
     """
     state = json.loads(budget_path.read_text())
     if state.get("runs", 0) >= state["budget_runs"]:
-        return None
+        return "cell"
+    if quota and sum(1 for c in state.get("claims", []) if c.get("agent") == agent) >= quota:
+        return "quota"
     state["runs"] = state.get("runs", 0) + 1
     state.setdefault("claims", []).append(
         {"run": state["runs"], "agent": agent, "round": int(round_idx), "at": time.time()}
@@ -115,7 +129,55 @@ def simulate(run_dir: Path, round_idx: str, agent: str, variant: str, seed: str)
     return log, NOMINAL_RUN_SECONDS
 
 
+def git(*args: str, check: bool = False) -> str:
+    proc = subprocess.run(["git", *args], capture_output=True, text=True)
+    if check and proc.returncode != 0:
+        raise RuntimeError(proc.stderr.strip())
+    return proc.stdout.strip()
+
+
+def open_commit(agent: str, title: str) -> str:
+    """Open protocol: pin the code that is about to be measured."""
+    if git("status", "--porcelain", "--", "train.py"):
+        git("add", "train.py")
+        git("-c", "user.name=arena", "-c", "user.email=arena@local", "commit", "-qm",
+            f"[{agent}] {title[:72] or 'attempt'}")
+    return git("rev-parse", "HEAD")
+
+
+def open_record(run_dir: Path, agent: str, seq: int, commit: str, title: str,
+                log_path: Path, workdir: Path, charged_s: float) -> None:
+    """Open protocol: the score-log line, the archive and the re-rendered view."""
+    from orchestrator.gpu import parse_run_log
+    from orchestrator.sharedlog import SharedLog, append_record
+
+    m = parse_run_log(log_path)
+    append_record(
+        run_dir / "log.jsonl", "candidate",
+        round=seq, agent=agent, variant=0, commit=commit,
+        val_bpb=m.val_bpb, peak_vram_mb=m.peak_vram_mb,
+        status="ok" if m.ok else "crash",
+        title=title, description=title, reflection="",
+        error=(m.error or "")[:2000], attempts=1, cost_usd=0.0, num_turns=0,
+        charged_s=round(charged_s, 2), source="arena-train",
+    )
+    tag = os.environ.get("ARENA_TAG", "open")
+    git("update-ref", f"refs/arena/{tag}/open_{agent}_{seq:03d}", commit)
+    dest = run_dir / "runs" / agent / f"run{seq:03d}"
+    dest.mkdir(parents=True, exist_ok=True)
+    for name in ("run.log", "train.py"):
+        if (workdir / name).exists():
+            shutil.copy2(workdir / name, dest / name)
+    share = os.environ.get("ARENA_SHARE_LOG", "1") == "1"
+    agents = [a for a in os.environ.get("ARENA_AGENTS", "").split(",") if a]
+    SharedLog(run_dir).publish_open(share=share, agents=agents or None)
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(prog="arena-train", add_help=True)
+    ap.add_argument("--title", default="", help="open protocol: what this attempt changes (one line)")
+    args = ap.parse_args()
+
     run_dir = Path(env("ARENA_RUN_DIR")).resolve()
     agent = env("ARENA_AGENT")
     variant = env("ARENA_VARIANT", "0")
@@ -123,12 +185,14 @@ def main() -> int:
     timeout_s = float(env("ARENA_TIMEOUT_S", "600"))
     fake = env("ARENA_FAKE_GPU", "0") == "1"
     seed = env("ARENA_SEED", "0")
+    protocol = env("ARENA_PROTOCOL", "rounds")
+    quota = int(env("ARENA_AGENT_QUOTA", "0") or 0)
 
     # Slots are claimed in the select phase.  Training during propose or
     # respond would spend the group's budget outside the protocol and make the
     # round's candidate set not mean what the log says it means.
     phase = env("ARENA_PHASE", "select")
-    if phase != "select":
+    if phase not in ("select", "open"):
         print(
             f"arena-train: this is the {phase} phase, not select. You cannot claim a "
             "run slot here. Say what you want to say and finish the phase.",
@@ -142,6 +206,10 @@ def main() -> int:
     workdir = Path.cwd()
     log_path = workdir / "run.log"
 
+    commit = ""
+    if protocol == "open":
+        commit = open_commit(agent, args.title)
+
     lock_path.touch(exist_ok=True)
     lock_file = open(lock_path, "w")
 
@@ -151,8 +219,8 @@ def main() -> int:
     queued_s = time.time() - waiting_since
 
     try:
-        claimed = claim_slot(budget_path, agent, round_idx)
-        if claimed is None:
+        claimed = claim_slot(budget_path, agent, round_idx, quota)
+        if claimed == "cell":
             print(
                 "arena-train: the cell's training-run budget is exhausted; there are "
                 "no slots left. Stop experimenting, commit what you have, write "
@@ -160,17 +228,29 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
+        if claimed == "quota":
+            print(
+                f"arena-train: your share of the budget ({quota} runs) is spent. You cannot "
+                "train again in this cell. Publish your final finding (arena-log finding ...), "
+                "write final.json, and finish.",
+                file=sys.stderr,
+            )
+            return 2
 
-        remaining = claimed["budget_runs"] - claimed["runs"]
+        seq = claimed["runs"]
+        remaining = claimed["budget_runs"] - seq
+        mine = sum(1 for c in claimed.get("claims", []) if c.get("agent") == agent)
+        share_note = f"; your share: {quota - mine} of {quota} left" if quota else ""
         print(f"arena-train: GPU acquired (waited {queued_s:.0f}s; claimed run "
-              f"{claimed['runs']} of {claimed['budget_runs']}, {remaining} left "
-              f"for the whole cell)", flush=True)
+              f"{seq} of {claimed['budget_runs']}, {remaining} left "
+              f"for the whole cell{share_note})", flush=True)
 
         started = time.time()
         timed_out = False
 
         if fake:
-            log_text, charge_s = simulate(run_dir, round_idx, agent, variant, seed)
+            log_text, charge_s = simulate(run_dir, str(seq) if protocol == "open" else round_idx,
+                                          agent, variant, seed)
             log_path.write_text(log_text)
             exit_code = 0
         else:
@@ -206,7 +286,7 @@ def main() -> int:
         )
 
         record = {
-            "round": int(round_idx),
+            "round": seq if protocol == "open" else int(round_idx),
             "agent": agent,
             "variant": int(variant),
             "workdir": str(workdir),
@@ -221,10 +301,14 @@ def main() -> int:
             "fake": fake,
             "spent_s_after": round(state["spent_s"], 2),
             "runs_after": state["runs"],
+            "commit": commit,
         }
         with open(timeline_path, "a") as fh:
             fh.write(json.dumps(record) + "\n")
         (workdir / "arena_run.json").write_text(json.dumps(record, indent=2))
+
+        if protocol == "open":
+            open_record(run_dir, agent, seq, commit, args.title, log_path, workdir, charge_s)
 
     finally:
         fcntl.flock(lock_file, fcntl.LOCK_UN)
@@ -242,6 +326,8 @@ def main() -> int:
     for line in log_path.read_text().splitlines():
         if line.startswith(("val_bpb:", "peak_vram_mb:", "training_seconds:")):
             print(line)
+    if protocol == "open":
+        print(f"arena-train: result recorded in the score log as run #{seq}, commit {commit[:7]}")
     print(f"arena-train: done in {elapsed:.0f}s (exit {exit_code})")
     return 0
 
