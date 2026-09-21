@@ -25,6 +25,7 @@ DIRECT_TRAIN = re.compile(
 )
 ADD_DEPS = re.compile(r"(?:pip\s+install|uv\s+add|uv\s+pip\s+install|conda\s+install|poetry\s+add)")
 EXFIL = re.compile(r"(?:^|[|;&]|\s)(?:git\s+push|gh\s+(?:pr|repo|release)|scp|rsync\s+[^|;&]*::)")
+ARENA_CMD = re.compile(r"\barena-(?:train|log)\b")
 
 RULES = (
     (
@@ -74,12 +75,15 @@ def main() -> None:
 
     if tool in {"Bash", "BashOutput"}:
         command = tool_input.get("command", "")
-        if "arena-train" not in command:
+        # `arena-train` and `arena-log` are the sanctioned entry points, so the
+        # bare-command patterns must not fire on them -- but a disallowed
+        # command chained onto one still has to be caught.
+        if not ARENA_CMD.search(command):
             for pattern, reason in RULES:
                 if pattern.search(command):
                     deny(reason)
         elif ADD_DEPS.search(command) or EXFIL.search(command):
-            deny("Disallowed command chained onto arena-train.")
+            deny("Disallowed command chained onto an arena command.")
 
     if tool in {"Edit", "Write", "NotebookEdit", "MultiEdit"}:
         path = str(tool_input.get("file_path", ""))

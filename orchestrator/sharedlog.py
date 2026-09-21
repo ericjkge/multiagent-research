@@ -1,27 +1,58 @@
-"""The shared log: proposals, responses, experiments and results.
+"""The shared log: proposals, messages, experiments and results.
 
-This is the collaboration medium.  Agents *read* a rendered Markdown view plus
-a Karpathy-format ``results.tsv``; the orchestrator owns every write to the
-underlying JSONL.  That asymmetry is deliberate -- N agent processes appending
-to one file concurrently would interleave and lose records, and the log is the
-primary experimental artifact.  Agents keep genuine write access through the
-``notes`` field of their structured output and through ``scratchpad.md``, which
-is flock-guarded.
+This is the collaboration medium.  Agents have **read and write access**: they
+read a rendered Markdown view plus a Karpathy-format ``results.tsv``, and they
+write through ``bin/arena-log``, which appends to the same JSONL the
+orchestrator writes.
 
-Record types: ``round_start``, ``proposal``, ``response``, ``candidate``,
-``round_end``.
+Because writers are now N agent processes *plus* the orchestrator's own
+threads, every append takes an ``flock`` on the JSONL and computes the record's
+id inside that critical section.  A bare ``a``-mode write is not enough: two
+processes would interleave and the log is the primary experimental artifact.
+
+Every record carries a monotonic integer ``id``, rendered next to the entry in
+``log.md``, which is what lets an agent reply to a *specific* message rather
+than to the round in general.
+
+Record types: ``round_start``, ``proposal``, ``message``, ``response``,
+``note``, ``candidate``, ``round_end``.
 """
 
 from __future__ import annotations
 
 import fcntl
 import json
+import os
 import threading
 import time
 from pathlib import Path
 from typing import Any, Iterable
 
 MAX_DETAIL_CHARS = 1200
+
+
+def append_record(jsonl: Path, kind: str, **fields: Any) -> dict:
+    """Append one record, cross-process safe, assigning it the next id.
+
+    Shared by the orchestrator and by ``bin/arena-log`` so that agent writes
+    and orchestrator writes cannot corrupt each other.
+    """
+    jsonl = Path(jsonl)
+    jsonl.touch(exist_ok=True)
+    with open(jsonl, "r+") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            # The id is the count of existing records; computing it under the
+            # same lock as the write is what makes it unique.
+            existing = sum(1 for line in fh if line.strip())
+            record = {"id": existing + 1, "t": kind, "ts": time.time(), **fields}
+            fh.seek(0, os.SEEK_END)
+            fh.write(json.dumps(record) + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+    return record
 
 
 class SharedLog:
@@ -37,11 +68,10 @@ class SharedLog:
     # -- writing ---------------------------------------------------------
 
     def append(self, kind: str, **fields: Any) -> dict:
-        record = {"t": kind, "ts": time.time(), **fields}
+        # The threading lock keeps the orchestrator's own threads off each
+        # other; append_record's flock keeps agent processes off all of them.
         with self._lock:
-            with open(self.jsonl, "a") as fh:
-                fh.write(json.dumps(record) + "\n")
-        return record
+            return append_record(self.jsonl, kind, **fields)
 
     def records(self) -> list[dict]:
         if not self.jsonl.exists():
@@ -65,11 +95,19 @@ class SharedLog:
 
     # -- rendering the agent-facing view ---------------------------------
 
-    def publish(self, upto_round: int, include_proposals_for: int | None = None) -> None:
+    def publish(
+        self,
+        upto_round: int,
+        include_proposals_for: int | None = None,
+        include_results_for: int | None = None,
+        budget: dict | None = None,
+    ) -> None:
         """Regenerate the files agents read.  Called before each phase."""
         records = self.records()
         self.markdown.write_text(
-            render_log_md(records, upto_round, include_proposals_for)
+            render_log_md(
+                records, upto_round, include_proposals_for, include_results_for, budget
+            )
         )
         self.results_tsv.write_text(render_results_tsv(records))
 
@@ -77,6 +115,22 @@ class SharedLog:
 def _truncate(text: str, limit: int = MAX_DETAIL_CHARS) -> str:
     text = (text or "").strip()
     return text if len(text) <= limit else text[:limit].rstrip() + " [...]"
+
+
+def _render_messages(msgs: list[dict]) -> list[str]:
+    """Messages in the order they were written, with reply targets shown.
+
+    Threading is rendered as an explicit "re: #n" rather than by nesting: an
+    agent reads this as flat text in a prompt, and indentation is a weaker
+    signal there than the id itself.
+    """
+    out: list[str] = []
+    for m in sorted(msgs, key=lambda x: x.get("id", 0)):
+        text = _truncate(m.get("text", ""), 900)
+        reply = m.get("reply_to")
+        tag = f" _(re: #{reply})_" if reply else ""
+        out.append(f"- `#{m.get('id', '?')}` **{m.get('agent', '?')}**{tag}: {text}")
+    return out
 
 
 def render_results_tsv(records: Iterable[dict]) -> str:
@@ -104,12 +158,16 @@ def render_log_md(
     records: list[dict],
     upto_round: int,
     include_proposals_for: int | None = None,
+    include_results_for: int | None = None,
+    budget: dict | None = None,
 ) -> str:
     """The running log as the agents see it.
 
     Rounds strictly before ``upto_round`` are rendered in full.  The current
-    round's proposals appear only during the respond phase, which is what makes
-    propose independent and respond collaborative.
+    round is revealed in stages: its proposals once everyone has proposed, its
+    results once everyone has run.  That staging is what makes propose
+    independent and respond informed -- an agent proposing must not see its
+    peers' proposals, and an agent responding must see the measurements.
     """
     by_round: dict[int, dict[str, list[dict]]] = {}
     for r in records:
@@ -129,6 +187,15 @@ def render_log_md(
             "",
         ]
 
+    if budget:
+        left = budget.get("budget_runs", 0) - budget.get("runs", 0)
+        out += [
+            f"**Training runs remaining in this cell: {left} of "
+            f"{budget.get('budget_runs', 0)}.** This is the shared, fixed budget for "
+            "the whole cell; every run any agent starts spends one, crash or not.",
+            "",
+        ]
+
     for rnd in sorted(k for k in by_round if k < upto_round):
         slot = by_round[rnd]
         start = (slot.get("round_start") or [{}])[0]
@@ -142,17 +209,18 @@ def render_log_md(
         if slot.get("proposal"):
             out.append("### Proposals")
             for p in sorted(slot["proposal"], key=lambda x: x["agent"]):
-                out.append(f"- **{p['agent']} — {p.get('title', '')}**")
+                out.append(f"- `#{p.get('id', '?')}` **{p['agent']} — {p.get('title', '')}**")
                 out.append(f"  - why: {_truncate(p.get('justification', ''), 300)}")
                 detail = _truncate(p.get("detail", ""))
                 if detail:
                     out.append(f"  - detail: {detail}")
             out.append("")
 
-        if slot.get("response"):
-            out.append("### Responses")
-            for resp in sorted(slot["response"], key=lambda x: x["agent"]):
-                out.append(f"- **{resp['agent']}**: {_truncate(resp.get('text', ''), 900)}")
+        if slot.get("response") or slot.get("message"):
+            out.append("### Messages")
+            out += _render_messages(
+                (slot.get("response") or []) + (slot.get("message") or [])
+            )
             out.append("")
 
         if slot.get("candidate"):
@@ -191,13 +259,57 @@ def render_log_md(
                 )
             out.append("")
 
+    if include_results_for is not None:
+        slot = by_round.get(include_results_for, {})
+        cands = slot.get("candidate", [])
+        if cands:
+            out.append(f"## Round {include_results_for} — results, just in")
+            out.append("")
+            for c in sorted(cands, key=lambda x: (x["agent"], x.get("variant", 0))):
+                label = f"{c['agent']}/v{c.get('variant', 0)}"
+                if c.get("status") != "ok" or c.get("val_bpb") is None:
+                    out.append(
+                        f"- `{label}` **{c.get('status', 'crash').upper()}** — "
+                        f"{_truncate(c.get('description', ''), 200)}"
+                        f" ({_truncate(c.get('error', ''), 300)})"
+                    )
+                else:
+                    vram = c.get("peak_vram_mb") or 0.0
+                    out.append(
+                        f"- `{label}` val_bpb **{c['val_bpb']:.6f}** ({vram / 1024:.1f} GB) — "
+                        f"{_truncate(c.get('description', ''), 200)}"
+                    )
+                    if c.get("reflection"):
+                        out.append(f"  - {c['agent']} says: {_truncate(c['reflection'], 400)}")
+            out.append("")
+
+            end = (slot.get("round_end") or [{}])[0]
+            if end.get("improved"):
+                w = end.get("winner", {})
+                out.append(
+                    f"**Outcome:** {w.get('agent')}/v{w.get('variant')} wins the round; the "
+                    f"new baseline for everyone is val_bpb {end.get('new_baseline_bpb', 0):.6f}."
+                )
+            elif end:
+                out.append(
+                    "**Outcome:** nothing beat the baseline; it is unchanged at "
+                    f"val_bpb {end.get('new_baseline_bpb', 0):.6f}."
+                )
+            out.append("")
+
+        msgs = slot.get("message", [])
+        if msgs:
+            out.append("### Messages already sent this round")
+            out += _render_messages(msgs)
+            out.append("")
+
     if include_proposals_for is not None:
         current = by_round.get(include_proposals_for, {}).get("proposal", [])
         if current:
             out.append(f"## Round {include_proposals_for} — proposals on the table now")
             out.append("")
             for p in sorted(current, key=lambda x: x["agent"]):
-                out.append(f"### {p['agent']}: {p.get('title', '')}")
+                out.append(f"### `#{p.get('id', '?')}` {p['agent']}: {p.get('title', '')}")
                 out.append(f"*Justification:* {_truncate(p.get('justification', ''), 400)}")
                 out.append("")
                 out.append(_truncate(p.get("detail", "")))

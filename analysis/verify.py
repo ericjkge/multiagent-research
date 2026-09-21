@@ -32,11 +32,24 @@ def check(run_dir: Path) -> list[str]:
                 f"{later['agent']}/v{later['variant']} in round {later['round']}"
             )
 
-    # 2. compute matching
-    if budget and budget.get("spent_s", 0) > budget.get("budget_s", 0) * 1.05:
-        failures.append(
-            f"GPU budget overspent: {budget['spent_s']:.0f}s of {budget['budget_s']:.0f}s"
-        )
+    # 2. compute matching -- the budget is runs, and it is a hard ceiling.
+    # arena-train claims a slot before training, so any overshoot at all means
+    # something trained outside the sanctioned path.
+    if budget:
+        used, allowed = budget.get("runs", 0), budget.get("budget_runs", 0)
+        if used > allowed:
+            failures.append(f"run budget overspent: {used} runs of {allowed}")
+        if len(timeline) > allowed:
+            failures.append(
+                f"{len(timeline)} training runs on the GPU timeline but the budget "
+                f"was {allowed}: something trained without claiming a slot"
+            )
+        # Every run on the timeline should correspond to a claim.
+        claims = len(budget.get("claims", []))
+        if claims and claims != len(timeline):
+            failures.append(
+                f"{claims} slots claimed but {len(timeline)} runs recorded on the timeline"
+            )
 
     # 3. every round opened and closed
     starts = {r["round"] for r in of_type(records, "round_start")}
@@ -48,7 +61,9 @@ def check(run_dir: Path) -> list[str]:
     best = None
     for end in sorted(of_type(records, "round_end"), key=lambda r: r["round"]):
         bpb = end.get("new_baseline_bpb")
-        if best is not None and bpb is not None and bpb > best + 1e-12:
+        if bpb is None:
+            continue
+        if best is not None and bpb > best + 1e-12:
             failures.append(f"baseline regressed in round {end['round']}: {best} -> {bpb}")
         best = bpb if best is None else min(best, bpb)
 
@@ -76,15 +91,32 @@ def check(run_dir: Path) -> list[str]:
     if leftover:
         failures.append(f"{len(leftover)} worktree(s) were not cleaned up")
 
-    # 7. the cell ran the candidates it promised
+    # 7. the cell offered the slots it promised
+    # Agents may *decline* a slot, so fewer runs than slots is legitimate and
+    # is itself a finding.  More candidates than slots is not.
     n_agents = len(cfg.get("agents", []))
     bon = cfg.get("bon", 1)
     expected = n_agents * bon
     for rnd, cands in sorted(by_round.items()):
-        if len(cands) != expected:
+        if len(cands) > expected:
             failures.append(
-                f"round {rnd} produced {len(cands)} candidates, expected {expected}"
+                f"round {rnd} produced {len(cands)} candidates, more than the "
+                f"{expected} slots the cell offers"
             )
+
+    # 8. the protocol ran in the right order: propose before select before
+    # respond, within each round.  A response written before the measurement
+    # would mean agents reacted to plans, not results, which is the thing this
+    # ordering exists to prevent.
+    for rnd in sorted(starts):
+        cand_ts = [c["ts"] for c in by_round.get(rnd, []) if c.get("ts")]
+        first_cand = min(cand_ts) if cand_ts else None
+        props = [p["ts"] for p in of_type(records, "proposal") if p.get("round") == rnd]
+        resps = [r["ts"] for r in of_type(records, "response") if r.get("round") == rnd]
+        if props and first_cand and max(props) > first_cand:
+            failures.append(f"round {rnd}: a proposal was logged after training began")
+        if resps and first_cand and min(resps) < first_cand:
+            failures.append(f"round {rnd}: a response was logged before any result existed")
 
     if summary.get("gpu_overlaps"):
         failures.append(f"summary.json reports {summary['gpu_overlaps']} GPU overlaps")

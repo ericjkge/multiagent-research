@@ -5,9 +5,16 @@ agent count (e.g. ``sonnet_3``).  Everything that distinguishes one cell from
 another lives in a YAML file under ``configs/``; the orchestrator itself is
 identical across cells.
 
-Compute matching is the point of this file.  Every cell is given the same GPU
-budget, expressed in seconds rather than in runs so that a crash that dies in
-20 seconds is not charged the same as a full 5-minute training run.
+Compute matching is the point of this file.  Every cell is given the same
+budget of **training runs**, and a run is a run: a crash spends a slot exactly
+like a success does.  The cell is allotted N attempts at the GPU and wasting
+one on a bug is a real cost to the group, which is precisely what the
+error-propagation arm of the experiment is trying to measure.
+
+A consequence worth stating: ``max_rounds`` is an upper bound, not a plan.  A
+cell that crashes a lot completes fewer rounds on the same compute.  That is
+the honest behaviour -- the alternative, giving crashes back their compute,
+would hide the cost of a failure cascade.
 """
 
 from __future__ import annotations
@@ -68,7 +75,7 @@ class CellConfig:
     # Protocol knobs -----------------------------------------------------
     solo_self_critique: bool = False
     phase_timeout_s: dict[str, int] = field(
-        default_factory=lambda: {"propose": 900, "respond": 900, "finalize": 3600}
+        default_factory=lambda: {"propose": 900, "select": 3600, "respond": 1200}
     )
 
     # Execution ----------------------------------------------------------
@@ -99,12 +106,17 @@ class CellConfig:
 
     @property
     def max_rounds(self) -> int:
-        """Round cap.  The GPU-seconds budget may stop the cell sooner."""
+        """Round cap if nothing crashes.
+
+        An upper bound only: the run budget is the real constraint, and every
+        retry after a crash brings the last round forward.
+        """
         return max(1, self.train_run_budget // self.runs_per_round)
 
     @property
-    def gpu_budget_s(self) -> float:
-        return self.train_run_budget * self.nominal_run_seconds
+    def nominal_gpu_hours(self) -> float:
+        """For the runbook and the invoice; nothing is enforced in seconds."""
+        return self.train_run_budget * self.nominal_run_seconds / 3600
 
     @property
     def respond_enabled(self) -> bool:
@@ -130,7 +142,7 @@ class CellConfig:
             f"{self.cell_id}: {self.n_agents} agent(s) x BoN={self.bon} "
             f"= {self.runs_per_round} candidates/round, "
             f"<={self.max_rounds} rounds, "
-            f"{self.train_run_budget} runs ~ {self.gpu_budget_s / 3600:.2f} GPU-h"
+            f"{self.train_run_budget} runs ~ {self.nominal_gpu_hours:.2f} GPU-h"
         )
 
 

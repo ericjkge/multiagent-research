@@ -15,5 +15,5 @@ autoresearch_commit: ""
 max_budget_usd_per_session: 1.0
 cell_budget_usd: 5.0
 fake_gpu: true
-phase_timeout_s: {propose: 300, respond: 300, finalize: 900}
+phase_timeout_s: {propose: 300, select: 900, respond: 400}
 seed: 7

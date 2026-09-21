@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -31,8 +30,9 @@ def build(run_dir: Path) -> str:
         f"= {len(cfg.get('agents', [])) * cfg.get('bon', 1)} candidates/round",
         f"- models: {', '.join(sorted({a['model'] for a in cfg.get('agents', [])}))}",
         f"- effort: {', '.join(sorted({a['effort'] for a in cfg.get('agents', [])}))}",
-        f"- GPU budget: {summary.get('gpu_seconds_budget', 0) / 3600:.2f} h "
-        f"({cfg.get('train_run_budget')} nominal runs)",
+        f"- run budget: {summary.get('training_runs', 0)} of "
+        f"{summary.get('training_run_budget', cfg.get('train_run_budget'))} used "
+        f"({summary.get('gpu_seconds_spent', 0) / 3600:.2f} GPU-h)",
         f"- autoresearch commit: {provenance.get('autoresearch_commit', '')[:7]}",
         f"- claude: {provenance.get('claude_version', '?')}",
         f"- config fingerprint: {provenance.get('config_fingerprint', '?')}",
@@ -100,6 +100,30 @@ def build(run_dir: Path) -> str:
         else:
             lines.append("No crashed idea was echoed by another agent in the next round.")
         lines.append("")
+
+    # How much did agents actually use their write access to the log?  This is
+    # only observable now that they have it, and it is the cheapest proxy for
+    # whether the collaboration is real or decorative.
+    msgs = of_type(records, "message")
+    if msgs:
+        replies = sum(1 for m in msgs if m.get("reply_to"))
+        lines += [
+            "## Use of the shared log",
+            "",
+            f"- unprompted messages written by agents: {len(msgs)}",
+            f"- of those, threaded replies to a specific entry: {replies}",
+            f"- rounds with at least one message: "
+            f"{len({m.get('round') for m in msgs})} of {len(of_type(records, 'round_start'))}",
+            "",
+        ]
+    else:
+        lines += [
+            "## Use of the shared log",
+            "",
+            "Agents wrote **nothing** to the log beyond their required response. "
+            "They had `arena-log` available and did not reach for it.",
+            "",
+        ]
 
     per_agent: dict[str, dict] = {}
     for c in of_type(records, "candidate"):

@@ -1,15 +1,25 @@
-"""The three phases of a round: propose, respond, finalize.
+"""The three phases of a round: propose, select, respond.
 
-Propose and respond are tool-free calls constrained by a JSON schema, so the
-agents' output is data rather than prose to be parsed.  Finalize is a real
-Claude Code session with tools, because the experiment wants agents that debug
-their own crashes -- error propagation is one of the things under study, and it
-cannot be observed if the orchestrator does the repairs.
+**Propose** is a tool-free call constrained by a JSON schema, so the output is
+data rather than prose to be parsed, and so an agent cannot peek at the repo
+or the other agents while it is supposed to be thinking independently.
+
+**Select** is a real Claude Code session with tools: the agent claims a run
+slot, implements its idea and debugs its own crashes.  The orchestrator
+deliberately does not do the repairs -- error propagation is one of the things
+under study and it cannot be observed if the harness quietly fixes things.
+
+**Respond** comes *after* the measurement.  It keeps the schema, for a
+canonical message, but also gets tools, because the experiment gives agents
+write access to the shared log: they can read the run logs, dig into a peer's
+crash, and post threaded replies with ``arena-log``.  ``arena-train`` refuses
+to run in this phase, so the extra reach cannot be used to buy extra compute.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,9 +31,14 @@ from .sharedlog import SharedLog
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
 BIN = Path(__file__).resolve().parent.parent / "bin"
 
-# Tools the finalize session needs: edit the file, run the metered trainer,
-# read the log and the traceback.
-FINALIZE_TOOLS = ("Bash", "Read", "Edit", "Write", "Grep", "Glob")
+# Tools the select session needs: edit the file, claim a slot and run the
+# metered trainer, read the log and the traceback.
+SELECT_TOOLS = ("Bash", "Read", "Edit", "Write", "Grep", "Glob")
+
+# Respond needs to read (run logs, results, a peer's train.py) and to run
+# `arena-log`, but has no reason to edit anything.  arena-train blocks itself
+# in this phase.
+RESPOND_TOOLS = ("Bash", "Read", "Grep", "Glob")
 
 PROPOSE_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -111,18 +126,23 @@ def write_agent_settings(run_dir: Path) -> Path:
     return path
 
 
-def agent_env(ctx: PhaseContext, agent: AgentSpec, variant: int) -> dict[str, str]:
+def agent_env(
+    ctx: PhaseContext, agent: AgentSpec, variant: int, phase: str = "select"
+) -> dict[str, str]:
     return {
-        "PATH": f"{BIN}:{Path('/usr/bin')}:{Path('/bin')}:" + __import__("os").environ.get("PATH", ""),
+        # bin/ first so `arena-train` and `arena-log` resolve to ours.
+        "PATH": os.pathsep.join([str(BIN), "/usr/bin", "/bin", os.environ.get("PATH", "")]),
         "ARENA_RUN_DIR": str(ctx.run_dir),
         "ARENA_AGENT": agent.id,
         "ARENA_VARIANT": str(variant),
         "ARENA_ROUND": str(ctx.round_idx),
+        # arena-train refuses to claim a slot outside the select phase.
+        "ARENA_PHASE": phase,
         "ARENA_TIMEOUT_S": str(ctx.cfg.train_timeout_s),
         "ARENA_FAKE_GPU": "1" if ctx.cfg.fake_gpu else "0",
         "ARENA_SEED": str(ctx.cfg.seed),
         "ARENA_UV_ENV": str(ctx.cfg.repo_path / ".venv"),
-        "ARENA_FAKE_BASE_BPB": str(getattr(ctx, "baseline_bpb", 0.9979)),
+        "ARENA_FAKE_BASE_BPB": str(ctx.baseline_bpb or 0.9979),
     }
 
 
@@ -172,6 +192,7 @@ def run_respond(
         ROUND=str(ctx.round_idx),
         LOG_MD=ctx.log.markdown.read_text(),
         OWN_TITLE=own_title,
+        RESULTS_PATH=str(ctx.log.results_tsv),
     )
     return harness.query(
         prompt,
@@ -179,29 +200,41 @@ def run_respond(
         model=agent.model,
         effort=agent.effort,
         schema=RESPOND_SCHEMA,
-        tools=(),
+        tools=RESPOND_TOOLS,
         resume=session_id,
+        # Forked: respond resumes the select session, which best-of-N already
+        # forked.  Resuming it in place would make the next round's history
+        # depend on which variant happened to be picked here.
+        fork=bool(session_id),
+        session_id=None if session_id else new_session_id(),
+        permission_mode="bypassPermissions",
         phase="respond",
         timeout_s=ctx.cfg.phase_timeout_s["respond"],
         append_system_prompt=system_prompt(ctx, agent),
+        settings=ctx.settings_path,
+        add_dirs=[ctx.run_dir],
+        env=agent_env(ctx, agent, variant=0, phase="respond"),
         max_budget_usd=ctx.cfg.max_budget_usd_per_session,
         transcript_path=ctx.run_dir / "transcripts" / f"r{ctx.round_idx:02d}_{agent.id}_respond.json",
     )
 
 
-def run_finalize(
+def run_select(
     harness: Harness,
     agent: AgentSpec,
     ctx: PhaseContext,
     session_id: str | None,
     worktree: Path,
     variant: int,
+    runs_left: int,
 ) -> HarnessResult:
     prompt = render(
-        "finalize.md",
+        "select.md",
         ROUND=str(ctx.round_idx),
         WORKTREE=str(worktree),
         MAX_ATTEMPTS=str(ctx.cfg.max_train_attempts),
+        RUNS_LEFT=str(runs_left),
+        LOG_MD=ctx.log.markdown.read_text(),
     )
     return harness.query(
         prompt,
@@ -209,20 +242,20 @@ def run_finalize(
         model=agent.model,
         effort=agent.effort,
         schema=None,
-        tools=FINALIZE_TOOLS,
+        tools=SELECT_TOOLS,
         resume=session_id,
         fork=bool(session_id),
         session_id=None if session_id else new_session_id(),
         permission_mode="bypassPermissions",
-        phase="finalize",
-        timeout_s=ctx.cfg.phase_timeout_s["finalize"],
+        phase="select",
+        timeout_s=ctx.cfg.phase_timeout_s["select"],
         append_system_prompt=system_prompt(ctx, agent),
         settings=ctx.settings_path,
         add_dirs=[ctx.run_dir],
-        env=agent_env(ctx, agent, variant),
+        env=agent_env(ctx, agent, variant, phase="select"),
         max_budget_usd=ctx.cfg.max_budget_usd_per_session,
         transcript_path=ctx.run_dir / "transcripts"
-        / f"r{ctx.round_idx:02d}_{agent.id}_v{variant}_finalize.json",
+        / f"r{ctx.round_idx:02d}_{agent.id}_v{variant}_select.json",
     )
 
 

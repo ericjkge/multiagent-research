@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
-"""The only sanctioned way for an arena agent to train.
+"""The only sanctioned way for an arena agent to train, and the slot it claims.
 
 Agents run in parallel but there is one GPU, so every training run funnels
 through an exclusive lock held here for the duration of the run.  The same
-critical section meters the cell's compute budget, which makes this file the
-single point where compute matching is enforced -- an agent cannot spend more
-GPU than its cell was allotted, and two agents can never overlap on the card.
+critical section **claims a slot** from the cell's fixed budget of training
+runs, which makes this file the single point where compute matching is
+enforced -- an agent cannot run more experiments than its cell was allotted,
+and two agents can never overlap on the card.
+
+The budget is a count of runs, not a stopwatch.  A crash spends a slot exactly
+like a successful run does: the cell is allotted N attempts at the GPU, and
+wasting one on a bug is a real cost to the group.  That is the point -- error
+propagation is one of the things under study, and it is invisible if crashes
+are free.  Seconds are still recorded, as telemetry.
+
+The slot is claimed *before* training starts, so a cell can never overshoot
+its budget even if the orchestrator's own accounting lags.
 
 Exit codes:
     0  training completed (the run may still have crashed on its own merits)
-    2  the cell's GPU budget is exhausted -- stop experimenting
+    2  no slots left in the cell's run budget -- stop experimenting
     3  the run exceeded the wall-clock timeout and was killed
+    4  called outside the select phase
 """
 
 from __future__ import annotations
@@ -36,11 +47,27 @@ def env(name: str, default: str | None = None) -> str:
     return value
 
 
-def charge_and_check(budget_path: Path, amount: float) -> dict:
-    """Read-modify-write the budget.  Caller must hold the GPU lock."""
+def claim_slot(budget_path: Path, agent: str, round_idx: str) -> dict | None:
+    """Take one run slot, or return None if the cell has none left.
+
+    Caller must hold the GPU lock: this is a read-modify-write, and the whole
+    point is that two agents cannot claim the last slot at once.
+    """
+    state = json.loads(budget_path.read_text())
+    if state.get("runs", 0) >= state["budget_runs"]:
+        return None
+    state["runs"] = state.get("runs", 0) + 1
+    state.setdefault("claims", []).append(
+        {"run": state["runs"], "agent": agent, "round": int(round_idx), "at": time.time()}
+    )
+    budget_path.write_text(json.dumps(state, indent=2))
+    return state
+
+
+def record_seconds(budget_path: Path, amount: float) -> dict:
+    """Telemetry only -- the budget is runs, not seconds."""
     state = json.loads(budget_path.read_text())
     state["spent_s"] = state.get("spent_s", 0.0) + amount
-    state["runs"] = state.get("runs", 0) + (1 if amount > 0 else 0)
     budget_path.write_text(json.dumps(state, indent=2))
     return state
 
@@ -89,6 +116,18 @@ def main() -> int:
     fake = env("ARENA_FAKE_GPU", "0") == "1"
     seed = env("ARENA_SEED", "0")
 
+    # Slots are claimed in the select phase.  Training during propose or
+    # respond would spend the group's budget outside the protocol and make the
+    # round's candidate set not mean what the log says it means.
+    phase = env("ARENA_PHASE", "select")
+    if phase != "select":
+        print(
+            f"arena-train: this is the {phase} phase, not select. You cannot claim a "
+            "run slot here. Say what you want to say and finish the phase.",
+            file=sys.stderr,
+        )
+        return 4
+
     lock_path = run_dir / "gpu.lock"
     budget_path = run_dir / "budget.json"
     timeline_path = run_dir / "gpu_timeline.jsonl"
@@ -104,18 +143,20 @@ def main() -> int:
     queued_s = time.time() - waiting_since
 
     try:
-        budget = json.loads(budget_path.read_text())
-        remaining = budget["budget_s"] - budget.get("spent_s", 0.0)
-        if remaining <= 0:
+        claimed = claim_slot(budget_path, agent, round_idx)
+        if claimed is None:
             print(
-                "arena-train: the cell's GPU budget is exhausted. Stop running "
-                "experiments and finish up.",
+                "arena-train: the cell's training-run budget is exhausted; there are "
+                "no slots left. Stop experimenting, commit what you have, write "
+                "candidate.json with status \"abandoned\", and finish.",
                 file=sys.stderr,
             )
             return 2
 
-        print(f"arena-train: GPU acquired (waited {queued_s:.0f}s, "
-              f"{remaining / 60:.0f} GPU-min left in the cell)", flush=True)
+        remaining = claimed["budget_runs"] - claimed["runs"]
+        print(f"arena-train: GPU acquired (waited {queued_s:.0f}s; claimed run "
+              f"{claimed['runs']} of {claimed['budget_runs']}, {remaining} left "
+              f"for the whole cell)", flush=True)
 
         started = time.time()
         timed_out = False
@@ -148,7 +189,7 @@ def main() -> int:
             charge_s = time.time() - started
 
         elapsed = time.time() - started
-        state = charge_and_check(budget_path, charge_s)
+        state = record_seconds(budget_path, charge_s)
 
         # A crashed run can still exit 0, so the metric is the real signal.
         produced_metric = any(

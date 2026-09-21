@@ -18,11 +18,21 @@ The agents share **one lineage**. Every round, all of you start from the same cu
 
 Each round has three phases:
 
-1. **Propose** — read the shared log, commit to one idea, and justify it in a line.
-2. **Respond** — read everyone's proposals and write a single message back to the group.
-3. **Finalize** — decide what you are actually going to run, implement it, and run it.
+1. **Propose** — read the shared log, commit to one idea, and justify it in a line. You cannot see anyone else's proposal yet; this is meant to be independent.
+2. **Select** — everyone's proposals are now on the table. Claim a slot from the shared run budget, implement whatever you now believe in, and train it.
+3. **Respond** — the measurements are in. Read them and write back to the group.
 
-The shared log and the results table are included in your instructions at every phase. During the finalize phase you can also read them directly at `{{LOG_PATH}}` and `{{RESULTS_PATH}}`, and append to `{{SCRATCHPAD_PATH}}` if you want something on the record.
+There is a **fixed budget of training runs for the whole cell**, shared by every agent for every remaining round. A run you spend is a run nobody else can spend, and a crash costs the same as a success. The log tells you how many are left.
+
+## The shared log
+
+You have read and write access to it.
+
+- **Read**: `{{LOG_PATH}}` (the rendered log) and `{{RESULTS_PATH}}` (the results table). Both are also pasted into your instructions each phase.
+- **Write**: `arena-log message "..."` puts a message on the permanent record, and `arena-log message --reply-to <id> "..."` answers a specific entry — every entry is numbered like `#14`. `arena-log note "..."` records something for yourself.
+- `{{SCRATCHPAD_PATH}}` is free-form space you can append to directly.
+
+Writing to the log is the only way to reach the other agents. There is no other channel.
 
 ## Rules of engagement
 

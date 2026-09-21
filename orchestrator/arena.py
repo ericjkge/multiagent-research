@@ -41,12 +41,9 @@ class Candidate:
     attempts: int = 0
     cost_usd: float = 0.0
     num_turns: int = 0
-
-    @property
-    def improved_on(self):
-        def _cmp(baseline: float) -> bool:
-            return self.status == "ok" and self.val_bpb is not None and self.val_bpb < baseline
-        return _cmp
+    # The forked session that produced this candidate.  The respond phase
+    # resumes it so the agent argues from the experiment it actually ran.
+    session_id: str = ""
 
 
 class Arena:
@@ -117,7 +114,12 @@ class Arena:
     def _init_budget(self) -> None:
         (self.run_dir / "budget.json").write_text(
             json.dumps(
-                {"budget_s": self.cfg.gpu_budget_s, "spent_s": 0.0, "runs": 0},
+                {
+                    "budget_runs": self.cfg.train_run_budget,
+                    "runs": 0,
+                    "spent_s": 0.0,  # telemetry; nothing is enforced in seconds
+                    "claims": [],
+                },
                 indent=2,
             )
         )
@@ -146,9 +148,18 @@ class Arena:
     def budget(self) -> dict:
         return json.loads((self.run_dir / "budget.json").read_text())
 
-    def gpu_exhausted(self) -> bool:
+    def runs_left(self) -> int:
         b = self.budget()
-        return b["spent_s"] >= b["budget_s"]
+        return b["budget_runs"] - b["runs"]
+
+    def budget_exhausted(self) -> bool:
+        """No slots left for a full round.
+
+        Checked against ``runs_per_round`` rather than against zero: starting a
+        round the cell cannot finish would leave agents competing for the last
+        slots on first-come-first-served, which is a race, not an experiment.
+        """
+        return self.runs_left() < self.cfg.runs_per_round
 
     # -- context ---------------------------------------------------------
 
@@ -181,9 +192,8 @@ class Arena:
                     results[key] = future.result()
                 except Exception as exc:  # one agent failing must not kill the cell
                     print(f"  ! {label} failed for {key}: {exc}")
-                    (self.run_dir / "errors.log").open("a").write(
-                        f"\n=== {label} {key} ===\n{traceback.format_exc()}\n"
-                    )
+                    with (self.run_dir / "errors.log").open("a") as fh:
+                        fh.write(f"\n=== {label} {key} ===\n{traceback.format_exc()}\n")
                     results[key] = None
         return results
 
@@ -196,8 +206,11 @@ class Arena:
             if r >= self.cfg.max_rounds:
                 self.state.stop_reason = "round cap reached"
                 break
-            if self.gpu_exhausted():
-                self.state.stop_reason = "GPU budget exhausted"
+            if self.budget_exhausted():
+                self.state.stop_reason = (
+                    f"training-run budget exhausted ({self.runs_left()} slots left, "
+                    f"a round needs {self.cfg.runs_per_round})"
+                )
                 break
             if self.state.total_cost_usd >= self.cfg.cell_budget_usd:
                 self.state.stop_reason = "agent cost ceiling reached"
@@ -217,7 +230,7 @@ class Arena:
         b = self.budget()
         print(
             f"\n=== round {r} | baseline val_bpb {self.state.baseline_bpb:.6f} "
-            f"| {(b['budget_s'] - b['spent_s']) / 60:.0f} GPU-min left "
+            f"| {b['budget_runs'] - b['runs']} runs left "
             f"| ${self.state.total_cost_usd:.2f} spent ==="
         )
         self.log.append(
@@ -225,11 +238,11 @@ class Arena:
             round=r,
             baseline_commit=self.state.baseline_commit,
             baseline_bpb=self.state.baseline_bpb,
-            gpu_remaining_s=b["budget_s"] - b["spent_s"],
+            runs_remaining=b["budget_runs"] - b["runs"],
         )
 
         ctx = self._context(r)
-        self.log.publish(upto_round=r)
+        self.log.publish(upto_round=r, budget=b)
 
         # 1. propose ------------------------------------------------------
         print("  propose ...")
@@ -262,37 +275,13 @@ class Arena:
             )
             print(f"    {agent.id}: {titles[agent.id]}")
 
-        # 2. respond ------------------------------------------------------
-        if self.cfg.respond_enabled:
-            print("  respond ...")
-            self.log.publish(upto_round=r, include_proposals_for=r)
-            responses = self._parallel(
-                lambda a: phases.run_respond(
-                    self.harnesses[a.id], a, ctx, sessions.get(a.id, ""), titles.get(a.id, "")
-                ),
-                [a for a in self.cfg.agents if a.id in sessions],
-                "respond",
-            )
-            for agent, result in responses.items():
-                if result is None:
-                    continue
-                self._charge(result.cost_usd)
-                sessions[agent.id] = result.session_id or sessions[agent.id]
-                data = result.structured or {}
-                self.log.append(
-                    "response",
-                    round=r,
-                    agent=agent.id,
-                    text=data.get("response", ""),
-                    notes=data.get("notes", ""),
-                    cost_usd=result.cost_usd,
-                )
-        else:
-            self.log.append("response_skipped", round=r, reason="single-agent cell")
-
-        # 3. finalize + run ------------------------------------------------
-        print(f"  finalize + train ({self.cfg.runs_per_round} candidates, GPU serialized) ...")
-        self.log.publish(upto_round=r, include_proposals_for=r)
+        # 2. select: claim a slot and run it -------------------------------
+        # Every agent now sees everyone's proposals, then implements and trains
+        # whatever it believes in.  `arena-train` claims the slot, so an agent
+        # that decides its idea is not worth the group's compute can decline to
+        # spend one.
+        print(f"  select + train (<={self.cfg.runs_per_round} slots, GPU serialized) ...")
+        self.log.publish(upto_round=r, include_proposals_for=r, budget=self.budget())
         slots = [
             (agent, variant)
             for agent in self.cfg.agents
@@ -302,10 +291,23 @@ class Arena:
         finals = self._parallel(
             lambda slot: self._execute(ctx, slot[0], slot[1], sessions[slot[0].id]),
             slots,
-            "finalize",
+            "select",
         )
-
-        candidates = [c for c in finals.values() if c is not None]
+        # A slot whose orchestration raised is still a slot the round had.
+        # Dropping it silently would make `analysis.verify` call a merely
+        # degraded cell invalid, and would hide the failure from the log.
+        candidates = [
+            c if c is not None
+            else Candidate(
+                agent=agent.id,
+                variant=variant,
+                worktree=self.run_dir,
+                status="error",
+                description="(orchestration failed; see errors.log)",
+                error="the orchestrator raised while running this slot",
+            )
+            for (agent, variant), c in finals.items()
+        ]
         for c in candidates:
             self._charge(c.cost_usd)
             self.log.append(
@@ -328,15 +330,20 @@ class Arena:
             metric = f"{c.val_bpb:.6f}" if c.val_bpb is not None else "crash"
             print(f"    {c.agent}/v{c.variant}: {metric}  {c.description[:60]}")
 
-        # 4. select --------------------------------------------------------
+        # 3. advance the lineage -------------------------------------------
+        # Done before respond so the agents argue about a settled outcome
+        # rather than speculating about which of them won.
+        n_crashes = sum(1 for c in candidates if c.status != "ok")
         winners = [
             c for c in candidates
             if c.status == "ok" and c.val_bpb is not None and c.val_bpb < self.state.baseline_bpb
         ]
         if winners:
-            best = min(winners, key=lambda c: c.val_bpb)
+            # Ties broken by (agent, variant) so the winner does not depend on
+            # the order threads happened to finish in.
+            best = min(winners, key=lambda c: (c.val_bpb or 0.0, c.agent, c.variant))
             self.state.baseline_commit = best.commit
-            self.state.baseline_bpb = best.val_bpb
+            self.state.baseline_bpb = best.val_bpb or self.state.baseline_bpb
             self.log.append(
                 "round_end",
                 round=r,
@@ -344,7 +351,8 @@ class Arena:
                 winner={"agent": best.agent, "variant": best.variant, "commit": best.commit},
                 new_baseline_bpb=best.val_bpb,
                 n_candidates=len(candidates),
-                n_crashes=sum(1 for c in candidates if c.status == "crash"),
+                n_crashes=n_crashes,
+                runs_remaining=self.runs_left(),
             )
             print(f"  -> {best.agent}/v{best.variant} advances the lineage "
                   f"({best.val_bpb:.6f})")
@@ -356,9 +364,60 @@ class Arena:
                 winner=None,
                 new_baseline_bpb=self.state.baseline_bpb,
                 n_candidates=len(candidates),
-                n_crashes=sum(1 for c in candidates if c.status == "crash"),
+                n_crashes=n_crashes,
+                runs_remaining=self.runs_left(),
             )
             print("  -> nothing beat the baseline; lineage unchanged")
+
+        # 4. respond: put the results on the record and answer the group ----
+        # Respond comes *after* the measurement, which is the whole point of
+        # this ordering: an agent reacting to numbers is doing something
+        # different from an agent reacting to a plan.
+        if self.cfg.respond_enabled:
+            print("  respond ...")
+            self.log.publish(
+                upto_round=r,
+                include_proposals_for=r,
+                include_results_for=r,
+                budget=self.budget(),
+            )
+            # Resume the fork that produced the agent's best candidate, so it
+            # argues from the experiment it actually ran.  Falls back to the
+            # propose session for an agent whose every variant failed to start.
+            best_session: dict[str, str] = {}
+            for c in sorted(
+                candidates, key=lambda c: (c.status != "ok", c.val_bpb or float("inf"))
+            ):
+                if c.session_id:
+                    best_session.setdefault(c.agent, c.session_id)
+
+            responders = [a for a in self.cfg.agents if a.id in sessions]
+            responses = self._parallel(
+                lambda a: phases.run_respond(
+                    self.harnesses[a.id],
+                    a,
+                    ctx,
+                    best_session.get(a.id) or sessions.get(a.id, ""),
+                    titles.get(a.id, ""),
+                ),
+                responders,
+                "respond",
+            )
+            for agent, result in responses.items():
+                if result is None:
+                    continue
+                self._charge(result.cost_usd)
+                data = result.structured or {}
+                self.log.append(
+                    "response",
+                    round=r,
+                    agent=agent.id,
+                    text=data.get("response", ""),
+                    notes=data.get("notes", ""),
+                    cost_usd=result.cost_usd,
+                )
+        else:
+            self.log.append("response_skipped", round=r, reason="single-agent cell")
 
     # -- one candidate ------------------------------------------------------
 
@@ -367,11 +426,13 @@ class Arena:
         cand = Candidate(agent=agent.id, variant=variant, worktree=worktree)
 
         try:
-            result = phases.run_finalize(
-                self.harnesses[agent.id], agent, ctx, session, worktree, variant
+            result = phases.run_select(
+                self.harnesses[agent.id], agent, ctx, session, worktree, variant,
+                runs_left=self.runs_left(),
             )
             cand.cost_usd = result.cost_usd
             cand.num_turns = result.num_turns
+            cand.session_id = result.session_id
         except HarnessError as exc:
             cand.error = f"agent session failed: {exc}"
 
@@ -420,9 +481,9 @@ class Arena:
             "cell_id": self.cfg.cell_id,
             "rounds_completed": len(self.state.completed_rounds),
             "final_val_bpb": self.state.baseline_bpb,
-            "gpu_seconds_spent": b["spent_s"],
-            "gpu_seconds_budget": b["budget_s"],
             "training_runs": b["runs"],
+            "training_run_budget": b["budget_runs"],
+            "gpu_seconds_spent": round(b.get("spent_s", 0.0), 1),
             "agent_cost_usd": round(self.state.total_cost_usd, 4),
             "wall_clock_s": round((self.state.finished_at or time.time()) - self.state.started_at, 1),
             "stop_reason": self.state.stop_reason,

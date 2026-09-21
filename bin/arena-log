@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""The agents' write access to the shared log.
+
+The experiment gives agents shared **read and write** access to one running
+log.  Reading is the rendered ``log.md``; writing is this.
+
+It exists rather than letting agents append to the JSONL themselves because
+the log is the primary experimental artifact and N processes writing to one
+file will interleave and lose records.  This takes the same ``flock`` the
+orchestrator takes, assigns the record's id inside that critical section, and
+stamps the round and agent from the environment so an agent cannot -- by
+accident or otherwise -- write a message attributed to someone else.
+
+    arena-log message "two of us are proposing the same thing"
+    arena-log message --reply-to 14 "disagree, that was tried in round 2"
+    arena-log note "remember to check VRAM next round"
+
+Exit codes:
+    0  written
+    1  refused (bad arguments, or not inside an arena session)
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from orchestrator.sharedlog import append_record  # noqa: E402
+
+MAX_CHARS = 3000
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(prog="arena-log", description=__doc__.splitlines()[0])
+    sub = ap.add_subparsers(dest="kind", required=True)
+
+    msg = sub.add_parser("message", help="a message to the whole group, on the record")
+    msg.add_argument("text")
+    msg.add_argument("--reply-to", type=int, default=None,
+                     help="the #id of the entry you are replying to")
+
+    note = sub.add_parser("note", help="a note to yourself, on the record but not addressed")
+    note.add_argument("text")
+
+    args = ap.parse_args()
+
+    run_dir = os.environ.get("ARENA_RUN_DIR")
+    agent = os.environ.get("ARENA_AGENT")
+    if not run_dir or not agent:
+        print("arena-log: not inside an arena session ($ARENA_RUN_DIR/$ARENA_AGENT unset)",
+              file=sys.stderr)
+        return 1
+
+    text = args.text.strip()
+    if not text:
+        print("arena-log: refusing to write an empty entry", file=sys.stderr)
+        return 1
+    if len(text) > MAX_CHARS:
+        text = text[:MAX_CHARS].rstrip() + " [...]"
+
+    fields = {
+        "round": int(os.environ.get("ARENA_ROUND", "0")),
+        "agent": agent,
+        "text": text,
+        "source": "agent",
+    }
+    if args.kind == "message" and args.reply_to is not None:
+        fields["reply_to"] = args.reply_to
+
+    record = append_record(Path(run_dir) / "log.jsonl", args.kind, **fields)
+    print(f"arena-log: wrote #{record['id']} to the shared log")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
