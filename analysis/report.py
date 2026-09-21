@@ -104,8 +104,19 @@ def build(run_dir: Path) -> str:
     # How much did agents actually use their write access to the log?  This is
     # only observable now that they have it, and it is the cheapest proxy for
     # whether the collaboration is real or decorative.
-    msgs = of_type(records, "message")
-    if msgs:
+    # An agent's `response` is posted for it, and some agents post the same
+    # text again with arena-log.  Counting those as unprompted writes would
+    # overstate how much the log is really being used.
+    responses = {(r.get("round"), r.get("agent")): (r.get("text") or "").strip()
+                 for r in of_type(records, "response")}
+    msgs, echoes = [], 0
+    for m in of_type(records, "message"):
+        if (m.get("text") or "").strip() == responses.get((m.get("round"), m.get("agent"))):
+            echoes += 1
+        else:
+            msgs.append(m)
+
+    if msgs or echoes:
         replies = sum(1 for m in msgs if m.get("reply_to"))
         lines += [
             "## Use of the shared log",
@@ -114,8 +125,13 @@ def build(run_dir: Path) -> str:
             f"- of those, threaded replies to a specific entry: {replies}",
             f"- rounds with at least one message: "
             f"{len({m.get('round') for m in msgs})} of {len(of_type(records, 'round_start'))}",
-            "",
         ]
+        if echoes:
+            lines.append(
+                f"- excluded: {echoes} message(s) that merely re-posted the agent's own "
+                "response verbatim"
+            )
+        lines.append("")
     else:
         lines += [
             "## Use of the shared log",

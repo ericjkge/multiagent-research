@@ -311,7 +311,15 @@ class FakeHarness:
             structured = {
                 "title": title,
                 "justification": f"canned fake-agent idea; sets {knob} to {value}",
-                "detail": f"Set `{knob} = {value}` in train.py.",
+                # Long enough to look like a real proposal: the orchestrator
+                # flags contentless ones, and a fake agent that trips that
+                # check would make every smoke run look degenerate.
+                "detail": (
+                    f"Edit train.py and set `{knob} = {value}` in the hyperparameter "
+                    f"block near the top of the file, leaving every other constant "
+                    f"unchanged so the effect of {knob} is isolated. This is canned "
+                    f"output from the fake harness, not a real research idea."
+                ),
                 "notes": "",
             }
         elif phase == "respond":

@@ -30,17 +30,19 @@ Say whatever is most useful to the group's next round. Some options, none of the
 Be direct and specific. Vague encouragement wastes a round. Remember that only the single best
 result advances, so the group's real problem is **covering the search space well**, not converging.
 
-### Replying to a specific message
+### Replying to one person
 
-Every entry in the log has an id like `#14`. To answer one directly, or to add anything else to the
-shared record:
+**Your `response` below is posted to the shared log automatically. Do not also post it with
+`arena-log` — that just puts the same text in the log twice.**
+
+`arena-log` is for something your broadcast response cannot do: answering one specific entry.
+Every entry in the log has an id like `#14`.
 
     arena-log message --reply-to 14 "that crash was an OOM, not a shape bug — see r03/a2 run.log:88"
-    arena-log message "I am dropping the rotary idea; two rounds of evidence against it"
 
-Use it when you have something aimed at one person, or more than one thing to say. Your `response`
-below is posted to the log either way.
+Use it when you are addressing one agent's specific claim, and only then. If you have nothing aimed
+at a particular entry, write your `response` and stop.
 
 Return:
-- `response` — your message to the group.
+- `response` — your message to the group. This is posted for you; do not post it yourself.
 - `notes` — optional; private notes to yourself for later rounds.

@@ -23,6 +23,7 @@ import math
 import subprocess
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 from .common import load_records, of_type
 
@@ -51,22 +52,40 @@ def proposal_text(p: dict) -> str:
     return f"{p.get('title', '')} {p.get('justification', '')} {p.get('detail', '')}".strip()
 
 
+def real_proposals(records: list[dict]) -> list[dict]:
+    """Proposals with actual content in them.
+
+    A contentless proposal ("Placeholder") shares no vocabulary with anything,
+    so leaving it in drags the round's similarity towards zero and reports
+    diversity that is really just a model failing to answer.
+    """
+    return [p for p in of_type(records, "proposal") if not p.get("degenerate")]
+
+
 def within_round(run_dir: Path) -> list[dict]:
     records = load_records(run_dir)
     by_round: dict[int, list[dict]] = {}
-    for p in of_type(records, "proposal"):
+    for p in real_proposals(records):
         by_round.setdefault(p["round"], []).append(p)
+    n_dropped: dict[int, int] = {}
+    for p in of_type(records, "proposal"):
+        if p.get("degenerate"):
+            n_dropped[p["round"]] = n_dropped.get(p["round"], 0) + 1
 
     rows = []
-    for rnd, props in sorted(by_round.items()):
+    for rnd in sorted(set(by_round) | set(n_dropped)):
+        props = by_round.get(rnd, [])
+        dropped = n_dropped.get(rnd, 0)
         if len(props) < 2:
-            rows.append({"round": rnd, "n": len(props), "mean_similarity": None})
+            rows.append({"round": rnd, "n": len(props), "excluded": dropped,
+                         "mean_similarity": None})
             continue
         sims = _cosines(_vectorize([proposal_text(p) for p in props]))
         rows.append(
             {
                 "round": rnd,
                 "n": len(props),
+                "excluded": dropped,
                 "mean_similarity": round(sum(sims) / len(sims), 4),
                 "max_similarity": round(max(sims), 4),
             }
@@ -107,7 +126,7 @@ def adoption(run_dir: Path) -> list[dict]:
     return rows
 
 
-def classify(run_dir: Path, model: str = "haiku") -> list[dict]:
+def classify(run_dir: Path, model: str = "claude-haiku-4-5-20251001") -> dict:
     """Semantic view: bucket each proposal, then measure per-round entropy."""
     records = load_records(run_dir)
     proposals = of_type(records, "proposal")
@@ -163,7 +182,10 @@ def main() -> int:
                     help="add the LLM taxonomy pass (costs a few cents)")
     args = ap.parse_args()
 
-    result = {"within_round": within_round(args.run_dir), "adoption": adoption(args.run_dir)}
+    result: dict[str, Any] = {
+        "within_round": within_round(args.run_dir),
+        "adoption": adoption(args.run_dir),
+    }
     if args.classify:
         result["taxonomy"] = classify(args.run_dir)
 

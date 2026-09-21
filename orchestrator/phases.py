@@ -259,6 +259,37 @@ def run_select(
     )
 
 
+_PLACEHOLDER_WORDS = {
+    "placeholder", "tbd", "todo", "n/a", "na", "none", "example",
+    "test", "idea", "untitled", "...", "",
+}
+MIN_DETAIL_CHARS = 40
+
+
+def is_degenerate_proposal(data: dict) -> str:
+    """Why this proposal is contentless, or "" if it is fine.
+
+    A schema-validated response can still say nothing -- a small model at low
+    effort will sometimes return ``{"title": "Placeholder", ...}``.  It passes
+    the schema, so nothing downstream notices, and it silently becomes a data
+    point: it drags the round's measured idea-diversity to zero and counts as
+    an agent that participated.  Catch it at the door and mark it.
+    """
+    title = (data.get("title") or "").strip()
+    justification = (data.get("justification") or "").strip()
+    detail = (data.get("detail") or "").strip()
+
+    if not title:
+        return "no title"
+    if title.strip(" .").lower() in _PLACEHOLDER_WORDS:
+        return f"placeholder title ({title!r})"
+    if justification.strip(" .").lower() in _PLACEHOLDER_WORDS:
+        return f"placeholder justification ({justification!r})"
+    if len(detail) < MIN_DETAIL_CHARS:
+        return f"detail is {len(detail)} chars, too short to implement"
+    return ""
+
+
 def read_candidate_json(worktree: Path) -> dict:
     path = Path(worktree) / "candidate.json"
     if not path.exists():

@@ -260,6 +260,9 @@ class Arena:
             sessions[agent.id] = result.session_id
             data = result.structured or {}
             titles[agent.id] = data.get("title", "(unparsed)")
+            degenerate = (
+                phases.is_degenerate_proposal(data) if data else "no structured output"
+            )
             self.log.append(
                 "proposal",
                 round=r,
@@ -269,11 +272,15 @@ class Arena:
                 justification=data.get("justification", ""),
                 detail=data.get("detail", ""),
                 notes=data.get("notes", ""),
+                degenerate=degenerate,
                 cost_usd=result.cost_usd,
                 session_id=result.session_id,
                 models_used=result.models_used,
             )
-            print(f"    {agent.id}: {titles[agent.id]}")
+            if degenerate:
+                print(f"    {agent.id}: !! contentless proposal — {degenerate}")
+            else:
+                print(f"    {agent.id}: {titles[agent.id]}")
 
         # 2. select: claim a slot and run it -------------------------------
         # Every agent now sees everyone's proposals, then implements and trains

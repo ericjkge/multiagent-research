@@ -75,9 +75,17 @@ def record_seconds(budget_path: Path, amount: float) -> dict:
 def simulate(run_dir: Path, round_idx: str, agent: str, variant: str, seed: str) -> tuple[str, float]:
     """Fake-GPU mode: a plausible run.log without an H100.
 
-    Deterministic in (seed, round, agent, variant) so smoke tests reproduce.
+    Deterministic in (seed, round, agent, variant) *and in the contents of
+    train.py*.  Keying on the file matters: without it the score is unrelated
+    to what the agent changed, so an agent that reads its own run.log
+    correctly concludes the substrate is broken and spends the rest of the
+    cell saying so.  Hashing the source does not make the number meaningful,
+    but it does make it consistent -- the same edit always scores the same,
+    and a different edit scores differently.
     """
-    key = f"{seed}:{round_idx}:{agent}:{variant}".encode()
+    train_py = Path.cwd() / "train.py"
+    src = train_py.read_bytes() if train_py.exists() else b""
+    key = f"{seed}:{round_idx}:{agent}:{variant}:".encode() + hashlib.sha256(src).digest()
     rng = random.Random(int(hashlib.sha256(key).hexdigest()[:16], 16))
 
     base = float(os.environ.get("ARENA_FAKE_BASE_BPB", "0.997900"))
