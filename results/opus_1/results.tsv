@@ -1,0 +1,36 @@
+commit	val_bpb	memory_gb	status	description
+66b6655	0.997358	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 2 -> 1); nothing else changed.
+2d22eb2	0.997662	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+db93f94	0.998275	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+55af8d8	0.000000	0.0	crash	
+3a4c8e1	0.997406	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+c2f4c31	1.000110	22.2	ok	HEAD_DIM 128 -> 64, so n_head/n_kv_head goes 4 -> 8 at unchanged model_dim 512; nothing else touched.
+0231f30	1.000306	22.2	ok	HEAD_DIM 128 -> 64, so n_head/n_kv_head goes 4 -> 8 at unchanged model_dim 512; nothing else touched.
+0715b93	1.000214	22.2	ok	HEAD_DIM 128 -> 64, so model_dim stays 512 but n_head/n_kv_head go 4 -> 8; nothing else changed.
+1df9d54	0.999160	22.2	ok	HEAD_DIM 128 -> 64, so model_dim stays 512 but attention uses 8 heads of 64 instead of 4 heads of 128; nothing else changed.
+e9e3507	0.999863	22.2	ok	HEAD_DIM 128 -> 64, so model_dim stays 512 but n_head/n_kv_head go 4 -> 8 with head_dim 64; nothing else changed.
+cf489c0	0.989143	27.1	ok	DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; pure depth increase, nothing else touched.
+1d9a4b0	0.989341	27.1	ok	DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+8293cc1	0.989007	27.1	ok	DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+05ac437	0.989595	27.1	ok	DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; nothing else changed.
+e2a1fc0	0.989238	27.1	ok	DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; two constants, nothing else touched.
+5f4909c	0.986443	32.1	ok	DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+7d179b5	0.986675	32.1	ok	DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+b4d88ab	0.986354	32.1	ok	DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+081f627	0.986277	32.1	ok	DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+e27a7e7	0.986292	32.1	ok	DEPTH 10->12 and ASPECT_RATIO 48->40 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+3c3b43d	0.986885	39.7	ok	One constant: ASPECT_RATIO 40 -> 48, so model_dim 512 -> 640 with 5 heads of 128 at unchanged depth 12; nothing else touched.
+3ad2f21	0.986933	39.7	ok	ASPECT_RATIO 40 -> 48, so model_dim 512 -> 640 with 5 heads of 128; depth, batch, LR constants untouched.
+77bd430	0.986993	39.7	ok	ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 (5 heads of 128) at unchanged DEPTH 12; nothing else touched.
+4c7959e	0.986702	39.7	ok	ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 with 5 heads of 128; depth 12 and everything else unchanged.
+44216f3	0.986873	39.7	ok	ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 with 5 heads of 128 at unchanged depth 12; one constant, nothing else touched.
+9c5326d	0.987376	33.0	ok	has_ve() now returns True for all layers, so all 12 layers get a value embedding instead of the 6 odd ones; params 71.3M -> 96.5M at unchanged FLOPs/token. val_bpb 0.987376 vs baseline 0.986277 (worse by 0.0011).
+32ad461	0.986277	32.1	ok	DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+6f8b789	0.987643	33.0	ok	has_ve() now returns True for all layers, so value_embeds goes from 6 tables to 12 (25.2M -> 50.3M params, 71.3M -> 96.5M total); FLOPs/token unchanged at 3.46e8; nothing else touched.
+feaef38	0.987221	33.0	ok	has_ve() now returns True for all layers: 6 -> 12 value-embedding tables (25.2M -> 50.3M params, 71.3M -> 96.5M total) at identical FLOPs/token.
+6ecb8e2	0.987155	33.0	ok	has_ve() now returns True for all layers, so value_embeds goes from 6 tables to 12 (25.2M -> 50.3M params, total 71.3M -> 96.5M); nothing else touched.
+082538d	0.990209	32.1	ok	One line in GPT.forward: softcap = 15 -> 30; nothing else touched.
+c3db5eb	0.990289	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, doubling the attainable logit range. Nothing else touched.
+c5616e0	0.990249	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, so final logits pass through 30*tanh(z/30) instead of 15*tanh(z/15); nothing else touched.
+814dfb8	0.990145	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, doubling the tanh logit cap. Nothing else touched.
+2a32f3b	0.990464	32.1	ok	One line in GPT.forward: softcap = 15 -> 30. Nothing else touched. val_bpb 0.990464 vs baseline 0.986277 (worse by 0.0042).

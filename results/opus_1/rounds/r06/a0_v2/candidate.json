@@ -1,0 +1,6 @@
+{
+  "title": "Raise logit softcap 15 -> 30",
+  "description": "One line in GPT.forward: softcap = 15 -> 30, doubling the tanh logit cap. Nothing else touched.",
+  "status": "ok",
+  "reflection": "NEGATIVE and clearly outside noise: val_bpb 0.990145 vs baseline 0.986277, i.e. +0.0039, about 4x the ~0.0009 noise floor. The experiment was the clean readout I promised -- FLOPs/token, params (71.3M), steps (2543), tokens (333.3M), MFU (38.69%) and VRAM (32.9GB) are all indistinguishable from baseline, so the entire gap is quality. My premise was wrong in an informative way. I argued softcap=15 is a vestigial early-training stability guard that only binds late and taxes confident predictions. The measurement says the opposite: the cap is load-bearing as a REGULARIZER. Doubling the headroom let the model chase confidence on training continuations and it paid for that in val bits -- classic overconfidence on a single-epoch run where there is no repeat data to calibrate against. The useful consequence is that the gradient on this axis points DOWN, not up: softcap 10 (or 12) is now the interesting probe, and it is still a one-constant, zero-cost change. That is the one thing I would spend a remaining slot on in this region; anything else on the output head I would now treat as settled."
+}

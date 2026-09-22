@@ -1,0 +1,413 @@
+# Shared research log
+
+Baseline at start of the cell: **val_bpb 0.997359**
+
+## Round 0
+_Baseline entering the round: val_bpb 0.997359 (commit 228791f)_
+
+### Proposals
+- `#2` **a0 — Cut total batch size 4x (2^19 → 2^17)**
+  - why: At ~524K tokens/step the 5-minute budget buys only ~300 optimizer steps, which is almost certainly far above the critical batch size for this token horizon — trading batch for 4x more steps should buy a large optimization gain at identical FLOPs.
+  - detail: Two constants in the hyperparameter block of `train.py`:
+
+- `TOTAL_BATCH_SIZE = 2**19` → `2**17` (524288 → 131072 tokens/step)
+- `DEVICE_BATCH_SIZE = 128` → `64` (so `tokens_per_fwdbwd = 64*2048 = 131072`, `grad_accum_steps = 1`, no accumulation overhead; 64x2048 is still large enough to keep the GPU saturated)
+
+Nothing else changes: same model (depth 8, dim 512, 4 heads), same LRs, same Muon/AdamW config, same time-based schedule. The schedule is driven by `progress = total_training_time / TIME_BUDGET`, so warmup/warmdown/weight-decay decay adapt automatically to the higher step count — no schedule surgery needed.
+
+Mechanism: the per-token gradient signal-to-noise at 524K tokens/batch is deep into the diminishing-returns regime for a ~50M-param model; the extra ~800 optimizer steps are worth far more than the marginal noise reduction. Peak VRAM should *drop* (halved activations), so this is strictly safe on the memory side.
+
+Expected secondary effect: with 4x more steps and unchanged LR, the effective learning rate per token rises 4x. If the run diverges or plateaus high, the correct follow-up is `MATRIX_LR 0.04 → 0.02` and `EMBEDDING_LR 0.6 → 0.3` (roughly sqrt-scaling with batch [...]
+
+### Messages
+- `#3` **a0**: Run 1/36 spent, result: **val_bpb 0.997358** vs baseline 0.997359 — a dead-even tie, no improvement. Batch 2^19->2^17, device batch 128->64, nothing else touched.
+
+My proposal's premise was simply wrong and the log should say so plainly. Throughput here is ~1.65M tok/s, so the *baseline* already gets ~950 optimizer steps in 5 minutes, not the ~300 I guessed. My run got 3148 steps on 412.6M tokens where the baseline gets ~480M. Tripling the step count bought exactly enough per-token efficiency to pay for the 14% token loss and not one bit more.
+
+Conclusions I'd ask the group to take from this, so nobody re-spends a run on it:
+1. **The batch-size axis is flat.** We are sitting where steps and tokens trade off ~1:1. 2^18 and 2^16 are not worth a slot.
+2. **Smaller batches cost throughput.** Steady-state MFU fell 39.8% -> 33.1%: per-step optimizer + Python overhead is amortised over 4x less [...]
+- `#4` **a0**: #2 result (a0): NEGATIVE / wash. TOTAL_BATCH_SIZE 2^19 -> 2^17 + DEVICE_BATCH_SIZE 64 gave val_bpb 0.997662 vs baseline 0.997359. Do not re-buy this axis.
+
+My premise was wrong and the correction matters more than the result. Throughput here is ~1.3M tok/s, so the baseline was never step-starved: it processes ~409M tokens either way. My run did 3119 steps instead of ~780 and landed on the same number (408.8M tokens, MFU 32.8%, peak VRAM 22.7GB). A 4x batch change -- and hence a 4x change in effective LR per token -- moved val_bpb by less than 0.0004 in the wrong direction. Read that as: (a) the 128K-512K batch range is a flat plateau, (b) the LRs are not sitting near a stability or undertraining edge, so small LR retunes are also low-yield, (c) the 300-step Muon momentum ramp completes early in every config and is not a lever.
+
+Where I think the remaining gains actually are, for whoever [...]
+- `#5` **a0**: Round 0 result (a0, run 3): NEGATIVE. TOTAL_BATCH_SIZE 2^19->2^17 (DEVICE_BATCH_SIZE 128->64, grad_accum 1), nothing else changed => val_bpb 0.998275 vs baseline 0.997359. Slightly worse.
+
+My premise was wrong and that is the useful part. I guessed the baseline got ~300 optimizer steps; it does not. At 2^17 the run did num_steps=3088, total_tokens=405M in the 300s, so the baseline at 2^19 is already getting roughly 770 steps / ~420M tokens. It was never step-starved, so 4x more steps bought nothing, and per-step optimizer overhead ate ~4% of the token budget (steady-state MFU 32.5%; fast steps 81ms, plenty of 100ms+ ones). LR was left unscaled, so a sqrt-scaled LR might close the 0.0009 gap, but I see no reason it would go past baseline -- I would not spend another slot on this axis.
+
+Numbers worth having on the record for everyone's planning: ~1.6M tok/s peak at depth 8 / dim 512 / 4 he [...]
+- `#6` **a0**: Run 4 (commit 14fcfb9): TOTAL_BATCH_SIZE 2^19 -> 2^17, DEVICE_BATCH_SIZE 128 -> 64. val_bpb 0.997406 vs baseline 0.997359 = FLAT (within noise, if anything a hair worse). Negative result, recorded honestly.
+
+The premise behind my proposal (#2) was factually wrong and I want that on the record before anyone repeats it: the setup is much faster than I guessed. Measured: 1.13M tok/s, 33.1% MFU, 412M tokens in the 300s budget. So the 2^19 baseline already runs ~790 optimizer steps, not the ~300 I claimed; at 2^17 it runs 3144 steps on the same 412M tokens at the same MFU. Four-fold more steps buys exactly nothing, so the batch axis is flat over at least 4x around the baseline and the LR-rescaling follow-up I sketched is moot. Do not spend another run on batch size.
+
+What this does tell us: the run is neither step-starved nor batch-starved, i.e. optimization is not the binding constraint. 412 [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.997406** (22.2 GB) — TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+- `a0/v1` val_bpb **0.997662** (22.2 GB) — TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+- `a0/v2` val_bpb **0.997358** (22.2 GB) — TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 2 -> 1); nothing else changed.
+- `a0/v3` **CRASH** —  (no run.log was produced)
+- `a0/v4` val_bpb **0.998275** (22.2 GB) — TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum 1); nothing else changed.
+
+**Outcome:** a0/v2 won; new baseline val_bpb 0.997358.
+
+## Round 1
+_Baseline entering the round: val_bpb 0.997358 (commit 66b6655)_
+
+### Proposals
+- `#15` **a0 — Halve head dim: 4 heads → 8 heads (HEAD_DIM 128 → 64)**
+  - why: At model_dim 512 the model has only 4 attention heads; going to 8 heads is exactly parameter-neutral, FLOP-neutral and VRAM-neutral, so any expressivity gain from more attention subspaces is a free reduction in val_bpb.
+  - detail: One constant in the hyperparameter block of `train.py`:
+
+- `HEAD_DIM = 128` → `HEAD_DIM = 64`
+
+Nothing else changes. Trace through `build_model_config(8)`: `base_dim = DEPTH * ASPECT_RATIO = 512`; `model_dim = ceil(512/64)*64 = 512` (unchanged, same as with HEAD_DIM=128); `num_heads = 512/64 = 8` (was 4). So `n_head = n_kv_head = 8`, `head_dim = 64`.
+
+Consequences, all checked against the code:
+- Parameter count is identical. `c_q/c_k/c_v/c_proj` are all `n_embd × n_head*head_dim = 512×512` either way. Value embeddings use `kv_dim = n_kv_head * head_dim = 512`, unchanged. `ve_gate` goes from `Linear(32,4)` to `Linear(32,8)` — 128 extra params, i.e. nothing.
+- FLOPs are identical. `estimate_flops` uses `12 * h * q * effective_seq` with `h*q = n_embd = 512`, invariant to the split. So the time budget buys the same ~412M tokens; this is a pure quality-per-FLOP experiment with no throughput confound.
+- Rotary is per-head-dim: `_precompute_rotary_embeddings(seq_len, head_dim=64)` gives 32 frequency channels instead of 64, same base 10000 — a standard configuration (GPT-2 / Llama use head_dim 64–128), not an extrapolation.
+- QK-norm (`q, k = norm(q), norm(k)`) is applied per head, so it [...]
+
+### Messages
+- `#16` **a0**: Run 5/36 (a0, #15): NEGATIVE. HEAD_DIM 128 -> 64 (4 heads -> 8 heads, model_dim still 512) gives val_bpb 1.000110 vs baseline 0.997358 -- 0.0028 WORSE. Do not buy narrow heads.
+
+This was a clean controlled readout, which is the value in it: 50.3M params both ways, identical estimated FLOPs/token (2.39e8), 414.1M tokens vs ~412M, steady-state MFU 33.24% vs ~33%, peak VRAM 22.7GB vs 22.2GB. Nothing about throughput moved, so the whole 0.0028 is model quality. At dim 512 this model genuinely prefers 4 wide (128-dim) heads to 8 narrow (64-dim) ones. My reasoning in #15 was wrong: I argued head *count* binds; it does not, head *width* does. Plausible mechanism is that QK-norm plus only 32 rotary frequency channels leaves a 64-dim head too little room, while attention is only ~20% of FLOPs here so wide heads are cheap to keep.
+
+Axis status after two rounds, so nobody re-buys either: batch size [...]
+- `#17` **a0**: Round 1 result (a0, run 6/36, 30 left): NEGATIVE. HEAD_DIM 128 -> 64 (4 heads -> 8 heads, model_dim 512 unchanged) gives val_bpb 1.000306 vs baseline 0.997358, i.e. +0.0029 worse.
+
+The experiment was clean in the way I promised it would be, which is what makes the negative useful. Everything FLOP-side was invariant as predicted: 414.3M tokens (baseline ~412M), steady-state MFU 33.26% (baseline ~33.1%), peak VRAM 22.7GB, num_params_M 50.3, num_steps 3161, fast steps still 81-83ms. So there is no throughput confound at all -- this is a pure statement about attention shape: at dim 512, with QK-norm and RoPE and an SSSL window pattern, 4 heads of width 128 are better than 8 heads of width 64.
+
+My reasoning in #15 was wrong. I argued head *count* bounds how many distinct patterns a layer can attend to; the measurement says head *width* is the binding resource here. Plausible reading: with onl [...]
+- `#18` **a0**: Round 1 result (a0, run 7/36): NEGATIVE. HEAD_DIM 128 -> 64 (4 heads -> 8 heads at dim 512) gives val_bpb 1.000214 vs baseline 0.997358, i.e. 0.0029 WORSE. Head-split axis is settled: do not re-buy it.
+
+The comparison was as clean as I promised, which is what makes the negative worth something. Every confound held: total_tokens 412.1M, num_steps 3144, steady-state MFU 33.08%, num_params 50.3M, peak VRAM 22.7GB -- all identical to the baseline run. Fast steps were 81-84ms in both. So this is a pure quality-per-FLOP readout, and the model with 4 wide heads is simply better than the model with 8 narrow ones.
+
+That contradicts the prior I argued from (GPT-2/Llama use head_dim 64, dim 512 with only 4 heads looked head-starved). With QK-norm on q and k plus rotary, per-head capacity evidently matters more than the number of attention subspaces at this scale. The gradient on this axis points to [...]
+- `#19` **a0**: Round 1 result (a0, run 8/36; 28 left): NEGATIVE. HEAD_DIM 128 -> 64 (4 heads of 128 -> 8 heads of 64 at model_dim 512, nothing else touched) => val_bpb 0.999160 vs baseline 0.997358. Worse by 0.0018.
+
+The readout is unusually clean, which is the part worth keeping. The change was exactly parameter-neutral and FLOP-neutral as I claimed, AND it ran slightly faster (steady-state MFU 34.0% vs ~33%, 3234 steps, 423.9M tokens vs the baseline's ~412M, peak VRAM unchanged at 22.7 GB). So the 8-head model saw about 3% MORE data and still lost by a clear margin. This is not a throughput artifact: quality-per-token of narrow heads is genuinely worse here.
+
+Conclusions, so nobody re-buys them:
+1. Head COUNT is not the binding constraint at dim 512; head WIDTH is doing real work. My prior that '4 heads is too few' was wrong.
+2. HEAD_DIM 32 (16 heads) is dead - it is further in the direction that jus [...]
+- `#20` **a0**: Round 1 result (a0, commit a028a52): NEGATIVE. HEAD_DIM 128 -> 64 (dim 512 stays, heads 4 -> 8) gives val_bpb 0.999863 vs baseline 0.997358 -- 0.0025 WORSE.
+
+The readout is clean, which is the value here: params identical (50.3M), peak VRAM identical (22.7GB), and the 8-head run got slightly MORE compute (418.0M tokens, 3189 steps, MFU 33.56%) than the baseline (412.6M, 3148, 33.12%). So the entire gap is quality per token. At model_dim 512, head WIDTH beats head COUNT. Do not spend a slot on HEAD_DIM 64 or 32; if the axis is worth anything it points the other way (HEAD_DIM 256 = 2 heads), and I would not bet on that either.
+
+Two honest caveats: (1) single run, and round 0 measured ~0.0009 spread across identical configs, so 0.0025 is real but only ~3x the noise floor; (2) head_dim also sets rotary resolution (32 freq channels at 64 vs 64 at 128), so this conflates head count with positi [...]
+
+### Experiments run
+- `a0/v0` val_bpb **1.000110** (22.2 GB) — HEAD_DIM 128 -> 64, so n_head/n_kv_head goes 4 -> 8 at unchanged model_dim 512; nothing else touched.
+- `a0/v1` val_bpb **0.999863** (22.2 GB) — HEAD_DIM 128 -> 64, so model_dim stays 512 but n_head/n_kv_head go 4 -> 8 with head_dim 64; nothing else changed.
+- `a0/v2` val_bpb **1.000306** (22.2 GB) — HEAD_DIM 128 -> 64, so n_head/n_kv_head goes 4 -> 8 at unchanged model_dim 512; nothing else touched.
+- `a0/v3` val_bpb **0.999160** (22.2 GB) — HEAD_DIM 128 -> 64, so model_dim stays 512 but attention uses 8 heads of 64 instead of 4 heads of 128; nothing else changed.
+- `a0/v4` val_bpb **1.000214** (22.2 GB) — HEAD_DIM 128 -> 64, so model_dim stays 512 but n_head/n_kv_head go 4 -> 8; nothing else changed.
+
+**Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.997358.
+
+## Round 2
+_Baseline entering the round: val_bpb 0.997358 (commit 66b6655)_
+
+### Proposals
+- `#29` **a0 — Deeper at constant width: 8 → 10 layers, dim stays 512**
+  - why: Both axes probed so far (batch size, head split) were flat or negative, meaning optimization is not binding — model capacity is the untouched axis, and +25% transformer depth costs only ~16% of the FLOP budget because lm_head/embeddings dominate FLOPs here.
+  - detail: Two constants in the hyperparameter block of `train.py`:
+
+- `DEPTH = 8` → `DEPTH = 10`
+- `ASPECT_RATIO = 64` → `ASPECT_RATIO = 48`
+
+Trace through `build_model_config(10)`: `base_dim = 10*48 = 480`; `model_dim = ceil(480/128)*128 = 512` (unchanged); `num_heads = 512/128 = 4` (unchanged, wide heads preserved per round 1's finding). So this is a *pure depth* change: 10 identical blocks instead of 8, same width, same head shape, same rotary, same LRs (`dmodel_lr_scale` depends only on model_dim, so it is untouched).
+
+Cost accounting from `estimate_flops()`, which is why I think this is cheap:
+- transformer matrices: 12*n_embd² per layer ⇒ 8*3.15M = 25.2M → 10*3.15M = 31.5M params, i.e. +6.3M ⇒ +38M FLOPs/token.
+- Embedding-side is unchanged: `wte` 16.8M and `lm_head` 16.8M are excluded/fixed, and they are the reason FLOPs/token is 2.39e8 today — lm_head alone is ~100M of it. Depth increases ride on a small share of the budget.
+- attention: pattern "SSSL" over 10 layers gives S,S,S,L,S,S,S,L,S,S with `window_sizes[-1]` forced to L ⇒ 7 short + 3 long ⇒ ~12*512*(7*1024+3*2048) = 85M vs 63M today.
+- Value embeddings: `has_ve(i, 10)` keeps the alternating pattern (layers 1,3,5,7,9), so 5 VE [...]
+
+### Messages
+- `#30` **a0**: Round 2 result (a0, run 10/36, 26 left): POSITIVE, and it is a big one. DEPTH 8 -> 10 with ASPECT_RATIO 64 -> 48 (model_dim stays 512, still 4 heads of 128, nothing else touched) gives val_bpb 0.989143 vs baseline 0.997358 -- BETTER by 0.0082, about 9x the ~0.0009 noise floor we measured in round 0.
+
+Full numbers: 60.8M params (was 50.3M), FLOPs/token 2.96e8 (was 2.39e8, +24%), total_tokens 380.4M (was ~412M), num_steps 2902, steady-state MFU 37.76%, peak VRAM 27.8GB (was 22.2GB), epoch still 1.
+
+Three things worth keeping from this beyond the number itself:
+1. CAPACITY, not optimization, was the binding constraint. That is consistent with rounds 0 and 1 being flat/negative: batch size and head split were both pure reallocations that left capacity fixed. Paying ~8% of the token budget for +25% depth was a very good trade.
+2. MFU went UP, 33% -> 37.8%. I expected it to be neutral. The fix [...]
+- `#31` **a0**: Round 2 result (a0, run 11/36, 25 left): POSITIVE, and by a wide margin. DEPTH 8 -> 10 with ASPECT_RATIO 64 -> 48 (model_dim stays 512, still 4 heads of 128, nothing else touched) => val_bpb 0.989341 vs baseline 0.997358. That is -0.0080, about 9x the ~0.0009 noise floor we measured across identical configs in round 0.
+
+Numbers: num_params 50.3M -> 60.8M, FLOPs/token 2.39e8 -> 2.96e8 (+24%), total_tokens 412M -> 376.8M, num_steps 2875, peak VRAM 22.2 -> 27.2 GB, training_seconds 300.1. So the model saw ~9% LESS data and beat the baseline decisively: capacity, not optimization and not tokens, was the binding constraint. That is consistent with rounds 0 and 1 being flat/negative -- we were tuning the optimizer of an under-parameterized model.
+
+Two things worth flagging because they change how to plan the next rounds:
+1. Steady-state MFU went UP, 33.1% -> 37.4%. Deeper blocks amortize the p [...]
+- `#32` **a0**: Round 2 result (a0, run 12/36, 24 left): WIN. DEPTH 8 -> 10 at constant width (ASPECT_RATIO 64 -> 48 so model_dim stays 512, 4 heads of 128) => val_bpb 0.989007 vs baseline 0.997358. That is -0.0084, roughly 9x the ~0.0009 noise floor round 0 measured across identical configs. First real move in the cell.
+
+Numbers: 60.8M params (was 50.3M), FLOPs/token 2.96e8 (was 2.39e8), 381.2M tokens (was 412.6M), 2908 steps, steady-state MFU 37.82% (was 33.12%), peak VRAM 27.8GB (was 22.7GB). Note the MFU went UP: a deeper model amortizes the per-step Muon/Python overhead over more work, so part of the 24% FLOP increase pays for itself.
+
+Two corrections to my own proposal (#29), because the reasoning was partly wrong even though the call was right:
+1. vocab_size is 8192, not 32768. lm_head is only ~4.2M params, so embeddings do NOT dominate FLOPs and depth is NOT nearly free -- it cost 24% of the bud [...]
+- `#33` **a0**: Round 2 result (a0, #29): POSITIVE, and a big one. DEPTH 8 -> 10 with ASPECT_RATIO 64 -> 48 (model_dim stays 512, still 4 heads of 128) gives val_bpb 0.989595 vs baseline 0.997358 -- an improvement of 0.0078, roughly 8x the ~0.001 noise floor we measured across identical configs in round 0.
+
+Numbers: 60.8M params (was 50.3M), 375.5M tokens (was ~412M, so -9%), 2865 steps, steady-state MFU 37.26% (was ~33%), peak VRAM 27.8GB (was 22.2GB). Note the MFU went UP: the extra two blocks amortise the fixed per-step optimizer/Python overhead over more useful matmul, so depth is cheaper in wall-clock than the FLOP count suggests.
+
+The reading I'd ask the group to take: capacity was the binding constraint all along. Rounds 0 and 1 spent 10 runs on knobs (batch size, head split) that do not bind, and both came back flat or negative precisely because the model was undersized for the compute, not mis- [...]
+- `#34` **a0**: Round 2 result (a0, run 14/36, 22 left): POSITIVE, and the first real move of the cell. DEPTH 8 -> 10 with ASPECT_RATIO 64 -> 48 (model_dim stays 512, still 4 heads of 128) gives val_bpb 0.989238 vs baseline 0.997358 -- better by 0.0081, about 9x the ~0.0009 noise floor round 0 measured across identical configs. Two constants changed, nothing else.
+
+Full numbers: FLOPs/token 2.39e8 -> 2.96e8 (+24%), total_tokens 412.6M -> 377.5M (-8.5%), num_steps 3148 -> 2880, params 50.3M -> 60.8M, peak VRAM 22.2 -> 27.2 GB, steady-state MFU 33.12% -> 37.46%, epoch 1 in both (we are not re-reading data).
+
+The MFU number is the part I would ask everyone to notice. The deeper model paid only 8.5% of its tokens for 24% more FLOPs/token, because more transformer work per step amortises the fixed per-step optimizer + Python overhead better. Depth is therefore cheaper here than a FLOP count suggests, and the [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.989007** (27.1 GB) — DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v1` val_bpb **0.989143** (27.1 GB) — DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; pure depth increase, nothing else touched.
+- `a0/v2` val_bpb **0.989595** (27.1 GB) — DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; nothing else changed.
+- `a0/v3` val_bpb **0.989238** (27.1 GB) — DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48, so model_dim stays 512 with 4 heads of 128; two constants, nothing else touched.
+- `a0/v4` val_bpb **0.989341** (27.1 GB) — DEPTH 8 -> 10 and ASPECT_RATIO 64 -> 48 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+
+**Outcome:** a0/v0 won; new baseline val_bpb 0.989007.
+
+## Round 3
+_Baseline entering the round: val_bpb 0.989007 (commit 8293cc1)_
+
+### Proposals
+- `#43` **a0 — Push depth further: 10 → 12 layers at constant width 512**
+  - why: Depth 8→10 at constant width bought -0.0082 val_bpb (9x the noise floor) for only 24% more FLOPs/token and actually raised MFU, so the capacity axis is clearly still climbing — take the next step on the one axis that has paid.
+  - detail: Two constants in the hyperparameter block of `train.py`:
+
+- `DEPTH = 10` → `DEPTH = 12`
+- `ASPECT_RATIO = 48` → `ASPECT_RATIO = 40`
+
+Trace through `build_model_config(12)`: `base_dim = 12*40 = 480`; `model_dim = ceil(480/128)*128 = 512` (unchanged); `num_heads = 512/128 = 4` (unchanged — wide 128-dim heads preserved, per round 1's finding that head width binds). So again a *pure depth* change: 12 identical blocks instead of 10, same width, same head shape, same rotary, same LRs (`dmodel_lr_scale` depends only on `model_dim`, untouched), same batch size, same schedule.
+
+Cost accounting, scaled from the measured round-2 run:
+- transformer matrices: ~3.15M params/layer ⇒ 31.5M → 37.7M (+6.3M). `has_ve(i,12)` keeps the alternating pattern (odd layers 1,3,5,7,9,11) ⇒ 6 VE tables vs 5, +4.2M. Total params ~60.8M → ~71M.
+- FLOPs/token: 2.96e8 → roughly 3.3e8 (+13%): the +6.3M matrix params add ~38M FLOPs, plus two more short-window attention layers (~13M). The *relative* cost of each depth step shrinks as depth grows, while the 8→10 win was large — so the marginal trade should still be favourable even if the marginal gain is smaller than -0.008.
+- Expect total_tokens to fall ~381M → ~345M [...]
+
+### Messages
+- `#44` **a0**: Round 3 result (a0, run 15/36, 21 left): POSITIVE but with a clear warning attached. DEPTH 10 -> 12 with ASPECT_RATIO 48 -> 40 (model_dim stays 512, 4 heads of 128, nothing else touched) => val_bpb 0.986443 vs baseline 0.989007. Better by 0.0026, about 3x the ~0.0009 noise floor.
+
+Numbers: 71.3M params (was 60.8M), FLOPs/token 3.46e8 (was 2.96e8, +17%), total_tokens 331.2M (was 381.2M, -13%), num_steps 2527, steady-state MFU 38.45% (was 37.82%), peak VRAM 32.9GB (was 27.1GB), epoch still 1.
+
+The warning is the part I care about more than the win. The depth axis is decaying fast:
+  8 -> 10: -0.0084 for +24% FLOPs/token
+  10 -> 12: -0.0026 for +17% FLOPs/token
+That is roughly a 3x drop in return per step of depth. Extrapolating, 12 -> 14 is worth maybe -0.001, i.e. at or below the noise floor, while costing another ~12% of tokens and pushing VRAM to ~38GB. I would NOT buy depth 14, and I w [...]
+- `#45` **a0**: Round 3 result (a0, run 16/36, 20 left): POSITIVE but small. DEPTH 10 -> 12 with ASPECT_RATIO 48 -> 40 (model_dim stays 512, 4 heads of 128, nothing else touched) => val_bpb 0.986675 vs baseline 0.989007, i.e. -0.0023, roughly 2.5x the ~0.0009 noise floor.
+
+Numbers: params 60.8M -> 71.3M, FLOPs/token 2.96e8 -> 3.46e8 (+17%), total_tokens 381M -> 331M (-13%), num_steps 2526, steady-state MFU 38.43% (was 37.8%), peak VRAM 27.1 -> 32.1 GB, epoch still 1.
+
+The headline for planning is the DIMINISHING RETURN, not the win. 8->10 bought -0.0082; 10->12 bought -0.0023 for a comparable relative FLOP cost. Two reasons it got worse, both visible in the numbers: (a) the MFU bonus has saturated (33 -> 37.8 -> 38.4), so extra depth no longer partly pays for itself in wall-clock, and (b) the token budget is now shrinking faster (-13%) than the capacity is helping. Linear extrapolation puts 12 -> 14 at [...]
+- `#46` **a0**: Round 3 result (a0, run 17/36, 19 left): POSITIVE but small. DEPTH 10 -> 12 with ASPECT_RATIO 48 -> 40 (model_dim stays 512, 4 heads of 128) gives val_bpb 0.986354 vs baseline 0.989007 -- better by 0.0027, roughly 3x the ~0.0009 noise floor.
+
+The important part is the SHAPE of the return, not the win. Depth 8->10 bought -0.0082; depth 10->12 bought -0.0027, i.e. one third of it, for a comparable share of the token budget. Numbers: 71.3M params (was 60.8M), FLOPs/token 2.96e8 -> 3.46e8 (+17%), total_tokens 381M -> 331.5M (-13%), num_steps 2529, peak VRAM 27.1 -> 32.9 GB, steady-state MFU 37.8% -> 38.5%.
+
+Two things follow that should change everyone's plan:
+1. The free lunch from MFU is gone. 33% -> 37.8% at 8->10 was real; 37.8% -> 38.5% at 10->12 is nothing. Further depth now pays full FLOP price in tokens, and we are already down 20% of tokens versus the depth-8 baseline.
+2. Linear ext [...]
+- `#47` **a0**: Round 3 result (a0, #43): POSITIVE but clearly diminishing. DEPTH 10 -> 12 with ASPECT_RATIO 48 -> 40 (model_dim stays 512, 4 heads of 128, nothing else touched) => val_bpb 0.986277 vs baseline 0.989007. That is -0.0027, about 3x the ~0.0009 noise floor.
+
+Numbers: params 60.8M -> 71.3M, FLOPs/token 2.96e8 -> 3.46e8 (+17%), total_tokens 381M -> 331.5M (-13%), num_steps 2529, steady-state MFU 38.48%, peak VRAM 27.1 -> 32.1 GB.
+
+The trend is the important part, not the number:
+  depth 8 -> 10: -0.0082
+  depth 10 -> 12: -0.0027
+Roughly a 3x decay per step of depth while the token cost per step stays ~13%. Extrapolated, depth 14 is worth about -0.001, i.e. AT the noise floor, for another 13% of tokens and ~5 GB VRAM. I would not buy depth 14, and I am saying so even though it is my own axis.
+
+Also note the MFU effect I flagged in round 2 has saturated: 33% -> 37.8% (8->10) -> 38.5% (10->12). [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.986292** (32.1 GB) — DEPTH 10->12 and ASPECT_RATIO 48->40 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v1` val_bpb **0.986675** (32.1 GB) — DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v2` val_bpb **0.986443** (32.1 GB) — DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40 so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v3` val_bpb **0.986277** (32.1 GB) — DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v4` val_bpb **0.986354** (32.1 GB) — DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+
+**Outcome:** a0/v3 won; new baseline val_bpb 0.986277.
+
+## Round 4
+_Baseline entering the round: val_bpb 0.986277 (commit 081f627)_
+
+### Proposals
+- `#56` **a0 — Widen the model: dim 512 → 640 at depth 12 (one constant)**
+  - why: Capacity is the only axis that has paid, but depth's return has decayed 3x per step while width has never been probed — and at dim/layer = 42.7 this model is far narrower than the ~64–128 aspect ratio that is standard at this depth, so width is the un-mined half of the capacity axis.
+  - detail: One constant in the hyperparameter block of `train.py`:
+
+- `ASPECT_RATIO = 40` → `ASPECT_RATIO = 48`
+
+`DEPTH` stays 12. Trace `build_model_config(12)`: `base_dim = 12*48 = 576`; `model_dim = ceil(576/128)*128 = 640` (was 512); `num_heads = 640/128 = 5`. So head_dim stays 128 (wide heads preserved, per round 1), rotary resolution unchanged, window pattern unchanged, depth unchanged. It is a pure width change from a single line.
+
+What moves:
+- transformer matrices: 12·n_embd² per layer ⇒ 3.15M → 4.92M per layer, 37.8M → 59.0M total (+21M).
+- wte + lm_head: vocab 8192 × 640 each ⇒ 5.2M each (was 4.2M). Value embeds (`has_ve` on odd layers, 6 tables) 8192×640 ⇒ 31.5M (was 25.2M). Total params ≈ 71.3M → ~101M.
+- FLOPs/token: `6*(nparams - wte - value_embeds - scalars)` plus attention. The counted part is lm_head + transformer matrices: 42.0M → 64.2M ⇒ 2.52e8 → 3.85e8; attention term `12*h*q*effective_seq` scales with n_embd ⇒ ~0.94e8 → 1.18e8. Total ≈ 3.46e8 → ~5.0e8, i.e. +45%.
+- LRs adapt automatically: `dmodel_lr_scale = (model_dim/768)**-0.5` goes 1.225 → 1.095, i.e. AdamW LRs drop ~11%, which is the intended μP-ish scaling. Muon `matrix_lr` is dimension-independent by construction. [...]
+
+### Messages
+- `#57` **a0**: Round 4 result (a0, run 20/36, 16 left): NEGATIVE / wash. ASPECT_RATIO 40 -> 48 (model_dim 512 -> 640, 5 heads of 128, depth still 12, one line) => val_bpb 0.986885 vs baseline 0.986277. Worse by 0.0006, i.e. inside the ~0.0009 noise floor. Width does not pay.
+
+Numbers: params 71.3M -> 100.9M, FLOPs/token 3.46e8 -> 5.03e8 (+45%), total_tokens 331.5M -> 245.6M (-26%), num_steps 2529 -> 1874, steady-state MFU 38.5% -> 41.4% (wider matmuls are genuinely more efficient), peak VRAM 32.1 -> 40.7 GB.
+
+The important thing is what this plus the depth curve jointly say. Per step of capacity:
+  depth 8->10:  -0.0082 for +24% FLOPs/token
+  depth 10->12: -0.0027 for +17%
+  width 512->640: -0.0000 for +45%
+We have walked to the compute-optimal frontier for a 300s budget. Capacity now trades ~1:1 against tokens in BOTH directions, which is exactly the signature of sitting at the optimum rather than on [...]
+- `#58` **a0**: Round 4 result (a0, run 21/36, 15 left): NEGATIVE / wash. ASPECT_RATIO 40 -> 48 (model_dim 512 -> 640 at depth 12, 5 heads of 128, one constant, nothing else touched) => val_bpb 0.986933 vs baseline 0.986277. That is +0.00066 worse, i.e. inside the ~0.0009 noise floor: call it a tie, not a loss.
+
+Numbers: params 71.3M -> 100.9M (+41%), FLOPs/token 3.46e8 -> 5.03e8 (+45%), total_tokens 331.5M -> 246.0M (-26%), num_steps 2529 -> 1877, steady-state MFU 38.5% -> 41.5%, peak VRAM 32.1 -> 40.7 GB (card is 80GB, so memory was never the issue).
+
+The conclusion I would ask the group to take is stronger than the single number. Put this next to the depth curve:
+  depth 8 -> 10 (+24% FLOPs): -0.0082
+  depth 10 -> 12 (+17% FLOPs): -0.0027
+  width 512 -> 640 (+45% FLOPs): +0.0007
+Capacity is now EXHAUSTED at this 5-minute budget, in both directions. We are sitting at (or just past) the compute-optimal [...]
+- `#59` **a0**: Round 4 result (a0, run 22/36, 14 left): NEGATIVE/FLAT. ASPECT_RATIO 40 -> 48, i.e. model_dim 512 -> 640 at depth 12 (5 heads of 128, one constant changed) => val_bpb 0.986993 vs baseline 0.986277. That is 0.0007 WORSE, inside the ~0.0009 noise floor: a wash.
+
+Numbers: params 71.3M -> 100.9M, FLOPs/token 3.46e8 -> 5.03e8 (+45%), total_tokens 331M -> 247.2M (-25%), num_steps 1886, steady-state MFU 38.5% -> 41.67%, peak VRAM 32.1 -> 40.7 GB, epoch still 1.
+
+The important conclusion is not the number but what it closes off. The capacity axis is now measured in both directions at this budget:
+  depth  8 -> 10: -0.0082
+  depth 10 -> 12: -0.0027
+  depth 12 -> 14: projected ~-0.001 (at the noise floor)
+  width 512 -> 640: 0.0000 (measured)
+So we have traded our way to roughly the compute-optimal shape for a 5-minute / ~300M-token budget. More parameters now buy exactly as much quality as the to [...]
+- `#60` **a0**: Round 4 result (a0, #56): FLAT, i.e. effectively negative. ASPECT_RATIO 40 -> 48 (model_dim 512 -> 640, 5 heads of 128, depth still 12, one constant changed) => val_bpb 0.986702 vs baseline 0.986277. That is +0.0004, inside the ~0.0009 noise floor. Width does not beat depth; at this budget it does not beat standing still.
+
+Numbers: params 71.3M -> 100.9M (+41%), FLOPs/token 3.46e8 -> 5.03e8 (+45%), total_tokens 331M -> 246M (-26%), num_steps 1878, steady-state MFU 38.5% -> 41.5%, peak VRAM 32.1 -> 40.7 GB, epoch still 1.
+
+The reading I would ask the group to take, because it closes a whole region of the search space: WE ARE NOW AT THE COMPUTE-OPTIMAL MODEL SIZE. The capacity curve across the cell is 8->10 layers -0.0082, 10->12 -0.0027, 512->640 wide +0.0004. Extra parameters now buy exactly enough quality per token to pay for the tokens they cost, which is the same 1:1 stalemate the bat [...]
+- `#61` **a0**: Round 4 result (a0, run 24/36, 12 left): NEGATIVE / wash. ASPECT_RATIO 40 -> 48 (model_dim 512 -> 640, 5 heads of 128, depth still 12, one constant) => val_bpb 0.986873 vs baseline 0.986277. That is +0.0006, i.e. inside the ~0.0009 noise floor: width bought nothing.
+
+Numbers: params 71.3M -> 100.9M (+41%), FLOPs/token 3.46e8 -> 5.03e8 (+45%), total_tokens 331.5M -> 247.3M (-25%), num_steps 2529 -> 1887, steady-state MFU 38.5% -> 41.7%, peak VRAM 32.1 -> 40.7 GB (fine on an 80GB H100). Note the wider model was MORE FLOP-efficient in wall-clock and still only broke even -- the extra capacity paid back exactly the 25% of tokens it cost.
+
+The conclusion I would ask everyone to take is stronger than 'width lost'. Put the two capacity axes side by side:
+  depth  8 -> 10: -0.0084
+  depth 10 -> 12: -0.0027
+  depth 12 -> 14: projected ~-0.001 (not run)
+  width 512 -> 640: +0.0006 (measured, this [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.986873** (39.7 GB) — ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 with 5 heads of 128 at unchanged depth 12; one constant, nothing else touched.
+- `a0/v1` val_bpb **0.986933** (39.7 GB) — ASPECT_RATIO 40 -> 48, so model_dim 512 -> 640 with 5 heads of 128; depth, batch, LR constants untouched.
+- `a0/v2` val_bpb **0.986702** (39.7 GB) — ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 with 5 heads of 128; depth 12 and everything else unchanged.
+- `a0/v3` val_bpb **0.986993** (39.7 GB) — ASPECT_RATIO 40 -> 48, so model_dim goes 512 -> 640 (5 heads of 128) at unchanged DEPTH 12; nothing else touched.
+- `a0/v4` val_bpb **0.986885** (39.7 GB) — One constant: ASPECT_RATIO 40 -> 48, so model_dim 512 -> 640 with 5 heads of 128 at unchanged depth 12; nothing else touched.
+
+**Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.986277.
+
+## Round 5
+_Baseline entering the round: val_bpb 0.986277 (commit 081f627)_
+
+### Proposals
+- `#70` **a0 — Value embeddings on every layer (FLOP-free capacity)**
+  - why: Round 4 showed capacity now trades 1:1 against tokens because every capacity increase so far cost FLOPs — value embeddings are the one capacity lever excluded from `estimate_flops` and involving no matmul, so doubling them adds 25M params at near-zero token cost.
+  - detail: One function in `train.py`, replacing its body:
+
+```python
+def has_ve(layer_idx, n_layer):
+    """Every layer gets a Value Embedding."""
+    return True
+```
+(was `return layer_idx % 2 == (n_layer - 1) % 2`)
+
+Nothing else changes: DEPTH 12, ASPECT_RATIO 40, model_dim 512, 4 heads of 128, batch 2^17, all LRs and schedules untouched. It is a net *deletion* of logic.
+
+What moves, traced through the code:
+- `GPT.__init__` builds `value_embeds` for every i, so 6 tables -> 12. Each is `Embedding(8192, kv_dim=512)` = 4.19M params, so value_embeds 25.2M -> 50.3M, total params 71.3M -> ~96.4M.
+- `CausalSelfAttention.__init__` creates `ve_gate = Linear(32, 4)` in all 12 layers instead of 6: +768 params, zero-initialised, so each new gate starts at exactly 1.0 (neutral) — the added value-residual path begins as a clean copy of the value embedding and does not disrupt the known-good init.
+- **FLOPs/token is literally unchanged at 3.46e8.** `estimate_flops()` subtracts `value_embeds_numel` from `nparams`, and the attention term depends only on heads/head_dim/windows. This is the first capacity increase in the cell that does not buy itself a token penalty.
+- Crucially, layer 0 currently has *no* [...]
+
+### Messages
+- `#71` **a0**: Round 5 result (a0, run 25/36, 11 left): NEGATIVE, small. has_ve -> True (value embeddings on all 12 layers instead of the 6 odd ones, one function body, nothing else touched) => val_bpb 0.987376 vs baseline 0.986277. That is +0.0011 worse, i.e. just past the ~0.0009 noise floor. Call it a loss, not a tie.
+
+Numbers: params 71.3M -> 96.5M (+35%), FLOPs/token unchanged at 3.46e8 by construction, total_tokens 331.5M -> 323.1M (-2.5% only), num_steps 2529 -> 2465, steady-state MFU 38.5% -> 37.5%, peak VRAM 32.1 -> 33.0 GB.
+
+Half of my prediction was right and half was wrong, and both halves are useful:
+
+1. RIGHT: FLOP-free capacity really is nearly free in wall-clock. 25M extra params cost only 2.5% of the token budget, versus 13% for depth 10->12 and 26% for width 512->640. If we ever find a parameter type that actually helps, embeddings are the cheap way to buy it.
+
+2. WRONG: the capacity [...]
+- `#72` **a0** _(re: #70)_: Round 5 result (a0, run 26/36, 10 left): NEGATIVE. has_ve() -> always True, i.e. value embeddings on all 12 layers instead of the alternating 6 => val_bpb 0.987643 vs baseline 0.986277. Worse by 0.0014, about 1.5x the ~0.0009 noise floor.
+
+Numbers: params 71.3M -> 96.5M (value_embeds 25.2M -> 50.3M), FLOPs/token UNCHANGED at 3.46e8, total_tokens 331.5M -> 320.3M (-3.4%), num_steps 2529 -> 2444, steady-state MFU 38.5% -> 37.2%, peak VRAM 32.1 -> 33.0 GB.
+
+The cost half of my prediction was exactly right and that is what makes the result informative. I claimed embedding capacity is nearly free in wall-clock: it was, 25M extra params for 3.4% of tokens, versus 13% for depth 10->12 and 26% for width 512->640. And it STILL lost. So the story is not 'capacity is at its compute-optimal point'; embedding-side capacity is past its optimum outright, since here we added it at a discount the FLOP-be [...]
+- `#73` **a0**: Round 5 result (a0, run 27/36, 9 left): NEGATIVE / wash. has_ve() -> always True, i.e. value embeddings on all 12 layers instead of the alternating 6 => val_bpb 0.987221 vs baseline 0.986277. That is +0.0009, right at the noise floor: a tie at best, not a win. Baseline stands.
+
+The prediction held exactly, which is what makes the negative worth something. FLOPs/token was literally identical (3.460393e8 both ways, since estimate_flops excludes value_embeds), params went 71.3M -> 96.5M (+25.2M, value_embeds 25.2M -> 50.3M), and the wall-clock cost was small: 331.5M -> 322.3M tokens (-2.8%), MFU 38.5% -> 37.4%, peak VRAM 32.1 -> 33.0 GB. So this was 35% more parameters for 3% of the token budget -- by far the cheapest capacity we have been offered all cell -- and it moved nothing.
+
+That forces a correction to my own round-4 conclusion (#57-#61). I said we are at the compute-optimal model SI [...]
+- `#74` **a0**: Round 5 result (a0, #70): NEGATIVE / wash. has_ve() -> True on every layer (value_embeds 6 tables -> 12, params 71.3M -> 96.5M, nothing else touched) => val_bpb 0.987155 vs baseline 0.986277. That is +0.0009, i.e. sitting exactly on the noise floor.
+
+Numbers: FLOPs/token 3.460393e8 -- LITERALLY unchanged from baseline, as predicted, since estimate_flops() excludes value_embeds. total_tokens 331.5M -> 322.4M (-2.7%), num_steps 2529 -> 2460, steady-state MFU 38.5% -> 37.4%, peak VRAM 32.1 -> 33.8 GB. So the cost side of my proposal was right to the decimal: 6 extra embedding gathers, 6 extra scatter-add backwards and 6 more AdamW groups cost under 3% of the token budget.
+
+The quality side was wrong, and the way it was wrong is the useful part. I argued we were stuck because every capacity increase had to be paid for in FLOPs, so FLOP-free capacity should break the 1:1 stalemate. It did not [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.987221** (33.0 GB) — has_ve() now returns True for all layers: 6 -> 12 value-embedding tables (25.2M -> 50.3M params, 71.3M -> 96.5M total) at identical FLOPs/token.
+- `a0/v1` val_bpb **0.987376** (33.0 GB) — has_ve() now returns True for all layers, so all 12 layers get a value embedding instead of the 6 odd ones; params 71.3M -> 96.5M at unchanged FLOPs/token. val_bpb 0.987376 vs baseline 0.986277 (worse [...]
+- `a0/v2` val_bpb **0.986277** (32.1 GB) — DEPTH 10 -> 12 and ASPECT_RATIO 48 -> 40, so model_dim stays 512 with 4 heads of 128; pure depth change, nothing else touched.
+- `a0/v3` val_bpb **0.987643** (33.0 GB) — has_ve() now returns True for all layers, so value_embeds goes from 6 tables to 12 (25.2M -> 50.3M params, 71.3M -> 96.5M total); FLOPs/token unchanged at 3.46e8; nothing else touched.
+- `a0/v4` val_bpb **0.987155** (33.0 GB) — has_ve() now returns True for all layers, so value_embeds goes from 6 tables to 12 (25.2M -> 50.3M params, total 71.3M -> 96.5M); nothing else touched.
+
+**Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.986277.
+
+## Round 6
+_Baseline entering the round: val_bpb 0.986277 (commit 081f627)_
+
+### Proposals
+- `#83` **a0 — Raise logit softcap 15 → 30**
+  - why: Every capacity and optimizer axis has gone flat, but the output head is untouched: a tanh softcap of 15 hard-limits logit spread exactly where a converged model needs confidence, so it taxes val_bpb directly — at zero FLOP, param and VRAM cost.
+  - detail: One line in `GPT.forward`:
+
+```python
+softcap = 15   ->   softcap = 30
+```
+
+(in the block `softcap = 15; logits = self.lm_head(x); logits = logits.float(); logits = softcap * torch.tanh(logits / softcap)`)
+
+Nothing else changes: DEPTH 12, ASPECT_RATIO 40, model_dim 512, 4 heads of 128, batch 2^17, all LRs, schedules and Muon config untouched.
+
+Mechanism. Final logits pass through `s * tanh(z/s)`. With s=15 the attainable range is (-15, 15) and the map is strongly compressive well before that: at z=15 the output is already 0.76*s. Cross-entropy in bits is a function of logit *differences*; a model that has learned a near-deterministic continuation (the second BPE piece of a frequent word, a closing code token) wants a top-vs-rest gap of 20-30 and cannot express it. Those high-confidence positions carry large leverage on mean bpb, because the cheap positions are where the remaining headroom is.
+
+Why the cap binds now and need not be this tight. Softcap is a stability device for the early steps under a high Muon LR. Here `lm_head` is initialised `normal_(std=0.001)`, so logits start at essentially zero and tanh sits in its linear regime through warmup — the cap does no stabilising wor [...]
+
+### Messages
+- `#84` **a0** _(re: #83)_: Round 6 result (a0, run 29/36, 7 left): NEGATIVE, and decisively. softcap 15 -> 30 in GPT.forward (one line, nothing else touched) => val_bpb 0.990209 vs baseline 0.986277. That is +0.0039, about 4x the ~0.0009 noise floor.
+
+This is the cleanest readout of the whole cell and that is what makes it worth the slot. FLOPs/token 3.460347e8 (identical to baseline), params 71.3M (identical), peak VRAM 32.9GB (identical), MFU 38.77% vs 38.5% -- and the softcap-30 run saw slightly MORE data, 334.0M tokens / 2548 steps vs 331.5M / 2529. Zero compute confound in either direction. The whole 0.0039 is quality per token.
+
+My mechanism in #83 was wrong. I argued the cap taxes confident predictions late in training, since lm_head starts at std=0.001 and tanh is linear through warmup. The measurement says softcap=15 is not a vestigial stability guard at all -- it is doing real regularisation work all run [...]
+- `#85` **a0** _(re: #83)_: Round 6 result (a0, #83): NEGATIVE, clearly. softcap 15 -> 30 in GPT.forward (one line, nothing else touched) => val_bpb 0.990289 vs baseline 0.986277. That is +0.0040, about 4.5x the ~0.0009 noise floor. Baseline stands.
+
+The confound-free promise held exactly, which is what makes this worth the slot: params 71.3M, peak VRAM 32.9GB, FLOPs/token unchanged, and the run got slightly MORE compute than the baseline (333.6M tokens, 2545 steps, MFU 38.72% vs 331.5M / 2529 / 38.5%). No divergence, no instability, loss curve smooth throughout. The entire 0.0040 is quality per token.
+
+My premise was wrong in a useful way. I argued the softcap only binds late and is therefore a pure tax on a converged model's confidence. The measurement says s=15 is not a stability guard that happens to clip -- it is an active part of the loss geometry. The logit gradient is scaled by sech^2(z/s), so a tight cap d [...]
+- `#86` **a0** _(re: #83)_: Round 6 result (a0, run 31/36, 5 left): NEGATIVE, and outside noise. softcap 15 -> 30 in GPT.forward (one line, nothing else touched) => val_bpb 0.990249 vs baseline 0.986277. That is +0.0040, roughly 4x the ~0.0009 noise floor.
+
+This was as clean a control as the cell has had: params 71.3M, FLOPs/token 3.460347e8 vs the baseline's 3.460393e8 (identical to 5 digits), total_tokens 332.8M vs 331.5M, num_steps 2539 vs 2529, steady-state MFU 38.63% vs 38.48%, peak VRAM 32.9GB both ways. The softcap-30 run saw slightly MORE data and still lost by 4x the noise floor, so there is no throughput confound whatsoever.
+
+The decisive detail: the final smoothed TRAIN loss also regressed, 2.7720 vs the baseline's 2.7685. So this is not an eval-time calibration effect, it is damage to optimization. My argument in #83 was that softcap is a dead early-training guard that only binds late and only costs con [...]
+- `#87` **a0** _(re: #83)_: Round 6 result (a0, #83): NEGATIVE and well outside noise. softcap 15 -> 30 in GPT.forward (one line, nothing else) => val_bpb 0.990145 vs baseline 0.986277. Worse by 0.0039, ~4x the 0.0009 noise floor.
+
+The control was exactly as clean as promised, which is what makes this worth a slot. params 71.3M, FLOPs/token 3.46e8, total_tokens 333.3M, num_steps 2543, steady-state MFU 38.69%, peak VRAM 32.9GB -- every one of those is indistinguishable from the depth-12 baseline. There is no throughput or capacity confound at all: 100% of the 0.0039 is model quality.
+
+My premise was wrong, and the direction of the error is the useful part. I argued softcap=15 is a vestigial early-training stability guard (lm_head inits at std=0.001, so tanh is linear through warmup) that only starts to bind late, where it taxes confident predictions. The measurement says the cap is not vestigial -- it is load-bearin [...]
+- `#88` **a0** _(re: #83)_: Round 6 result (a0, run 33/36, 3 LEFT): NEGATIVE and well outside noise. softcap 15 -> 30 in GPT.forward, one line, nothing else touched => val_bpb 0.990464 vs baseline 0.986277. Worse by 0.0042, about 4.6x the ~0.0009 noise floor.
+
+Cleanest readout of the cell, which is what makes it worth something: FLOPs/token 3.460347e8 (baseline 3.460393e8), params 71.3M, peak VRAM 32.9GB, MFU 38.55% vs 38.48%, total_tokens 332.1M vs 331.5M, num_steps 2534. The softcap-30 model saw marginally MORE data and still lost by a wide margin. There is no compute confound at all; the entire gap is quality.
+
+The diagnostic that matters: final smoothed TRAIN loss was ~2.769, essentially identical to the baseline's ~2.768, while val_bpb rose 0.0042. Equal train loss with worse val loss is the signature of removing a REGULARIZER, not of lifting an expressivity ceiling. So my mechanism in #83 had the sign backwar [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.990289** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 30, doubling the attainable logit range. Nothing else touched.
+- `a0/v1` val_bpb **0.990464** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 30. Nothing else touched. val_bpb 0.990464 vs baseline 0.986277 (worse by 0.0042).
+- `a0/v2` val_bpb **0.990145** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 30, doubling the tanh logit cap. Nothing else touched.
+- `a0/v3` val_bpb **0.990249** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 30, so final logits pass through 30*tanh(z/30) instead of 15*tanh(z/15); nothing else touched.
+- `a0/v4` val_bpb **0.990209** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 30; nothing else touched.
+
+**Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.986277.
+
