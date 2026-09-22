@@ -29,6 +29,13 @@ for cell in "$@"; do
   rm -rf "$dest"; mkdir -p "$dest"
   # everything except the worktrees (already removed) and nothing large
   rsync -a --exclude 'work/' "$run_dir/" "$dest/" 2>/dev/null || cp -R "$run_dir/." "$dest/"
+  # The full per-session traces (every turn, tool call and edit of every agent), which Claude Code
+  # writes under ~/.claude/projects; keep the ones written since this cell started, for case studies.
+  mkdir -p "$dest/claude_sessions"
+  find "$HOME/.claude/projects" -name '*.jsonl' -newer "$run_dir/provenance.json" 2>/dev/null | while read -r f; do
+    cp "$f" "$dest/claude_sessions/$(basename "$(dirname "$f")")__$(basename "$f")"
+  done
+  echo "archived $(ls "$dest/claude_sessions" | wc -l | tr -d ' ') session trace(s)"
   git add "$dest" && git -c user.name="${GIT_AUTHOR_NAME:-arena-box}" -c user.email="${GIT_AUTHOR_EMAIL:-arena@local}" \
     commit -qm "results: $cell ($stamp)" && echo "archived $dest (committed locally; push in the morning)"
   echo "=== $(date '+%F %T') finished $cell ==="
