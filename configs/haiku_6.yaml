@@ -21,3 +21,4 @@ autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prin
 max_budget_usd_per_session: 5.0
 cell_budget_usd: 120.0
 seed: 0
+phase_timeout_s: {propose: 900, select: 7200, respond: 1200}   # 6 agents queue on one GPU

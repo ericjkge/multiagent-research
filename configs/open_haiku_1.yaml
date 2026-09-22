@@ -14,9 +14,9 @@ max_train_attempts: 3
 autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
 
-# one long session per agent; segments are resumed while the share lasts
-max_budget_usd_per_session: 8.0
-cell_budget_usd: 60.0
-open_session_timeout_s: 5400
-open_max_resumes: 8
+# one long session per agent, resumed while its share lasts; a solo agent does all 36 runs in one session
+max_budget_usd_per_session: 15.0
+cell_budget_usd: 80.0
+open_session_timeout_s: 21600
+open_max_resumes: 12
 seed: 0

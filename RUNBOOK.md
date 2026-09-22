@@ -4,23 +4,25 @@ Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before
 
 ## Tonight (Mon Sep 21): what to run, in this order
 
-The cells that answer the question, cheapest-first. Claim yours in the channel. All Haiku, 36 runs
-each, about 4 to 5 hours wall clock per cell including agent time.
+The strong model is the experiment; Haiku is there to give the slope with model strength. All cells
+36 runs. Claim yours in the channel. Pairs marked "same box" must run back to back on one GPU, or the
+comparison they make is a comparison between two GPUs.
 
 | priority | cell | why |
 |---|---|---|
-| 1 | `open_haiku_6` | the paper's protocol, six agents |
-| 2 | `indep_haiku_6` | the same six agents, blind to each other: value of communication |
-| 3 | `open_haiku_1` | one agent, whole budget, same protocol: value of copies |
-| 4 | `haiku_6` | the round protocol, six agents: rounds vs open |
-| 5 | `haiku_1` | one agent under the round protocol (best-of-5) |
-| 6 | `haiku_3`, `open_haiku_3` | the middle points, only if boxes are free |
+| 1 | `open_sonnet_6` | the paper's protocol, six strong agents (same box as 2) |
+| 2 | `indep_sonnet_6` | the same six agents, blind to each other: value of communication |
+| 3 | `open_sonnet_1` | one strong agent, whole budget, same protocol: value of copies |
+| 4 | `sonnet_6` | the round protocol, six strong agents: rounds vs open |
+| 5 | `open_haiku_6` + `indep_haiku_6` | the same pair with a weak model: does communication need something worth communicating (same box) |
+| 6 | `sonnet_1`, `open_haiku_1`, the 3s | only if boxes are free |
 
-Cells 1 and 2 should run on the same box, back to back, so the comparison they make is not a
-comparison between two GPUs. One box can do two cells overnight.
+Sonnet cells need an **API key** (six parallel sessions on a claude.ai login get throttled; the
+paid smoke test on Sunday night slowed ten-fold that way). Agent spend per Sonnet cell is roughly
+$30 to $60 under the open protocol; the cell's dollar ceiling is 250.
 
 Per box, once: `bash scripts/setup_gpu_box.sh --noise-gate` (first box) or without the flag (others),
-then `export ANTHROPIC_API_KEY=...` (or `claude auth login`), then
+then `export ANTHROPIC_API_KEY=...`, then
 `nohup bash scripts/run_cells.sh <cell> <cell> > runs/tonight.out 2>&1 &`. In the morning:
 `git pull --rebase && git push` to publish `results/`.
 
