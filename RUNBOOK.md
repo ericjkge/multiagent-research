@@ -14,31 +14,45 @@ independent search?
 
 ## One matrix
 
-Use the same seven conditions for each of Haiku 4.5, Sonnet 5 and Opus 5. Every condition has a
+Use the same eight conditions for each of Haiku 4.5, Sonnet 5 and Opus 5. Every condition has a
 **36-attempt ceiling**, including crashes, on the same pinned autoresearch substrate. Keep medium
 effort and the Claude Code harness across the matrix. No mixed-model or alternative-harness arm
 in this experiment.
 
 | Organization | Agents | Haiku config | Sonnet config | Opus config |
 |---|---:|---|---|---|
-| Structured rounds | 1 | `haiku_1` | `sonnet_1` | `opus_1` |
-| Structured rounds | 3 | `haiku_3` | `sonnet_3` | `opus_3` |
-| Structured rounds | 6 | `haiku_6` | `sonnet_6` | `opus_6` |
+| Rounds (original protocol) | 1 | `haiku_1` | `sonnet_1` | `opus_1` |
+| Rounds (original protocol) | 3 | `haiku_3` | `sonnet_3` | `opus_3` |
+| Rounds (original protocol) | 6 | `haiku_6` | `sonnet_6` | `opus_6` |
 | Open collaboration | 1 | `open_haiku_1` | `open_sonnet_1` | `open_opus_1` |
 | Open collaboration | 3 | `open_haiku_3` | `open_sonnet_3` | `open_opus_3` |
 | Open collaboration | 6 | `open_haiku_6` | `open_sonnet_6` | `open_opus_6` |
+| Independent control | 3 | `indep_haiku_3` | `indep_sonnet_3` | `indep_opus_3` |
 | Independent control | 6 | `indep_haiku_6` | `indep_sonnet_6` | `indep_opus_6` |
 
-**21 unique conditions: 18 rounds/open cells plus three required independent controls.**
+**24 unique conditions: 18 rounds/open cells plus six required independent controls.**
 This preserves the team's 1/3/6-agent runs under both protocols, completes the same Opus row,
-and restores the independent controls from the earlier proposal. It is not a nine-cell study.
+and includes independent controls at both three and six agents. Each config is one full search,
+not one training attempt; the first pass is 24 searches, not nine.
 Independent controls are required to make a claim about the contribution of communication;
 their implementation must pass the isolation checks below before they are launched.
 
-Why only independent-six? The prespecified communication comparison is at six agents, where
-coordination and the small per-agent experiment budget are most consequential for this study.
-Independent-three would answer another question and is outside scope. Independent-one is already
-the open solo condition: there is no peer to communicate with. Do not duplicate that run.
+Independent-three is the control for open-three; independent-six is the control for open-six.
+Together they distinguish the value of sharing at each team size. Independent-one is already the
+open solo condition: there is no peer to communicate with. Do not duplicate that run.
+
+### What the names mean
+
+- **Rounds (the original protocol):** everyone proposes, gets their allotted training attempts,
+  reads the results and responds; the best improvement becomes the shared starting point for the
+  next round. Workers advance through the phases together.
+- **Open:** each worker progresses at its own pace, reads shared findings and decides whether to
+  adopt a peer's code. There is no group-wide phase barrier.
+- **Independent:** the same autonomous search allocation as open, but without peer information or
+  code access. The cell result is the best of the separate searches.
+
+At three workers, open and independent allocate 12 attempts per worker; at six they allocate six.
+The 36-attempt ceiling is per cell, not per worker. The rounds batching is described below.
 
 ### Ownership and existing commitments
 
@@ -47,9 +61,10 @@ the open solo condition: there is no peer to communicate with. Do not duplicate 
 | Haiku | Eric | Existing rounds and open 1/3/6 runs |
 | Sonnet | Anthony | Existing rounds 1/3/6 claim; open 1/3/6 still needs explicit assignment if not already running |
 | Opus | Alvin | Rounds and open 1/3/6, following the same design as Haiku/Sonnet |
-| Independent controls / overflow | Riddhi with family leads | Proposed: independent-six for each family after isolation is repaired; confirm capacity in the team channel |
+| Independent controls / overflow | Unassigned; Riddhi and family leads to claim | Independent 3/6 for each family after isolation is repaired; confirm exact configs and capacity in the channel |
 
-Family leads are responsible for ensuring their control is covered even if Riddhi cannot take it.
+Family leads are responsible for ensuring their matching controls are covered. Riddhi has not
+claimed a specific group in the provided chat; do not silently assign all remaining runs to her.
 This allocation records the known claims and a proposed division of remaining work; it does not
 assert that unclaimed runs have started. Record the actual owner, run ID and commit when claiming.
 
@@ -58,8 +73,9 @@ assert that unclaimed runs have started. Record the actual owner, run ID and com
 | Priority | Comparison, within one model | Interpretation |
 |---|---|---|
 | Primary | `open_X_6` vs `indep_X_6` | Contribution of shared findings, scores and transferable code under the same six-agent allocation |
+| Secondary communication contrast | `open_X_3` vs `indep_X_3` | Contribution of sharing under the same three-agent allocation |
 | Secondary | `open_X_1` vs `open_X_3` vs `open_X_6` | Allocation of a fixed attempt allowance across one, three or six communicating researchers |
-| Secondary | `open_X_1` vs `indep_X_6` | One long sequential search vs a pool of six short private searches |
+| Secondary | `open_X_1` vs `indep_X_3` vs `indep_X_6` | One long sequential search vs pools of shorter private searches |
 | Secondary | `X_N` vs `open_X_N` | Performance of two implemented organizations, including their different batching, prompts and feedback schedules |
 | Exploratory interaction | Compare the within-model communication differences across Haiku, Sonnet and Opus | Whether the observed communication effect differs across these researcher models |
 
@@ -90,7 +106,10 @@ need a new version and separate labeling.
    for each model before expanding beyond this matrix. Replication of the primary comparison takes
    precedence over unstarted secondary cells when resources conflict. Never gate stronger-model runs
    on whether a weaker model happens to show a positive effect.
-5. Finish the remaining 1/3/6 rounds/open cells. Single-repetition secondary cells are descriptive.
+5. Complete the three-agent open/independent pairs and the remaining rounds/open cells. The
+   independent-three cells are required for the three-agent communication comparison, not optional
+   replacements for independent-six. Single-repetition secondary cells are descriptive; if more
+   capacity remains, repeat the three-agent pairs before adding any further conditions.
 6. Freeze selected recipes, independently re-evaluate them, then analyze and prepare slides.
 
 Fresh repetitions use new agent sessions, empty histories, unique run IDs, and the same starting
@@ -110,9 +129,12 @@ startup, compilation, evaluation, agent reasoning, queueing and retries. Early c
 time but consume attempts. Equal attempt ceilings are not equal realized GPU-seconds or equal total
 AI compute; report GPU time, API usage/cost, wall time, failures and attempts separately.
 
-- One pass through all 21 conditions: 63 nominal training GPU-hours, plus overhead.
+- One pass through all 24 conditions: 72 nominal training GPU-hours, plus overhead (864 attempt
+  slots total; actual use can be lower, as noted above).
 - Three repetitions of all six primary arms (open-six and independent-six for three models), with
-  one repetition of the other 15 conditions: 33 cells / 99 nominal training GPU-hours, plus overhead.
+  one repetition of the other 18 conditions: 36 searches / 108 nominal training GPU-hours, plus overhead.
+- If both the three- and six-agent open/independent arms receive three repetitions, with the other
+  12 conditions run once: 48 searches / 144 nominal training GPU-hours, plus overhead.
 - Pilots, baseline measurements and final recipe re-evaluation are additional and recorded separately.
 
 Parallel hardware shortens elapsed time; agent count does not remove serialized GPU work. Measure

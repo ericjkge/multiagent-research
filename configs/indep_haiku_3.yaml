@@ -1,0 +1,27 @@
+# haiku: three independent workers, 12 attempts each, 36 total.
+# Intended control for open_haiku_3.
+# BLOCKED for production until the isolation checks in RUNBOOK.md pass.
+# Disabling the shared Markdown log alone does not isolate peer information.
+cell_id: indep_haiku_3
+protocol: open
+open_share_log: false
+harness: claude_code
+agents:
+  - {id: a0, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a1, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a2, model: claude-haiku-4-5-20251001, effort: medium}
+bon: 1
+
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+# one long session per agent, resumed while its share lasts; a solo agent does all 36 runs in one session
+max_budget_usd_per_session: 15.0
+cell_budget_usd: 80.0
+open_session_timeout_s: 21600
+open_max_resumes: 12
+seed: 0

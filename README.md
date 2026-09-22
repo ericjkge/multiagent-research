@@ -8,14 +8,16 @@ researcher models, team sizes and research organizations under a fixed training-
 
 **[RUNBOOK.md](RUNBOOK.md) is the single source of truth for the matrix, ownership, priorities,
 launch checks and analysis.** [PROPOSAL.md](PROPOSAL.md) gives the scientific framing and prior work.
-The matrix has 21 conditions: Haiku/Sonnet/Opus, each with rounds and open 1/3/6 plus independent-six.
+The matrix has 24 conditions: Haiku/Sonnet/Opus, each with rounds and open 1/3/6 plus independent
+3/6. Open solo also serves as independent solo; there is no duplicate one-agent control.
 Independent controls are required for the communication claim, but their isolation needs repair
 before production use. See the runbook's known implementation gaps; a config existing is not proof
 that a scientifically valid run has completed.
 
 ## Protocols
 
-- **Rounds:** agents propose, implement and train, then respond to results. The best improving
+- **Rounds (the original protocol):** agents propose, implement and train, then respond to results.
+  Everyone advances through these phases together. The best improving
   candidate becomes the shared baseline. Existing BoN is 5/2/1 for 1/3/6 agents; solo response is
   disabled by default. Interpret this as a complete research organization, including its batching.
 - **Open:** agents operate in long autonomous sessions, each with a share of the attempt allowance.

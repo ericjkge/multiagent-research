@@ -19,11 +19,13 @@ researcher itself.
 ## Design
 
 **The [RUNBOOK.md matrix](RUNBOOK.md#one-matrix) is the authoritative plan.** It specifies identical
-conditions for Haiku 4.5, Sonnet 5 and Opus 5: rounds and open protocols at 1/3/6 agents, plus a required
-independent-six control for each model. There are 21 distinct conditions. Existing teammate runs are
+conditions for Haiku 4.5, Sonnet 5 and Opus 5: rounds and open protocols at 1/3/6 agents, plus required
+independent-three and independent-six controls for each model. There are 24 distinct conditions. Existing teammate runs are
 preserved; the same design extends to Opus rather than treating it as an unmatched showcase.
 
-The primary contrast is open-six versus independent-six within each model. The independent control
+The primary contrast is open-six versus independent-six within each model. A planned secondary
+contrast compares open-three with independent-three, testing sharing at the smaller team size.
+Open solo also serves as independent solo, since it has no peers. The independent control
 must prevent access to peer findings, scores and code; the runbook records a current isolation defect
 that must be repaired before this contrast is valid. Open solo is the sequential baseline. Rounds
 cells are secondary comparisons of complete organizations: current batching and reflection behavior
