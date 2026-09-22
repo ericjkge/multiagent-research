@@ -123,6 +123,15 @@ def check(run_dir: Path) -> list[str]:
     if summary.get("gpu_overlaps"):
         failures.append(f"summary.json reports {summary['gpu_overlaps']} GPU overlaps")
 
+    # 8b. a cell that never trained is not a result. This happens when every agent
+    # session fails before reaching arena-train (e.g. Claude Code refusing
+    # bypassPermissions as root); the round loop then "completes" empty rounds.
+    if not timeline:
+        failures.append("no training run ever reached the GPU: every agent session failed before training")
+    cands_all = of_type(records, "candidate")
+    if cands_all and all(c.get("status") != "ok" for c in cands_all):
+        failures.append(f"all {len(cands_all)} candidates failed; nothing was measured")
+
     # 9. open protocol: every run on the GPU is on the score log, nobody
     # exceeded their share, and an "independent" cell really was independent.
     if cfg.get("protocol") == "open":

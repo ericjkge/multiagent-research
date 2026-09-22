@@ -11,6 +11,9 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p runs results
+# Claude Code refuses --dangerously-skip-permissions as root unless it believes it is in a sandbox;
+# cloud GPU containers run as root, and the guard hook is what actually fences the agents in.
+export IS_SANDBOX=1
 
 [ -n "${ANTHROPIC_API_KEY:-}" ] || claude auth status 2>/dev/null | grep -q '"loggedIn": true' || {
   echo "no ANTHROPIC_API_KEY and claude is not logged in; agent calls would fail" >&2; exit 1; }
