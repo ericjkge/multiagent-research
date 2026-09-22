@@ -125,6 +125,7 @@ and at 36, so the comparison below uses each cell's final number.
 | Opus, open (shared directory) | 0.980742 | 0.982130 | 0.977896, 0.976408 (two seeds) |
 | Opus, independent (no sharing) | | | 0.977649, 0.980071 (two seeds) |
 | Opus, rounds (blind proposals, one winner per round) | 0.986277 | 0.987792 (34 runs) | 0.980496 (34 runs) |
+| Sonnet, open (shared directory) | | | 0.985651 |
 | Sonnet, independent | | | 0.988312, 0.977046 (two seeds) |
 | Haiku, independent | | | 0.976806 |
 
@@ -157,5 +158,11 @@ rounds). Neither model quality nor communication moved the number beyond noise a
 the "compute is the bottleneck" reading of the loop, measured: what the agents could not do was run
 more five-minute experiments per unit of GPU time.
 
-Still running: the one Sonnet cell with sharing (`open_sonnet_6`, 16 of 36 runs at 14:12, topping up
-on pod 3 with the fresh-session fallback).
+**Sonnet with sharing, completed 16:35.** `open_sonnet_6` finished at 0.985651, between the two
+independent Sonnet seeds (0.9883 and 0.9770). Same verdict as for Opus: with cell-to-cell spread this
+large, sharing does not move the number in a direction the data can resolve. The cell needed the
+fresh-session fallback for four of its six agents and crashed 8 percent of runs; its agents did adopt
+each other's results (the winning title reads "combine my DEPTH=10 win with a3's WD=0.1+WARMDOWN=0.7"),
+so the protocol worked once the sessions did.
+
+Still running: a second seed of the Haiku control (`indep_haiku_6_s2`), to check that 0.9768 was not luck.
