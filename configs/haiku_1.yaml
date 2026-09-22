@@ -13,6 +13,6 @@ max_train_attempts: 3
 autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
 
-max_budget_usd_per_session: 5.0
+max_budget_usd_per_session: 10.0   # a killed session mid-run wastes the slot
 cell_budget_usd: 120.0
 seed: 0

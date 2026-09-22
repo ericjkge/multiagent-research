@@ -18,7 +18,7 @@ max_train_attempts: 3
 autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
 
-max_budget_usd_per_session: 60.0
+max_budget_usd_per_session: 60.0   # a killed session mid-run wastes the slot
 cell_budget_usd: 250.0   # hard ceiling: the orchestrator stops the cell here
 seed: 0
 phase_timeout_s: {propose: 900, select: 7200, respond: 1200}   # 6 agents queue on one GPU
