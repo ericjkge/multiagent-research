@@ -162,7 +162,7 @@ more five-minute experiments per unit of GPU time.
 independent Sonnet seeds (0.9883 and 0.9770). Same verdict as for Opus: with cell-to-cell spread this
 large, sharing does not move the number in a direction the data can resolve. The cell needed the
 fresh-session fallback for four of its six agents and crashed 8 percent of runs; its agents did adopt
-each other's results (the winning title reads "combine my DEPTH=10 win with a3's WD=0.1+WARMDOWN=0.7"),
-so the protocol worked once the sessions did.
+each other's results (the winning run is a2's "DEPTH=10 on top of adopted batch 2^18 + softcap 10 base",
+a depth change stacked on a peer's adopted stack), so the protocol worked once the sessions did.
 
 Still running: a second seed of the Haiku control (`indep_haiku_6_s2`), to check that 0.9768 was not luck.
