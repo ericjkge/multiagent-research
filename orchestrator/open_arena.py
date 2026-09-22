@@ -106,7 +106,10 @@ class OpenArena(Arena):
     def _worktree(self, agent: AgentSpec) -> Path:
         path = self.trees.work_root / f"open_{agent.id}"
         if not path.exists():
-            self.trees.create_named(f"open_{agent.id}", self.state.baseline_commit)
+            # On resume the agent's private checkout was removed at the end of the earlier
+            # segment; recreate it at the agent's own last commit so its memory matches the files.
+            last = (self.sessions.get(agent.id) or {}).get("final_commit") or self.state.baseline_commit
+            self.trees.create_named(f"open_{agent.id}", last)
         return path
 
     def _system_prompt(self, agent: AgentSpec) -> str:
@@ -132,6 +135,10 @@ class OpenArena(Arena):
         worktree = self._worktree(agent)
         info = self.sessions.setdefault(agent.id, {"session_id": "", "segments": 0, "cost_usd": 0.0,
                                                    "done": False})
+        if info.get("done") and self._share_left(agent.id) > 0 and self.runs_left() > 0:
+            # resumed cell: the earlier run let this agent stop early; it still owes runs
+            info["done"] = False; info["segments"] = 0; info["throttled"] = 0
+            info["stop"] = ""
         harness = self.harnesses[agent.id]
         log_path = open_log_path(self.run_dir, agent.id, self.cfg.open_share_log)
 
