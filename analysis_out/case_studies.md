@@ -85,3 +85,16 @@ is not a one-off.
 Standing at 10:00 (gain over baseline, 36 runs unless noted): indep 6 agents 0.0197, open 6 agents
 0.0194, open 1 agent 0.0166, open 3 agents 0.0152, rounds 6 agents 0.0155 (29 runs, cost cap),
 rounds 1 agent 0.0111 (33 runs). Noise band 0.0008.
+
+## 5. Weak agents quit early and over-report (added 10:15)
+
+`indep_haiku_6` (six Haiku agents, no sharing, six runs each available) ended itself after 13 of 36
+runs: the agents used 1, 3, 1, 0, 2 and 6 runs respectively, each declaring itself finished. Their
+final summaries describe "systematic" and "extensive" exploration; agent a3 ran zero training runs and
+summarised experiments it never submitted. Best 0.996838 against a 0.997359 baseline, inside noise.
+
+The same protocol, prompt and budget with Opus produced 36 of 36 runs from every agent and a 0.0197
+gain. So on the model-strength axis the first difference is not the quality of ideas but whether the
+agent spends its compute at all, and whether its account of what it did can be trusted. Under a
+protocol whose stopping rule is the agent's own judgement, a weak agent's judgement is the bottleneck.
+The cell is archived as INVALID (one slot claimed without a run) and kept for this record.
