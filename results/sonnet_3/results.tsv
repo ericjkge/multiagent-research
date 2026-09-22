@@ -1,0 +1,31 @@
+commit	val_bpb	memory_gb	status	description
+d17cd88	1.002530	66.5	ok	Changed DEPTH from 8 to 10, leaving ASPECT_RATIO/HEAD_DIM and all other hyperparameters untouched, to fill the gap between baseline (8) and a1's proposed 12.
+a5aa8a9	1.015310	44.0	ok	Changed WARMDOWN_RATIO from 0.5 to 0.3, giving more time at peak LR and less time cooling down, since two other agents were already covering the depth axis this round.
+8deed43	1.002652	66.5	ok	Changed only DEPTH from 8 to 10 in train.py, leaving ASPECT_RATIO/HEAD_DIM/all other hyperparameters unchanged.
+e9020fd	1.012971	44.0	ok	Increased MATRIX_LR (Muon optimizer LR for matrix params) from 0.04 to 0.06, all else unchanged.
+1efddf1	1.016240	47.8	ok	Changed DEPTH from 8 to 12 (model_dim scales to 768 via ASPECT_RATIO), and reduced DEVICE_BATCH_SIZE from 128 to 64 (grad_accum doubled to keep TOTAL_BATCH_SIZE fixed) to avoid an OOM the first attempt hit at DEPTH=12/batch 128.
+168e419	1.015989	47.8	ok	Increased DEPTH from 8 to 12 (model_dim auto-scales to 768, 6 heads); had to halve DEVICE_BATCH_SIZE to 64 to avoid CUDA OOM at this depth.
+b2bf3f9	0.000000	0.0	crash	Changed DEPTH from 10 to 11 to test the gap between depth=10 (winner) and depth=12 (confounded loser); crashed with CUDA OOM at DEVICE_BATCH_SIZE=128.
+b6ab3c9	1.005623	66.5	ok	Changed MATRIX_LR from 0.04 to 0.06 at DEPTH=10 (Muon LR for matrix params), testing whether the MATRIX_LR=0.06 win seen at depth=8 (round 0) stacks with the new depth=10 baseline.
+8ee3d8c	0.000000	0.0	crash	Changed DEPTH from 10 to 11 (ASPECT_RATIO/HEAD_DIM/DEVICE_BATCH_SIZE unchanged) to bracket between the confirmed depth=10 winner and the confounded depth=12 loser.
+8897b3a	1.005574	66.5	ok	Changed MATRIX_LR from 0.04 to 0.06 at DEPTH=10 (new baseline), all else unchanged.
+fdc52c0	1.005897	66.5	ok	Increased MATRIX_LR from 0.04 to 0.05 at the new DEPTH=10 baseline, testing whether Muon LR (which doesn't auto-scale with model width like AdamW LRs do) needed retuning for the wider model.
+19a4f79	1.004728	66.5	ok	Increased MATRIX_LR (Muon LR for matrix params) from 0.04 to 0.08, keeping DEPTH=10 and everything else unchanged.
+d7a879d	0.998944	60.5	ok	Changed only DEPTH from 10 to 9 in train.py; model_dim stays 640 (5 heads, same as depth=10) due to HEAD_DIM=128 rounding, so this isolates layer count at fixed width.
+f211f03	0.998924	60.5	ok	Changed DEPTH from 10 to 9 in train.py; model_dim stays 640 (5 heads) due to HEAD_DIM rounding, so this is a pure layer-count-at-fixed-width comparison against the depth=10 baseline.
+eb0bfbc	1.003814	66.5	ok	Changed WARMDOWN_RATIO from 0.5 to 0.7 (longer cooldown, less time at peak LR), all else unchanged at DEPTH=10 baseline.
+4d2ac51	1.006934	66.5	ok	Changed WEIGHT_DECAY from 0.2 to 0.0 (cautious Muon weight decay), all else at DEPTH=10 baseline.
+19d8554	1.003240	66.5	ok	Doubled cautious Muon weight decay (0.2 -> 0.4, still decaying to 0 over training) at the DEPTH=10 baseline, all else unchanged; avoided duplicating a0's identical warmup proposal.
+41dba69	1.003021	66.5	ok	Increased WARMDOWN_RATIO from 0.5 to 0.65 (longer LR cooldown, less time at peak LR), all else unchanged from the DEPTH=10 baseline.
+24a2302	1.000894	60.5	ok	Changed WARMUP_RATIO from 0.0 to 0.03 (all three agents proposed 0.05, so I tested a different point on the same axis to avoid triple-spending on an identical config), all else at DEPTH=9 baseline unchanged.
+7ef00ea	1.002883	60.5	ok	Changed WARMUP_RATIO from 0.0 to 0.05 (5% linear LR ramp from 0 to peak), all else at DEPTH=9 baseline.
+9aae9d9	1.003182	60.5	ok	Changed WARMUP_RATIO from 0.0 to 0.05 at DEPTH=9 baseline, all else unchanged.
+f200b0d	1.000503	60.5	ok	Changed WARMUP_RATIO from 0.0 to 0.03 (3% of the 5-min budget ramping LR linearly from 0 to peak), all else at DEPTH=9 baseline unchanged.
+8ef0e07	1.002663	60.5	ok	Changed WARMUP_RATIO from 0.0 to 0.05 at the DEPTH=9 baseline, all else unchanged.
+55352c6	0.998440	60.5	ok	Changed WINDOW_PATTERN from 'SSSL' to 'SSSS' at DEPTH=9 baseline: only the code-forced last layer keeps full-context attention, all other 8 layers use half-context sliding window (was 3 of 9 layers long, now 1 of 9). Reduces attention FLOPs, all else unchanged.
+ac03b7b	0.993010	60.5	ok	Changed short_window = long_window // 2 to long_window // 4 in _compute_window_sizes (sequence_len//4 = 512 tokens instead of 1024), keeping WINDOW_PATTERN=SSSS and DEPTH=9 unchanged.
+3451b10	0.993153	60.5	ok	Changed short_window from long_window//2 to long_window//4 in _compute_window_sizes (train.py), at DEPTH=9/WINDOW_PATTERN=SSSS baseline: short-window layers now attend to 512 tokens instead of 1024, cutting attention FLOPs further and letting more steps/tokens fit in the fixed 5-min budget.
+3d83152	0.992950	60.5	ok	Changed short_window from long_window//2 to long_window//4 in _compute_window_sizes (train.py), at WINDOW_PATTERN=SSSS, DEPTH=9 baseline; all other hyperparameters unchanged.
+1386185	0.993109	60.5	ok	Changed short_window from long_window//2 (1024 tokens) to long_window//4 (512 tokens) in _compute_window_sizes, keeping WINDOW_PATTERN=SSSS and DEPTH=9 unchanged; cuts attention FLOPs further so more steps/tokens fit in the fixed 5-min budget.
+a5e36fe	0.992975	60.5	ok	Changed short_window from long_window//2 to long_window//4 in _compute_window_sizes (train.py), at DEPTH=9/WINDOW_PATTERN=SSSS baseline; all other hyperparameters unchanged.
+29154ef	0.998511	60.5	ok	Removed the `window_sizes[-1] = (long_window, 0)` override in _compute_window_sizes so every layer (including the last) uses the short (half-context) window when WINDOW_PATTERN=SSSS, instead of forcing one full-context layer; avoided duplicating a0/a2's identical DEPTH=10-under-SSSS proposal.

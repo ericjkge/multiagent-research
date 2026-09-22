@@ -1,0 +1,12 @@
+{
+  "cell_id": "sonnet_3",
+  "rounds_completed": 5,
+  "final_val_bpb": 0.99295,
+  "training_runs": 32,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 9831.5,
+  "agent_cost_usd": 28.863,
+  "wall_clock_s": 10162.7,
+  "stop_reason": "training-run budget exhausted (4 slots left, a round needs 6)",
+  "gpu_overlaps": 0
+}
