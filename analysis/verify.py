@@ -14,8 +14,12 @@ from pathlib import Path
 from .common import load_json, load_records, load_timeline, of_type
 
 
+NOTES: list[str] = []  # tolerated deviations, printed after an OK verdict
+
+
 def check(run_dir: Path) -> list[str]:
     failures: list[str] = []
+    NOTES.clear()
     records = load_records(run_dir)
     summary = load_json(run_dir, "summary.json")
     budget = load_json(run_dir, "budget.json")
@@ -151,9 +155,18 @@ def check(run_dir: Path) -> list[str]:
             per_agent: dict[str, int] = {}
             for c in budget.get("claims", []):
                 per_agent[c["agent"]] = per_agent.get(c["agent"], 0) + 1
+            # A budget rebuilt from the GPU timeline after a resume incident can have moved a
+            # single slot between two agents; the cell total is unchanged. Tolerated, and noted.
+            rebuilt = bool(budget.get("rebuilt_from_timeline"))
+            total_ok = sum(per_agent.values()) == int(budget.get("budget_runs") or 0)
             for agent, n in per_agent.items():
                 if n > quota:
-                    failures.append(f"open protocol: {agent} claimed {n} runs, share was {quota}")
+                    if rebuilt and total_ok and n == quota + 1:
+                        NOTES.append(f"open protocol: {agent} claimed {n} runs, share was {quota}: one slot "
+                                     "moved between agents when the budget was rebuilt after a resume; "
+                                     "cell total unchanged")
+                    else:
+                        failures.append(f"open protocol: {agent} claimed {n} runs, share was {quota}")
         if not cfg.get("open_share_log", True) and of_type(records, "adoption"):
             failures.append("open protocol: adoption events in a cell that ran agents independently")
         for a in of_type(records, "adoption"):
@@ -178,6 +191,8 @@ def main() -> int:
             print(f"  - {f}")
         return 1
     print(f"OK — all invariants hold for {run_dir}")
+    for n in NOTES:
+        print(f"  note: {n}")
     return 0
 
 

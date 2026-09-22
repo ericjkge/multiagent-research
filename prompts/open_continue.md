@@ -1,6 +1,6 @@
 # Continue — you still have {{RUNS_LEFT}} training runs in your share
 
-Your session stopped, but your share of the compute is not spent ({{CELL_LEFT}} runs left in the whole cell). Your private checkout is still `{{WORKTREE}}`, with everything you changed so far.
+{{FRESH_NOTE}}Your session stopped, but your share of the compute is not spent ({{CELL_LEFT}} runs left in the whole cell). Your private checkout is still `{{WORKTREE}}`, with everything you changed so far.
 
 The shared directory now (re-read `{{LOG_PATH}}` before each decision):
 
