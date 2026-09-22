@@ -1,0 +1,13 @@
+commit	val_bpb	memory_gb	status	description
+4886fd5	0.996937	44.0	ok	increase MATRIX_LR from 0.04 to 0.06
+756dabc	1.002711	44.0	ok	reduce warmdown_ratio from 0.5 to 0.2 to train longer at higher LR
+ac0d45e	0.998188	44.0	ok	Reduce embedding LR from 0.6 to 0.4
+80c01ac	0.997722	44.0	ok	Reduce warmdown ratio from 0.5 to 0.3
+a0ac46e	1.002563	66.5	ok	Increase depth from 8 to 10, reduce aspect ratio 64→52
+b8ae069	0.998237	54.1	ok	increase MATRIX_LR to 0.07
+f1d3ce0	0.998683	54.1	ok	MATRIX_LR=0.06, EMBEDDING_LR=0.4 (reduced from 0.6)
+a592970	1.000128	54.1	ok	DEPTH=10 (increased from 8), MATRIX_LR=0.06
+86a01ee	0.998560	54.1	ok	WARMDOWN_RATIO=0.3 (from 0.5), keep LR high for longer
+0e88367	0.998461	54.1	ok	WEIGHT_DECAY=0.3 (increased from 0.2)
+7100826	0.999534	44.0	ok	increase warmdown_ratio to 0.8 for more gradual cooldown
+0d7bf5c	0.996838	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
