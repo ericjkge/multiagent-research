@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+dff0e7f	1.001837	66.5	ok	Increase depth from 8 to 10 for model capacity
+7f4f53f	0.998320	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
+e1a8a7c	0.996858	44.0	ok	Increase embedding LR from 0.6 to 0.8
+3acfdba	0.996252	44.0	ok	Increase unembedding LR from 0.004 to 0.02
+d4c4441	0.997633	44.0	ok	increase matrix_lr from 0.04 to 0.06 and add warmup (0.05)
+f476dec	0.998935	44.0	ok	Reduce warmdown ratio from 0.5 to 0.25 for more full-LR training time
+675f20c	0.996295	44.0	ok	Increase MATRIX_LR to 0.06 and EMBEDDING_LR to 0.8 for more aggressive training
+62db604	1.000538	44.0	ok	Decrease MATRIX_LR from 0.04 to 0.02
+5170e54	0.996052	44.0	ok	Increase matrix LR from 0.04 to 0.06
+f23d5d9	0.998909	44.0	ok	Reduce softcap from 15 to 10 for tighter output
+385ce30	0.997013	44.0	ok	reduce matrix_lr from 0.04 to 0.035, remove warmup
+b41dfbe	0.996179	44.0	ok	Adopt unembedding LR 0.02 + reduce warmdown to 0.2
+6d54d04	1.006140	22.3	ok	Increase unembedding LR from 0.004 to 0.008
+28d089e	0.995414	44.0	ok	Combine EMBEDDING_LR=0.8 and UNEMBEDDING_LR=0.02 for better layer-specific learning
+fbec998	0.997887	44.0	ok	Reduce WARMDOWN_RATIO from 0.5 to 0.25 for longer high LR training
+42bac1f	0.996457	44.0	ok	Reduce weight decay from 0.2 to 0.1
+36b7322	0.996103	44.0	ok	Unembedding LR 0.02 + embedding LR 0.7
+61e08e2	0.995455	44.0	ok	Add FINAL_LR_FRAC=0.1 to prevent complete LR decay during cooldown
+a7b6e52	0.996694	44.0	ok	increase EMBEDDING_LR from 0.6 to 0.8
+e9750f9	0.997055	44.0	ok	Increase matrix LR to 0.08
+ddf2471	0.996366	44.0	ok	Matrix LR 0.06 + unembedding LR 0.02 + reduce weight decay to 0.1
+0a1162e	0.996477	44.0	ok	Combine UNEMBEDDING_LR=0.02 (best) with MATRIX_LR=0.06 for synergy
+defc07a	1.000004	44.0	ok	Further reduce weight decay from 0.1 to 0.05
+50450a4	0.996225	44.0	ok	Matrix LR 0.07 for fine-tuning (unembedding LR 0.02)
+280ca10	0.996851	44.0	ok	Increase embedding LR from 0.6 to 0.8
+3c9ce68	0.995826	44.0	ok	Reduce weight decay from 0.2 to 0.1 with UNEMBEDDING_LR=0.02 and MATRIX_LR=0.06
+ea75af4	0.997939	44.0	ok	Increase embedding LR to 1.0
+2054f96	0.997156	44.0	ok	Final: reduce EMBEDDING_LR to 0.5 with optimal WEIGHT_DECAY=0.1 and UNEMBEDDING_LR=0.02
+0eef826	0.997736	44.0	ok	Increase EMBEDDING_LR to 0.9 with UNEMBEDDING_LR=0.02 to push further
+7efa09e	0.996846	44.0	ok	Push LRs higher: EMBEDDING_LR 1.0, MATRIX_LR 0.08
+76877f7	0.996885	44.0	ok	Adjust unembedding LR to 0.02 (keep embedding 0.8, matrix 0.06)
+c351ed1	0.996632	44.0	ok	test EMBEDDING_LR=0.9 with UNEMBEDDING_LR=0.008
+d6481dd	0.997561	44.0	ok	Reduce warmdown ratio from 0.5 to 0.3
+84da775	0.996683	44.0	ok	adjust ADAM_BETAS to (0.85, 0.95) with optimal EMBEDDING_LR=0.8
+5d9b1e0	0.996370	44.0	ok	final run: test ADAM_BETAS=(0.82, 0.95) with EMBEDDING_LR=0.8 MATRIX_LR=0.05
+a1d42bf	0.997035	44.0	ok	Final: Try embedding LR 0.75

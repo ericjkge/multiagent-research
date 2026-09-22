@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "36b7322",
+  "best_val_bpb": 0.996103,
+  "summary": "Completed all 6 runs with systematic exploration of learning rate tuning. Best result: val_bpb 0.996103 (0.13% improvement over baseline 0.997333) using embedding LR 0.7 + unembedding LR 0.02. Tested and disconfirmed: matrix LR values (0.02, 0.07, 0.08), embedding LR 0.75 and 0.8, weight decay reduction, and warmdown ratio changes. Key finding: moderate, balanced increases to embedding and unembedding learning rates work better than aggressive increases."
+}

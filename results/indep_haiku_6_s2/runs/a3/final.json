@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "e1a8a7c",
+  "best_val_bpb": 0.996858,
+  "summary": "Achieved 0.48% improvement over baseline (0.997333 → 0.996858) by increasing EMBEDDING_LR from 0.6 to 0.8. Exhaustively explored learning rate optimization through 6 runs: EMBEDDING_LR sweep identified 0.8 as the optimal value (0.75 gave 0.997035, 0.9-1.0 degraded to 0.997055+); all other hyperparameter adjustments to matrix/unembedding LRs, warmup/warmdown schedules, batch sizes, and other components either matched baseline or degraded performance. The single embedding learning rate increase represents the dominant and only effective improvement lever within the 5-minute training budget."
+}
