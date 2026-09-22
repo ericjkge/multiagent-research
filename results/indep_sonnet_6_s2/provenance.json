@@ -1,0 +1,89 @@
+{
+  "cell": {
+    "cell_id": "indep_sonnet_6_s2",
+    "agents": [
+      {
+        "id": "a0",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a1",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a2",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a3",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a4",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a5",
+        "model": "claude-sonnet-5",
+        "effort": "medium",
+        "harness": "claude_code"
+      }
+    ],
+    "bon": 1,
+    "train_run_budget": 36,
+    "nominal_run_seconds": 330.0,
+    "train_timeout_s": 900,
+    "max_train_attempts": 3,
+    "autoresearch_repo": "~/autoresearch",
+    "autoresearch_commit": "",
+    "max_budget_usd_per_session": 1000,
+    "cell_budget_usd": 100000,
+    "protocol": "open",
+    "solo_self_critique": false,
+    "phase_timeout_s": {
+      "propose": 900,
+      "select": 3600,
+      "respond": 1200
+    },
+    "open_share_log": false,
+    "open_per_agent_quota": true,
+    "open_max_resumes": 40,
+    "open_session_timeout_s": 21600,
+    "fake_gpu": false,
+    "seed": 1
+  },
+  "config_fingerprint": "f965d7990710",
+  "claude_version": "2.1.278 (Claude Code)",
+  "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "started_at": 1790087602.1186762,
+  "resume_patches": [
+    {
+      "cell_budget_usd": 100000,
+      "max_budget_usd_per_session": 1000,
+      "open_max_resumes": 40
+    },
+    {
+      "cell_budget_usd": 100000,
+      "max_budget_usd_per_session": 1000,
+      "open_max_resumes": 40
+    }
+  ],
+  "over_budget_run_removed": {
+    "agent": "a0",
+    "commit": "7462ac8eb87671b4f8b96e5691a8564f8435bbc7",
+    "val_bpb": 0.978463,
+    "started_at": 1790099217.6043463,
+    "title": "full stack, DEPTH=8, window ratio //4 instead of //8 (untested midpoint)",
+    "reason": "a slot was reclaimed while an earlier a0 run was still training; that run then landed, so the cell measured 37 runs for a 36-run budget. The 37th run in start order is excluded from the cell's record and kept in late_runs/. resume_cell.sh now waits for in-flight workers before reclaiming."
+  }
+}

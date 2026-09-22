@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+1c951e8	0.000000	0.0	crash	increase DEVICE_BATCH_SIZE 128->192 for higher throughput/MFU
+f461662	1.002419	66.5	ok	DEPTH=10 (deeper/wider model, same time budget)
+2a4fdde	1.001883	66.5	ok	DEPTH=10 (wider/deeper model, same aspect ratio) vs baseline DEPTH=8
+3f8feea	0.000000	0.0	crash	increase device batch size 128->256 for higher MFU/throughput
+8a4b4c1	1.046152	26.6	ok	DEPTH=6 (shallower/narrower model, same time budget)
+55df9b9	0.000000	0.0	crash	increase DEVICE_BATCH_SIZE 128->256 (divides TOTAL_BATCH_SIZE), grad_accum=1
+37d74b8	1.046559	26.6	ok	DEPTH=6 (smaller model, more steps) retry
+2294c78	1.045636	26.6	ok	DEPTH=6 (shallower/narrower model, more steps) vs baseline DEPTH=8
+40668d5	0.000000	0.0	crash	DEPTH=8 baseline, DEVICE_BATCH_SIZE=256 (fewer grad-accum steps, more throughput)
+8567974	0.996697	44.0	ok	raise Muon matrix LR 0.04->0.06 (batch size back to 128)
+c8d21a6	0.998002	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.05
+9fcfc38	1.044704	26.6	ok	DEPTH=6 (smaller/faster model, more steps)
+d164874	0.989057	43.9	ok	TOTAL_BATCH_SIZE halved to 2^18 (more, noisier optimizer steps) vs baseline 2^19
+07f7b95	0.999626	44.0	ok	on MATRIX_LR=0.06 base: shorten warmdown 0.5->0.3 (more time at peak LR)
+201de54	0.999520	44.0	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.3 (shorter LR cooldown, more time at peak LR)
+060da74	0.999683	22.2	ok	TOTAL_BATCH_SIZE further halved to 2^17 (DEVICE_BATCH_SIZE=64, grad_accum=1) vs winning 2^18
+12a5efe	0.993467	43.9	ok	combine: TOTAL_BATCH_SIZE 2^19->2^18 (noticed strong in shared results.tsv) + my MATRIX_LR=0.06, warmdown back to 0.5
+df561b5	0.989028	43.9	ok	TOTAL_BATCH_SIZE halved to 2^18 (baseline DEPTH=8/MATRIX_LR=0.04/WARMDOWN=0.5)
+b206781	0.998686	44.0	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.7 (longer LR cooldown)
+55814c1	0.991229	43.9	ok	On top of winning 2^18 batch: MATRIX_LR 0.04->0.05 (more steps may tolerate higher Muon LR)
+b2a369a	0.990382	43.9	ok	TOTAL_BATCH_SIZE=2^18 base: try smaller Muon LR bump 0.04->0.045 (0.06 was worse than plain 2^18)
+e1c1646	0.997158	44.0	ok	DEPTH=8 baseline schedule (WARMDOWN=0.5), MATRIX_LR=0.05 (up from 0.04)
+877b32a	0.991483	43.9	ok	On top of winning 2^18 batch (MATRIX_LR back to 0.04): WARMDOWN_RATIO 0.5->0.35 (more steps, shorter cooldown)
+0152590	0.000000	0.0	crash	FINAL: TOTAL_BATCH_SIZE 2^18->2^17 (test if smaller-batch trend continues) with MATRIX_LR=0.045
+356247f	0.991526	43.9	ok	Best combo: TOTAL_BATCH_SIZE=2^18 (winning) + WARMDOWN_RATIO 0.5->0.3
+9f2fa20	0.977903	64.8	ok	apply prior-validated recipe: batch 2^18, ASPECT_RATIO=96 (width not depth), window//8, first3/last3 value-embeds
+8dfa319	0.981864	64.8	ok	on top of winning recipe: shorten WARMDOWN_RATIO 0.5->0.3 (more optimizer steps now at smaller batch, test shorter cooldown)
+89a6cae	0.000000	0.0	crash	on winning recipe (batch2^18, window//8, ve-first3last3): DEPTH 8->10 at matched model_dim=768 (aspect=76) to isolate depth effect from width
+95cb60e	0.991183	40.5	ok	on winning recipe: DEPTH 8->10 at matched dim=768 (aspect=76), DEVICE_BATCH_SIZE 128->64 (grad_accum=2) to avoid OOM
+88a1b43	0.978168	64.8	ok	Full stack: width dim768 (ASPECT_RATIO=96), window short=1/8, VE first3/last3, batch 2^18, warmdown 0.5
+8eddf4e	0.977046	48.8	ok	full stack: dim768(depth8,ar96), batch96x2048, window//8, ve first3/last3
+b3b1990	0.977190	57.5	ok	Full stack + DEPTH=7 (same dim768, fewer layers) - testing promising-but-untested variant
+6205a7b	0.981326	43.4	ok	full stack, DEPTH=7 (untested-in-stack variation from memory)
+ff3cdd9	0.000000	0.0	crash	full stack, DEPTH=10 (memory: helps a little)
+419a9d7	0.000000	0.0	crash	full stack, DEPTH=10, smaller micro-batch(48x2,accum2) to avoid OOM under GPU contention
+61ebb0c	0.981216	25.2	ok	control: DEPTH=8 with micro-batch 48x2 accum2 (isolate accum effect from depth10 test)
