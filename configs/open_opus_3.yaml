@@ -1,0 +1,24 @@
+# opus x 3 agent(s), OPEN protocol (Park et al. 2609.21032)
+# Open-protocol middle team size; each agent receives 12 of the 36 attempts.
+cell_id: open_opus_3
+protocol: open
+harness: claude_code
+agents:
+  - {id: a0, model: claude-opus-5, effort: medium}
+  - {id: a1, model: claude-opus-5, effort: medium}
+  - {id: a2, model: claude-opus-5, effort: medium}
+bon: 1
+
+train_run_budget: 36
+train_timeout_s: 600
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""
+
+# Keep session and cell settings aligned with the existing Opus open configurations.
+max_budget_usd_per_session: 60.0
+cell_budget_usd: 250.0   # checked between completed agent queries
+open_session_timeout_s: 21600
+open_max_resumes: 12
+seed: 0

@@ -1,6 +1,5 @@
 # opus x 3 agent(s).  Compute-matched: 3 agents x BoN=2 candidates per round.
-# The most expensive cell in the grid -- run it last, and only if the Haiku and
-# Sonnet rows already show a signal worth spending on.
+# Structured-rounds middle team size. Execution priority is defined in RUNBOOK.md.
 cell_id: opus_3
 harness: claude_code
 agents:

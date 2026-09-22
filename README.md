@@ -1,194 +1,71 @@
 # Can AI agents collaborate on ML research?
 
-CS 2881R mini-experiment, Sep 24 2026. Team: Anthony Shen, Eric Ge, Riddhi Bhagwat, Alvin Ekelund.
+CS 2881R mini-experiment, September 24, 2026.
+Team: Anthony Shen, Eric Ge, Riddhi Bhagwat, Alvin Ekelund.
 
-A multi-agent arena over [Karpathy's `autoresearch`](https://github.com/karpathy/autoresearch).
-Agents propose, argue, then implement and train — sharing one research lineage — so we can ask
-whether adding agents, or diversifying them, speeds up automated ML research.
+An arena over [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) for comparing
+researcher models, team sizes and research organizations under a fixed training-attempt allowance.
 
-## The experiment
+**[RUNBOOK.md](RUNBOOK.md) is the single source of truth for the matrix, ownership, priorities,
+launch checks and analysis.** [PROPOSAL.md](PROPOSAL.md) gives the scientific framing and prior work.
+The matrix has 21 conditions: Haiku/Sonnet/Opus, each with rounds and open 1/3/6 plus independent-six.
+Independent controls are required for the communication claim, but their isolation needs repair
+before production use. See the runbook's known implementation gaps; a config existing is not proof
+that a scientifically valid run has completed.
 
-Each **cell** of the grid is one model family crossed with one agent count, given an identical
-compute budget. Every round:
+## Protocols
 
-1. **Propose** — each agent reads the shared log and commits to one idea with a one-line
-   justification. It cannot see the others' proposals yet; this phase is meant to be independent.
-2. **Select** — the proposals are now on the table. Each agent claims a slot from the cell's run
-   budget, implements whatever it now believes in, trains it, and debugs its own crashes.
-3. **Respond** — the measurements are in. Each agent reads them, can dig through any peer's
-   `run.log`, and writes back to the group.
+- **Rounds:** agents propose, implement and train, then respond to results. The best improving
+  candidate becomes the shared baseline. Existing BoN is 5/2/1 for 1/3/6 agents; solo response is
+  disabled by default. Interpret this as a complete research organization, including its batching.
+- **Open:** agents operate in long autonomous sessions, each with a share of the attempt allowance.
+  They publish approaches, findings and scores and can adopt peer code. The protocol is inspired by
+  [Park et al.](https://arxiv.org/abs/2609.21032).
+- **Independent:** intended open-protocol control with private histories and no peer access.
+  `open_share_log: false` currently filters Markdown but still exposes the shared score table and
+  other artifacts; it is not yet sufficient isolation.
 
-Respond comes **after** the measurement, not before it. An agent reacting to numbers is doing
-something different from an agent reacting to a plan, and it is the first that this experiment is
-about.
+`arena-train --title "..."` claims an attempt and serializes training through a per-cell GPU lock.
+`arena-log` records messages; `arena-adopt` records an explicit transfer of peer code. Read the
+runbook before launching, particularly the prohibition on simultaneous cells on the same GPU.
 
-The best improving candidate of the round becomes the baseline **for every agent**. That shared
-lineage is what makes a cell a single comparable research trajectory rather than N private
-hill-climbs, and what makes the 1-agent cell a genuine control.
-
-### Two protocols, one budget
-
-The arena runs two communication structures over the same run budget, so they can be compared directly:
-
-- **`protocol: rounds`** (above): lockstep propose → select → respond, one shared lineage, the best
-  candidate of the round becomes everyone's baseline.
-- **`protocol: open`**: the structure of Park, Kontonis, Garg, Krishnamurthy and Papailiopoulos,
-  *Scaling Discovery through Test-Time Communication* (arXiv 2609.21032, Sep 17 2026). No rounds and
-  no roles. Each agent gets one long autonomous session in a private worktree and a share of the run
-  budget (36 / N). It declares a distinct approach in a slot, publishes findings (with the commit that
-  reproduces them) and disconfirmations to an append-only shared directory, and adopts a peer's
-  approach **only after observing a clearly better measured result**, keeping one variation of its
-  own. `open_share_log: false` runs the same agents blind to each other: the paper's independent
-  (best@k) control at matched compute.
-
-| config | protocol | agents | what it measures |
-|---|---|---|---|
-| `haiku_1`, `haiku_3`, `haiku_6` | rounds | 1 / 3 / 6 | the round protocol vs agent count |
-| `open_haiku_1`, `open_haiku_3`, `open_haiku_6` | open | 1 / 3 / 6 | the paper's protocol vs agent count |
-| `indep_haiku_6` | open, no sharing | 6 | six agents that cannot talk (best@6 at fixed compute) |
-| same three families with `sonnet_*` | | | does the answer change with model strength |
-
-Under `open`, `arena-train --title "..."` commits `train.py` before the run and writes the score-log
-line after it; `arena-log approach|finding|disconfirmation|coordination` are the directory's
-channels; `arena-adopt <commit> "why"` is adoption on the record. The rendered directory is
-`runs/<dir>/log.md` (or `log_<agent>.md` per agent when sharing is off) and every agent's runs are
-archived under `runs/<dir>/runs/<agent>/`.
-
-### Compute matching
-
-Every cell gets the same budget of **training runs** — 36, about 3.3 H100-hours. A run is a run: a
-crash spends a slot exactly like a success does. The cell is allotted N attempts at the GPU, and
-wasting one on a bug is a real cost to the group. That is deliberate — error propagation is one of
-the things under study, and it is invisible if crashes are free.
-
-| cell | agents | BoN | slots/round | rounds if nothing crashes |
-|---|---|---|---|---|
-| `*_1` | 1 | 5 | 5 | 7 |
-| `*_3` | 3 | 2 | 6 | 6 |
-| `*_6` | 6 | 1 | 6 | 6 |
-
-That last column is an upper bound, not a plan: a cell that crashes a lot completes fewer rounds on
-the same compute. Rounds are therefore **not** comparable across cells — runs consumed are, which is
-why that is the x-axis of every plot.
-
-Best-of-N forks the agent's post-proposal session N times, so the variants share context but sample
-independently.
-
-## Running a cell
-
-On the GPU box, once:
+## Entry points
 
 ```bash
-bash scripts/setup_gpu_box.sh     # clones autoresearch, preps data, measures the baseline once
+# Free simulated smoke checks (the script creates a fake substrate).
+bash scripts/smoke_test.sh --fake-agents
+bash scripts/smoke_test.sh --config configs/smoke_open.yaml --fake-agents
+bash scripts/smoke_test.sh --config configs/smoke_open_indep.yaml --fake-agents
+
+# After the runbook's production checks and substrate pinning:
+python3 -m orchestrator.run --config configs/open_opus_6.yaml --run-dir runs/open_opus_6-r01
+python3 -m orchestrator.run --resume-run runs/open_opus_6-r01
+
+# Inspect a completed run before treating it as evidence.
+python3 -m analysis.verify runs/open_opus_6-r01
+python3 -m analysis.report runs/open_opus_6-r01
 ```
 
-It prints a commit hash — pin it as `autoresearch_commit` in every config so all cells share a
-substrate. The baseline is measured once per box and reused by every cell, so no cell spends five
-minutes re-measuring it and all of them start from the same number.
+Fake tests exercise orchestration, not real model access, training quality or information isolation.
+The verifier checks accounting invariants; separate checks are needed for peer isolation, evaluator
+integrity and actual completed budgets. Preserve each repetition in a unique archive directory.
 
-Then:
+## Implementation map
 
-```bash
-python3 -m orchestrator.run --config configs/haiku_3.yaml
-python3 -m orchestrator.run --resume-run runs/haiku_3-20260921-140000   # after an interruption
-```
-
-Order the grid cheapest-first (`haiku_1` → `haiku_6` → `sonnet_*`); confirm the first cell's wall
-clock and run count before committing 18 GPU-hours.
-
-### Without a GPU
-
-```bash
-bash scripts/smoke_test.sh --fake-agents   # free: no API calls at all
-bash scripts/smoke_test.sh                 # a few cents: real Haiku agents
-bash scripts/smoke_test.sh --config configs/smoke_open.yaml --fake-agents   # open protocol, free
-bash scripts/smoke_test.sh --config configs/smoke_open.yaml                 # open protocol, real agents
-```
-
-`--fake-gpu` simulates training and `--fake-agents` simulates the researcher, so the whole loop —
-parallelism, the GPU mutex, the run budget, worktrees, best-of-N, selection, archiving, resume —
-runs on a laptop for nothing. The paid variant additionally exercises the prompts, structured
-output, session forking and the guard hook. Run the free one after any orchestrator change; run the
-paid one before touching a GPU.
-
-## Reading the results
-
-```bash
-python3 -m analysis.verify  runs/<dir>   # invariants — run this FIRST
-python3 -m analysis.report  runs/<dir>   # the readable per-cell write-up
-python3 -m analysis.compare results/haiku_* --plot fig_haiku.png   # the headline figure
-python3 -m analysis.diversity runs/<dir> --classify
-python3 -m analysis.errors  runs/<dir>
-```
-
-`analysis.verify` is not optional. It checks that training runs never overlapped on the GPU, that
-every run on the timeline claimed a slot and the run budget was never exceeded, that each round's
-declared winner really was its best candidate, that the lineage never moved backwards, and that the
-phases actually ran in order — no proposal logged after training began, no response logged before a
-result existed. **A cell that fails verification is invalid, not merely weak.**
-
-The headline plot is best `val_bpb` against *training runs consumed*, not rounds — compute is the
-resource held fixed across the grid.
-
-## How it is put together
-
-| path | role |
+| Path | Purpose |
 |---|---|
-| `orchestrator/arena.py` | the round loop: propose → select → respond, selection, lineage |
-| `orchestrator/open_arena.py` | the open protocol: async sessions over a shared directory (Park et al.) |
-| `orchestrator/phases.py` | prompts and JSON schemas for the three phases |
-| `orchestrator/sharedlog.py` | the collaboration medium; flock'd, numbered, agent-writable |
-| `orchestrator/harness.py` | Claude Code, OpenCode and fake drivers behind one `Harness` protocol |
-| `orchestrator/worktrees.py` | one git worktree per candidate, one ref per result |
-| `bin/arena-train` | **the only way to train**: slot claim + GPU mutex |
-| `bin/arena-log` | **the only way to write to the log**: flock'd, attributed, numbered |
-| `bin/arena-adopt` | open protocol: adopt a peer's commit, on the record |
-| `bin/guard_hook.py` | PreToolUse hook enforcing the rules agents must not break |
-| `prompts/` | the agent-facing instrument — edit deliberately, it changes the science |
-| `analysis/` | verification, the per-cell report, and the cross-cell comparison |
+| `orchestrator/arena.py` | Rounds, candidate selection and shared lineage |
+| `orchestrator/open_arena.py` | Autonomous sessions for open/independent configurations |
+| `orchestrator/config.py` | Config schema, quotas and attempt ceilings |
+| `orchestrator/harness.py` | Claude Code, OpenCode and fake adapters |
+| `orchestrator/sharedlog.py` | Recorded events and rendered agent views |
+| `orchestrator/worktrees.py` | Candidate worktrees and Git references |
+| `bin/arena-train` | Attempt accounting and GPU serialization |
+| `bin/arena-log`, `bin/arena-adopt` | Messages and recorded code adoption |
+| `bin/guard_hook.py` | Tool-use checks; not an OS isolation boundary |
+| `prompts/` | Agent instructions; version changes as experimental changes |
+| `analysis/` | Verification, reports, trajectories and exploratory analysis |
 
-### Two design choices worth knowing
-
-**Agents read and write the same log.** They read a rendered `log.md` and a Karpathy-format
-`results.tsv`; they write through `bin/arena-log`, which appends to the same JSONL the orchestrator
-writes. Every entry is numbered, so an agent can reply to a *specific* message rather than to the
-round in general. Writers are N agent processes plus the orchestrator's own threads, so every append
-takes an `flock` and computes its id inside that critical section — a bare append would interleave,
-and the log is the primary experimental artifact.
-
-**`arena-train` is the single enforcement point.** It claims a run slot from the shared budget and
-holds the GPU lock in the same critical section, so an agent cannot overspend its cell or collide
-with a peer, and the slot is claimed *before* training so a cell can never overshoot. It also
-refuses to run outside the select phase. Direct `train.py` invocation, new dependencies, edits to
-`prepare.py`, and anything that leaves the box are blocked by a PreToolUse hook that fires even
-under `bypassPermissions`.
-
-## Instrumentation
-
-Captured during the run, because none of it can be reconstructed afterwards:
-
-- every proposal and response verbatim, with per-call cost and the resolved model id;
-- every `run.log`, `train.py` and `candidate.json`, archived per candidate under `runs/<dir>/rounds/`;
-- a git ref per candidate commit, so any experiment can be checked out later;
-- `gpu_timeline.jsonl` — start/end/queue time of every training run;
-- full agent transcripts under `runs/<dir>/transcripts/` for case studies.
-
-## Known confounds — say these out loud
-
-**The solo cell gets two phases, not three.** `respond` is skipped when there is nobody to respond
-to, so the 1-agent control does less reflection per round as well as having fewer agents. That
-conflates "more agents" with "more thinking". `solo_self_critique: true` turns respond back on for
-solo cells and is the honest control; decide before running the grid, not after.
-
-**One seed per cell.** Any difference smaller than the noise gate spread
-(`scripts/setup_gpu_box.sh --noise-gate`) is not a result. Quote the spread whenever you quote a gain.
-
-**`mixed_opencode_3` has not been run.** OpenCode has no structured-output mode, so its proposals are
-parsed out of free text, and it reports no per-call spend, so `cell_budget_usd` cannot see it.
-
-## Cost
-
-Agent spend, not GPU. Roughly $5–15 per Haiku cell and $20–45 per Sonnet cell, dominated by the
-select sessions; respond is now a tool-enabled session too, so budget a little above the old
-figures. `max_budget_usd_per_session` caps any single agent call and `cell_budget_usd` stops the
-cell; both are per-config.
+Runs record proposals/messages, candidate code and logs, Git commits, agent transcripts, timing,
+configuration and model metadata. `runs/` is ignored by Git; archive reviewed results under unique
+`results/<run-id>` paths. API usage and actual GPU time must accompany training-attempt counts.

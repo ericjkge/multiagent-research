@@ -1,185 +1,196 @@
-# Runbook
+# Experiment plan and runbook
 
-Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before touching a GPU.
+CS 2881R, presentation September 24, 2026. Updated September 21.
 
-## The experiment grid (final, Mon Sep 21 22:05)
+**This file is the single source of truth for the experiment matrix, priorities and ownership.**
+The README describes the software; PROPOSAL.md explains the scientific question. Earlier
+"tonight" tables are superseded. Preserve runs already underway and their exact configurations.
 
-Every cell is 36 training runs. Per model family, in this order, and the first three are the minimum:
+## Question
 
-| # | cell | agents | what it is |
-|---|---|---|---|
-| 1 | `open_X_6` | 6, sharing the log | the paper's protocol |
-| 2 | `indep_X_6` | 6, cannot see each other | same agents, no talking: the control for communication |
-| 3 | `X_1` | 1, whole budget | one agent with the same compute: the control for copies |
-| 4 | `X_6` | 6, lockstep rounds | does the organisation of the group matter |
-| 5 | `open_X_1`, then the 3-agent cells | | only if a box is free |
+At a fixed training-attempt allowance, how does automated ML research performance depend on
+researcher model, team size, and research organization? Does sharing discoveries improve on
+independent search?
 
-Families and owners: **Haiku = Eric**, **Sonnet = Anthony**, **Opus = Alvin** (cells 1 and 2 only, as
-the frontier check), **Riddhi** takes cell 2 of any family whose owner cannot fit it, then cell 4.
-Cells 1 and 2 of a family run back to back on one box.
+## One matrix
 
-Haiku cells run fine on a claude.ai login. Sonnet and Opus cells want an API key (six parallel
-sessions on a login get throttled; the orchestrator waits out rate limits, but the GPU idles
-meanwhile). Opus cells have $60 per session and $250 per cell ceilings in their configs.
+Use the same seven conditions for each of Haiku 4.5, Sonnet 5 and Opus 5. Every condition has a
+**36-attempt ceiling**, including crashes, on the same pinned autoresearch substrate. Keep medium
+effort and the Claude Code harness across the matrix. No mixed-model or alternative-harness arm
+in this experiment.
 
-Per box, once: `bash scripts/setup_gpu_box.sh --noise-gate` (first box) or without the flag (others),
-then `export ANTHROPIC_API_KEY=...` if using a key, then
-`nohup bash scripts/run_cells.sh <cell> <cell> > runs/tonight.out 2>&1 &`. In the morning:
-`git pull --rebase && git push` to publish `results/`.
+| Organization | Agents | Haiku config | Sonnet config | Opus config |
+|---|---:|---|---|---|
+| Structured rounds | 1 | `haiku_1` | `sonnet_1` | `opus_1` |
+| Structured rounds | 3 | `haiku_3` | `sonnet_3` | `opus_3` |
+| Structured rounds | 6 | `haiku_6` | `sonnet_6` | `opus_6` |
+| Open collaboration | 1 | `open_haiku_1` | `open_sonnet_1` | `open_opus_1` |
+| Open collaboration | 3 | `open_haiku_3` | `open_sonnet_3` | `open_opus_3` |
+| Open collaboration | 6 | `open_haiku_6` | `open_sonnet_6` | `open_opus_6` |
+| Independent control | 6 | `indep_haiku_6` | `indep_sonnet_6` | `indep_opus_6` |
 
-## The compute reality
+**21 unique conditions: 18 rounds/open cells plus three required independent controls.**
+This preserves the team's 1/3/6-agent runs under both protocols, completes the same Opus row,
+and restores the independent controls from the earlier proposal. It is not a nine-cell study.
+Independent controls are required to make a claim about the contribution of communication;
+their implementation must pass the isolation checks below before they are launched.
 
-A training run is 5 minutes plus about 1 minute of startup, compile and eval, so ~6 minutes of GPU
-per run. Agent thinking happens while the GPU is idle unless cells overlap.
+Why only independent-six? The prespecified communication comparison is at six agents, where
+coordination and the small per-agent experiment budget are most consequential for this study.
+Independent-three would answer another question and is outside scope. Independent-one is already
+the open solo condition: there is no peer to communicate with. Do not duplicate that run.
 
-The grid is **compute-matched on training runs**, not on rounds. Every cell gets the same
-`train_run_budget` (36 runs, ~3.3 H100-hours), and cells burn it at different rates per round:
+### Ownership and existing commitments
 
-| cell | agents | BoN | candidates/round | rounds at 36 runs | agent calls |
-|---|---|---|---|---|---|
-| `*_1` | 1 | 5 | 5 | 7 | 7 x 11 |
-| `*_3` | 3 | 2 | 6 | 6 | 6 x 15 |
-| `*_6` | 6 | 1 | 6 | 6 | 6 x 18 |
+| Family / responsibility | Lead | Allocation |
+|---|---|---|
+| Haiku | Eric | Existing rounds and open 1/3/6 runs |
+| Sonnet | Anthony | Existing rounds 1/3/6 claim; open 1/3/6 still needs explicit assignment if not already running |
+| Opus | Alvin | Rounds and open 1/3/6, following the same design as Haiku/Sonnet |
+| Independent controls / overflow | Riddhi with family leads | Proposed: independent-six for each family after isolation is repaired; confirm capacity in the team channel |
 
-Rounds are therefore **not** a comparable x-axis between cells; training runs are. That is why
-`analysis.compare` plots against runs consumed.
+Family leads are responsible for ensuring their control is covered even if Riddhi cannot take it.
+This allocation records the known claims and a proposed division of remaining work; it does not
+assert that unclaimed runs have started. Record the actual owner, run ID and commit when claiming.
 
-Full grid: 9 Claude cells x 3.3 GPU-h ≈ 30 GPU-hours, about $90 on RunPod H100s at $2.99/h, each
-cell fitting in one night on one box. Agent spend is separate and larger for the big models: a few
-dollars per Haiku cell, $20–45 per Sonnet cell, $100+ per Opus cell. Whoever runs a cell pays for it
-with their own key.
+## Comparisons and interpretation
 
-## Before any cell: the noise gate
+| Priority | Comparison, within one model | Interpretation |
+|---|---|---|
+| Primary | `open_X_6` vs `indep_X_6` | Contribution of shared findings, scores and transferable code under the same six-agent allocation |
+| Secondary | `open_X_1` vs `open_X_3` vs `open_X_6` | Allocation of a fixed attempt allowance across one, three or six communicating researchers |
+| Secondary | `open_X_1` vs `indep_X_6` | One long sequential search vs a pool of six short private searches |
+| Secondary | `X_N` vs `open_X_N` | Performance of two implemented organizations, including their different batching, prompts and feedback schedules |
+| Exploratory interaction | Compare the within-model communication differences across Haiku, Sonnet and Opus | Whether the observed communication effect differs across these researcher models |
 
-**Do this first. Nothing downstream means anything without it.**
+Model tiers are not controlled parameter-count interventions. A difference between tiers does not
+by itself establish a general law relating capability to collaboration.
+
+### Preserve and disclose existing rounds behavior
+
+The existing rounds cells use BoN=5/2/1 at N=1/3/6. The solo rounds condition is a batched search,
+not the sequential open solo baseline; it also skips the response phase by default. These are
+comparisons of complete research organizations, not isolated interventions on agent count or timing.
+
+With batches of five and the current round limit, solo rounds can stop at 35 attempts despite a
+36-attempt ceiling. Other cells may also finish early. Report actual counts and stop reasons, plot
+progress by attempts consumed, and show comparisons at a common completed-attempt checkpoint where
+needed. Never label unequal realized counts as exactly matched completed training. Preserve existing
+runs; do not silently change batching or self-critique mid-grid. A redesigned rounds condition would
+need a new version and separate labeling.
+
+## Execution order: finish comparisons before adding breadth
+
+1. Keep already-running cells and archive them with their original provenance.
+2. Repair and verify independent isolation. While that work proceeds, communicating cells may run.
+3. Complete the six-agent open/independent pair and open solo for each model. For Alvin, prioritize
+   `open_opus_6` and its `indep_opus_6` control, then `open_opus_1`; cover the remaining Opus cells next.
+   Coordinate paired ownership so a communicating result is not left without its control.
+4. Obtain **three fresh complete-search repetitions of each primary open-six/independent-six arm**
+   for each model before expanding beyond this matrix. Replication of the primary comparison takes
+   precedence over unstarted secondary cells when resources conflict. Never gate stronger-model runs
+   on whether a weaker model happens to show a positive effect.
+5. Finish the remaining 1/3/6 rounds/open cells. Single-repetition secondary cells are descriptive.
+6. Freeze selected recipes, independently re-evaluate them, then analyze and prepare slides.
+
+Fresh repetitions use new agent sessions, empty histories, unique run IDs, and the same starting
+code. Workers and successive attempts inside a cell are not independent experimental repetitions.
+Do not pool them as though they were extra samples.
+
+For each primary repetition, preferably run the communicating and independent cells sequentially
+on the same GPU, with their order randomized and both orders represented across repetitions. Extra
+matched GPUs allow different repetitions to run in parallel. Record GPU model/variant, baseline
+measurements, software and model versions. Never run two cells simultaneously on one physical GPU:
+the current GPU lock is scoped to a run directory, not to the whole machine.
+
+### Time and budget
+
+36 successful five-minute training attempts imply three hours of nominal training per cell, before
+startup, compilation, evaluation, agent reasoning, queueing and retries. Early crashes use less GPU
+time but consume attempts. Equal attempt ceilings are not equal realized GPU-seconds or equal total
+AI compute; report GPU time, API usage/cost, wall time, failures and attempts separately.
+
+- One pass through all 21 conditions: 63 nominal training GPU-hours, plus overhead.
+- Three repetitions of all six primary arms (open-six and independent-six for three models), with
+  one repetition of the other 15 conditions: 33 cells / 99 nominal training GPU-hours, plus overhead.
+- Pilots, baseline measurements and final recipe re-evaluation are additional and recorded separately.
+
+Parallel hardware shortens elapsed time; agent count does not remove serialized GPU work. Measure
+pilot timing and actual API spend instead of relying on an old flat cost estimate. Session ceilings
+and cell ceilings are operational settings, not proof of matched inference budgets; the current
+cell-dollar accounting updates after queries return and is not a strict aggregate live spend cap.
+
+## Required launch checks and known implementation gaps
+
+These are known issues, not claims that this documentation update fixes the harness.
+
+- **Independent isolation is currently insufficient.** `publish_open(share=False)` filters Markdown
+  but still writes a global `results.tsv`; the open prompt supplies that path to every agent. The
+  whole run directory and shared Git objects also expose peer information. Independent workers need
+  private score/history views and enforced separation from peer artifacts, transcripts and code.
+  Test the permitted tools against a recognizable peer-only marker. No adoption events is not
+  proof of no information sharing. Preserve and audit any already-run independent cells.
+- **Pin the substrate and evaluator.** Configs currently leave `autoresearch_commit` blank. Record
+  repository commits, CLI version, resolved model ID, effort, data/tokenizer and timing settings.
+  Verify scoring and timing behavior; a writable train.py can change evaluation calls even if
+  prepare.py is unchanged. Audit final diffs and use a trusted evaluator for re-evaluation.
+- **Seed semantics.** YAML `seed` affects simulated behavior; it does not currently replace the real
+  upstream training script's fixed torch seed. Fresh search repetitions and changed training seeds
+  are different checks. Implement and verify explicit training seeds before claiming seed replication.
+- **Setup repeatability.** `setup_gpu_box.sh --noise-gate` can reference an unset `VAL` when baseline.json
+  already exists. Repair that path before adding the noise measurement to a previously set-up box.
+  Baseline repeats measure repeatability; the hardcoded 0.003 range is not a significance test.
+- **Archive repetitions uniquely.** `run_cells.sh` replaces `results/<cell>` on another run of that
+  name. Use timestamped archive paths or repair the script before chaining repetitions.
+- **Final selection.** Include the unchanged baseline among eligible recipes. The open summary can
+  currently choose the best attempted candidate even if all candidates are worse than baseline.
+- **Verification limits.** `analysis.verify` checks several accounting invariants, not isolation,
+  evaluator integrity, exact quota exhaustion or the validity of the statistical conclusion.
+
+Before a production batch, parse all intended configs, run fake smoke checks, then a short real-model,
+real-GPU pilot exercising the actual worker count and multiple training opportunities. Label pilot
+results and keep them out of the prespecified comparison. No runtime changes to underway runs.
+
+## Running and preserving a cell
+
+On a prepared GPU box, pin the agreed autoresearch commit and establish model access before launch.
+The setup script installs tools and measures a baseline; resolve its known issues above before use.
 
 ```bash
 bash scripts/setup_gpu_box.sh --noise-gate
+mkdir -p runs results
+# Example run ID; use a new value for every repetition.
+python3 -m orchestrator.run --config configs/open_opus_6.yaml --run-dir runs/open_opus_6-r01
+python3 -m analysis.verify runs/open_opus_6-r01
+python3 -m analysis.report runs/open_opus_6-r01
 ```
 
-It runs the unmodified `train.py` six times on the same box and writes `noise_gate.json`. If the
-spread (max − min of `val_bpb`) is larger than about 0.003, single runs cannot distinguish ideas and
-every number in the grid is noise. Then either lengthen runs (`TIME_BUDGET` in `prepare.py`, the
-**same value on every box and every cell**) or accept it and say so explicitly on the slide.
+Resume an interrupted search with `--resume-run runs/<run-id>`; a resume is not a fresh repetition.
+Archive each verified run under `results/<unique-run-id>` and preserve invalid runs with their status.
+Do not reuse a destination. Keep configs, provenance, model metadata, transcripts, candidate code,
+logs, timing, baseline measurements and re-evaluation results. Publish results through ordinary Git
+commits after reviewing the archive. A planned or claimed cell is not a completed measurement.
 
-Quote the measured spread whenever you quote a gain.
+## Analysis and presentation
 
-## Running a cell
+Primary outcome: quality of the recipe selected from each whole search after the attempt allowance,
+including the baseline. Show search-time best validation BPB trajectories and independently
+re-evaluated final quality. Choose the recipe using search-time evidence only, then retrain it and
+the baseline under at least three explicit new training seeds, using the same seed set for every
+condition and an untouched evaluation shard where feasible. Keep re-evaluation outside the search
+allowance and never select the best re-evaluation seed.
 
-1. Rent 1x H100 80GB (RunPod secure cloud, "runpod/pytorch" template; or Prime Intellect). SSH in.
-2. `git clone https://github.com/ericjkge/multiagent-research && cd multiagent-research`
-3. `export ANTHROPIC_API_KEY=sk-ant-...` — an API key, not a claude.ai login. The cells run
-   unattended; an expired OAuth token fails every call in the cell.
-4. `bash scripts/setup_gpu_box.sh --noise-gate` (~45 min: toolchain, data, baseline, noise gate).
-   It prints a commit hash. **Pin it as `autoresearch_commit` in every config** so all cells share a
-   substrate.
-5. Launch:
+Report every complete-search repetition and the paired open-minus-independent differences (negative
+BPB difference favors communication). Three pairs are still limited descriptive evidence. Baseline
+min/max spread is not a statistical decision boundary, and a noisy null does not establish equality.
+Show actual resource use and any incomplete budgets next to the quality comparison.
 
-   ```bash
-   nohup python3 -m orchestrator.run --config configs/haiku_3.yaml > runs/haiku_3.out 2>&1 &
-   ```
+For a mechanism case study, trace a measured finding through a message, recipient adoption, code
+change and subsequent result. Inspect actual code-change families when discussing idea diversity.
+Text similarity alone does not demonstrate collapse; a crash alone does not demonstrate propagated
+misinformation. Existing analysis helpers may need adapting for open-protocol traces.
 
-6. Watch: `tail -f runs/haiku_3-*/log.md`.
-7. Interrupted? `python3 -m orchestrator.run --resume-run runs/haiku_3-20260921-140000`.
-8. When it finishes, **verify before believing anything**, then archive:
-
-   ```bash
-   python3 -m analysis.verify runs/haiku_3-<stamp>     # must print OK
-   python3 -m analysis.report runs/haiku_3-<stamp>
-   cp -r runs/haiku_3-<stamp> results/haiku_3 && git add results/haiku_3 && git commit
-   ```
-
-`runs/` is gitignored (it holds worktrees and transcripts); `results/` is committed. Copy the cell
-directory across when it is done and verified.
-
-Do not run two cells on one GPU at the same time — `arena-train`'s lock is per run directory, not
-per machine, so two concurrent cells would overlap on the card and both sets of timings would be
-void. Different cells on different boxes in parallel is exactly right.
-
-Order the grid cheapest-first (`haiku_1` → `haiku_6` → `sonnet_*` → `opus_*`) and confirm the first
-cell's wall clock and run count before committing the rest.
-
-## Testing without a GPU
-
-Two levels, both on a laptop:
-
-```bash
-# free: fake GPU AND fake agents. Exercises worktrees, the GPU mutex, the run
-# budget, selection, archiving and resume. No API calls, no money.
-bash scripts/smoke_test.sh --fake-agents
-
-# a few cents: real Claude Code agents, simulated training. Also exercises
-# prompts, structured output, session forking and the guard hook.
-bash scripts/smoke_test.sh
-```
-
-Run the free one after any orchestrator change. Run the paid one before touching a GPU.
-
-## What the orchestrator does each round
-
-1. Every agent starts the round from the same baseline commit — the shared lineage.
-2. **Propose** — each agent, in parallel, reads the shared log and commits to one idea.
-3. **Select** — each agent claims a slot from the run budget, implements its idea in its own git
-   worktree, and trains it via `arena-train`, which serializes onto the one GPU.
-4. **Respond** — each agent reads the round's results and writes back to the group.
-5. The best *improving* candidate becomes the new baseline for **everyone**.
-
-`bin/arena-train` is the single enforcement point: it holds the GPU lock, claims a slot from the run
-budget in the same critical section, and refuses once the budget is gone. `bin/guard_hook.py` is a
-PreToolUse hook that blocks direct `train.py` invocation, edits to `prepare.py`, new dependencies and
-anything leaving the box — it fires even under `bypassPermissions`.
-
-## The open protocol (Park et al. 2609.21032)
-
-`configs/open_*.yaml` and `configs/indep_*.yaml` run the second protocol on the same 36-run budget.
-Differences that matter when running them:
-
-- Each agent is one long Claude Code session, resumed while its share of runs lasts
-  (`open_max_resumes`, `open_session_timeout_s`). Agent cost per cell is similar to the round
-  protocol; raise `max_budget_usd_per_session` for Sonnet.
-- Nothing is orchestrated between runs: the agent decides when to train, what to publish and whether
-  to adopt. Watch `runs/<dir>/log.md` change live.
-- The cell's result is the best measured run, whoever made it. `analysis.verify` additionally checks
-  that every GPU run is on the score log, that no agent exceeded its share, and that an independent
-  cell contains no adoption events.
-- The independent control (`indep_*`) gives each agent its own `log_<agent>.md`; agents cannot see
-  each other at all. Compare it against `open_*` with the same N to get the value of communication,
-  and both against `*_1` to get the value of copies.
-
-Smoke tests: `bash scripts/smoke_test.sh --config configs/smoke_open.yaml --fake-agents` (free) and
-without `--fake-agents` (a few dollars of Haiku), plus `configs/smoke_open_indep.yaml`.
-
-## Analysis
-
-```bash
-python3 -m analysis.verify  runs/<dir>          # invariants — run this FIRST
-python3 -m analysis.report  runs/<dir>          # the readable per-cell write-up
-python3 -m analysis.compare results/haiku_* --plot fig_haiku.png   # the headline figure
-python3 -m analysis.diversity runs/<dir> --classify
-python3 -m analysis.errors  runs/<dir>
-```
-
-`analysis.verify` is not optional. **A cell that fails it is invalid, not merely weak.**
-
-Diversity = mean pairwise TF-IDF cosine between a round's proposals; rising over the cell is the
-signature of collapse. Error propagation = crash rate by round, plus whether a crashed idea gets
-re-proposed by *other* agents next round.
-
-## Known limits — say these on the slide
-
-- One seed per cell. Differences smaller than the noise gate spread are not results.
-- Agents can change anything in `train.py`, so ideas are not comparable across cells in kind, only
-  in outcome.
-- Agents never see the loss curve, only the final numbers in the log.
-- No optimizer floor. A TPE sweep over the top-of-file constants would be the honest
-  zero-intelligence baseline; if there is time, run one.
-- `mixed_opencode_3` has not been run. OpenCode has no structured-output mode, so its proposals are
-  parsed out of free text and its spend is not metered.
-
-## Schedule
-
-- **Mon**: laptop tests by everyone (`--fake-agents` is free). One person does the GPU setup and the
-  noise gate. Start `haiku_3` overnight as the first real cell.
-- **Tue**: the rest of the Haiku and Sonnet cells in parallel on 3–4 boxes. Opus only if budget allows.
-- **Wed**: analysis, figures, slides.
-- **Thu**: present.
+Presentation: question and prior work; this matrix and budget accounting; primary repeated comparison;
+one evidence-backed mechanism or failure case; limitations. This studies a component of AI R&D
+relevant to RSI. It does not establish recursive self-improvement, a takeoff exponent, or a universal
+scaling law from one small training task.
