@@ -27,6 +27,15 @@ for cell in "$@"; do
   run_dir="runs/$cell-$stamp"
   echo "=== $(date '+%F %T') starting $cell -> $run_dir ==="
   python3 -m orchestrator.run --config "$cfg" --run-dir "$run_dir"
+  # Agents sometimes launch arena-train in the background and then report "finished"; their jobs
+  # would keep claiming slots and using the GPU after the cell is over. Kill everything that still
+  # carries this cell's ARENA_RUN_DIR before archiving and before the next cell starts.
+  abs_run_dir=$(cd "$run_dir" && pwd)
+  for p in $(ps -eo pid=); do
+    d=$(tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep "^ARENA_RUN_DIR=" | cut -d= -f2)
+    [ "$d" = "$abs_run_dir" ] && kill -9 "$p" 2>/dev/null
+  done
+  sleep 2
   python3 -m analysis.report "$run_dir" > /dev/null || true
   if python3 -m analysis.verify "$run_dir"; then dest="results/$cell"; else dest="results/$cell-INVALID"; fi
   rm -rf "$dest"; mkdir -p "$dest"
