@@ -29,3 +29,9 @@ a8b8bc6	0.991196	33.8	ok	One value: _precompute_rotary_embeddings base=10000 -> 
 538cdc2	0.986958	33.8	ok	One string: WINDOW_PATTERN "SSSL" -> "SSSS", so layers 0-8 attend 1024 and only the forced last layer keeps the full 2048 context (was layers 3, 7, 9 global). short_window stays long//2; nothing else changed.
 5f1f983	0.981817	66.2	ok	Two constants: short_window = long_window//4 (S layers attend 512 instead of 1024; 3 of 10 layers keep full 2048) and DEVICE_BATCH_SIZE 64->128 so grad_accum goes 2->1 at the same 2^18 total batch.
 bb94461	0.984406	33.8	ok	One character in _compute_window_sizes: short_window = long_window // 2 -> // 8, so the 7 'S' layers attend 256 tokens instead of 1024; layers 3, 7, 9 keep the full 2048. Nothing else changed.
+cfc242b	0.980496	70.9	ok	One argument: torch.compile(model, dynamic=False) -> torch.compile(model, dynamic=False, mode="max-autotune-no-cudagraphs"); identical math, nothing else changed.
+b2ea105	0.981592	66.2	ok	Deleted one line in GPT.forward: 'logits = logits.float()', so the tanh softcap and F.cross_entropy run on bf16 logits; nothing else changed.
+061538a	0.981817	66.2	ok	Two constants: short_window = long_window//4 (S layers attend 512 instead of 1024; 3 of 10 layers keep full 2048) and DEVICE_BATCH_SIZE 64->128 so grad_accum goes 2->1 at the same 2^18 total batch.
+3372a97	0.984022	64.8	ok	Replaced the 5 per-layer value_embeds tables with a single nn.Embedding looked up once per forward and handed to the same alternating layers (net -4 lines); VE params 26.2M -> 5.2M, model 85.9M -> 64.9M, FLOPs/token unchanged.
+bb70f16	0.983208	67.9	ok	One line: has_ve() returns True, so all 10 layers get a value-residual embedding + gate instead of 5; params 85.9M -> 112.1M, FLOPs/token unchanged.
+b60a8e4	0.981197	66.2	ok	One value: _precompute_rotary_embeddings base=10000 -> 100000; nothing else changed. val_bpb 0.981197 vs 0.981817 baseline (-0.00062, inside the noise floor).

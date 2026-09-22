@@ -1,6 +1,6 @@
 {
   "cell": {
-    "cell_id": "opus_6",
+    "cell_id": "opus_3",
     "agents": [
       {
         "id": "a0",
@@ -19,27 +19,9 @@
         "model": "claude-opus-5",
         "effort": "medium",
         "harness": "claude_code"
-      },
-      {
-        "id": "a3",
-        "model": "claude-opus-5",
-        "effort": "medium",
-        "harness": "claude_code"
-      },
-      {
-        "id": "a4",
-        "model": "claude-opus-5",
-        "effort": "medium",
-        "harness": "claude_code"
-      },
-      {
-        "id": "a5",
-        "model": "claude-opus-5",
-        "effort": "medium",
-        "harness": "claude_code"
       }
     ],
-    "bon": 1,
+    "bon": 2,
     "train_run_budget": 36,
     "nominal_run_seconds": 330.0,
     "train_timeout_s": 900,
@@ -52,7 +34,7 @@
     "solo_self_critique": false,
     "phase_timeout_s": {
       "propose": 900,
-      "select": 7200,
+      "select": 3600,
       "respond": 1200
     },
     "open_share_log": true,
@@ -62,10 +44,10 @@
     "fake_gpu": false,
     "seed": 0
   },
-  "config_fingerprint": "cdeacad80dd2",
+  "config_fingerprint": "abd7f53ba799",
   "claude_version": "2.1.278 (Claude Code)",
   "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
-  "started_at": 1790060431.075549,
+  "started_at": 1790067997.8349547,
   "resume_patches": [
     {
       "cell_budget_usd": 100000,
