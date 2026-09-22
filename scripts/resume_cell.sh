@@ -24,12 +24,14 @@ import json, sys, collections
 d = sys.argv[1]
 b = json.load(open(d + "/budget.json"))
 tl = [json.loads(l) for l in open(d + "/gpu_timeline.jsonl")] if __import__("os").path.exists(d + "/gpu_timeline.jsonl") else []
-have = collections.Counter((r["agent"], int(r["round"])) for r in tl)
-kept, lost = [], []
+# Match claims to recorded runs PER AGENT: open-protocol claims all carry round 0 while their
+# records carry the run number, so a (agent, round) match is wrong there. Per agent, the number
+# of claims beyond the number of recorded runs is what was lost.
+rec = collections.Counter(r["agent"] for r in tl)
+seen = collections.Counter(); kept, lost = [], []
 for c in b.get("claims", []):
-    k = (c["agent"], int(c["round"]))
-    if have[k] > 0: have[k] -= 1; kept.append(c)
-    else: lost.append(c)
+    a = c["agent"]; seen[a] += 1
+    (kept if seen[a] <= rec[a] else lost).append(c)
 if lost:
     b["claims"] = kept; b["runs"] = len(kept); b.setdefault("reclaimed", []).extend(lost)
     json.dump(b, open(d + "/budget.json", "w"), indent=2)
@@ -47,11 +49,14 @@ for pass in 1 2 3; do
 import json, sys, collections, os
 d = sys.argv[1]; b = json.load(open(d + "/budget.json"))
 tl = [json.loads(l) for l in open(d + "/gpu_timeline.jsonl")] if os.path.exists(d + "/gpu_timeline.jsonl") else []
-have = collections.Counter((r["agent"], int(r["round"])) for r in tl); kept, lost = [], []
+# Match claims to recorded runs PER AGENT: open-protocol claims all carry round 0 while their
+# records carry the run number, so a (agent, round) match is wrong there. Per agent, the number
+# of claims beyond the number of recorded runs is what was lost.
+rec = collections.Counter(r["agent"] for r in tl)
+seen = collections.Counter(); kept, lost = [], []
 for c in b.get("claims", []):
-    k = (c["agent"], int(c["round"]))
-    if have[k] > 0: have[k] -= 1; kept.append(c)
-    else: lost.append(c)
+    a = c["agent"]; seen[a] += 1
+    (kept if seen[a] <= rec[a] else lost).append(c)
 if lost:
     b["claims"] = kept; b["runs"] = len(kept); b.setdefault("reclaimed", []).extend(lost)
     json.dump(b, open(d + "/budget.json", "w"), indent=2); print(f"pass: reclaimed {len(lost)} more lost slot(s)")
