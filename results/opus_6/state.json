@@ -1,0 +1,19 @@
+{
+  "cell_id": "opus_6",
+  "tag": "opus_6-20260922-070031",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "5f1f9830448283d9d017b70c4bffe9e52f67f9a6",
+  "baseline_bpb": 0.981817,
+  "round_idx": 5,
+  "completed_rounds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "total_cost_usd": 291.43256149999996,
+  "started_at": 1790060431.075549,
+  "finished_at": 1790072799.364297,
+  "stop_reason": "agent cost ceiling reached"
+}
