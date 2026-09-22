@@ -1,5 +1,5 @@
-work/
-runs/
+/work/
+/runs/
 __pycache__/
 *.pyc
 .venv/

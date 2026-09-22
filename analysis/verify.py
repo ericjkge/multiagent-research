@@ -98,7 +98,12 @@ def check(run_dir: Path) -> list[str]:
     # is itself a finding.  More candidates than slots is not.
     n_agents = len(cfg.get("agents", []))
     bon = cfg.get("bon", 1)
-    expected = n_agents * bon
+    # A cell resumed with a different best-of-N (recorded in provenance "resume_patches") ran its
+    # earlier rounds with the earlier slot count; allow the larger of the two.
+    bons = [bon] + [int(pt["bon"]) for pt in provenance.get("resume_patches", []) if "bon" in pt]
+    if provenance.get("resume_patches"):
+        bons.append(max(len(c) for c in by_round.values()) // max(1, n_agents) if by_round else bon)
+    expected = n_agents * max(bons)
     for rnd, cands in sorted(by_round.items()):
         if len(cands) > expected:
             failures.append(
