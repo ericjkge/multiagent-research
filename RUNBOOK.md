@@ -2,18 +2,21 @@
 
 Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before touching a GPU.
 
-## The experiment grid
+## The experiment grid (final, Mon Sep 21 22:05)
 
-Every cell is 36 training runs. For each model, 1, 3 and 6 agents, under both protocols:
+Every cell is 36 training runs. Per model family, in this order, and the first three are the minimum:
 
-| model | owner | cells |
-|---|---|---|
-| Haiku | Eric | `haiku_1`, `haiku_3`, `haiku_6`, `open_haiku_1`, `open_haiku_3`, `open_haiku_6` |
-| Sonnet | Anthony | `sonnet_1`, `sonnet_3`, `sonnet_6`, `open_sonnet_1`, `open_sonnet_3`, `open_sonnet_6` |
-| Opus | Alvin | `open_opus_6` as the frontier check; `open_opus_1` if a box is free |
+| # | cell | agents | what it is |
+|---|---|---|---|
+| 1 | `open_X_6` | 6, sharing the log | the paper's protocol |
+| 2 | `indep_X_6` | 6, cannot see each other | same agents, no talking: the control for communication |
+| 3 | `X_1` | 1, whole budget | one agent with the same compute: the control for copies |
+| 4 | `X_6` | 6, lockstep rounds | does the organisation of the group matter |
+| 5 | `open_X_1`, then the 3-agent cells | | only if a box is free |
 
-Optional, if a box is free: `indep_X_6` (the same six agents, unable to see each other) is the
-cleanest control for whether the talking matters. Riddhi covers whatever the owners cannot fit.
+Families and owners: **Haiku = Eric**, **Sonnet = Anthony**, **Opus = Alvin** (cells 1 and 2 only, as
+the frontier check), **Riddhi** takes cell 2 of any family whose owner cannot fit it, then cell 4.
+Cells 1 and 2 of a family run back to back on one box.
 
 Haiku cells run fine on a claude.ai login. Sonnet and Opus cells want an API key (six parallel
 sessions on a login get throttled; the orchestrator waits out rate limits, but the GPU idles
