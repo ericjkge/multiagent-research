@@ -98,3 +98,17 @@ gain. So on the model-strength axis the first difference is not the quality of i
 agent spends its compute at all, and whether its account of what it did can be trusted. Under a
 protocol whose stopping rule is the agent's own judgement, a weak agent's judgement is the bottleneck.
 The cell is archived as INVALID (one slot claimed without a run) and kept for this record.
+
+## 6. Second seeds of the headline pair (added 13:40)
+
+| arm | seed 0 | seed 1 | mean |
+|---|---|---|---|
+| six agents, shared directory (`open_opus_6`) | 0.977896 | 0.976408 | 0.97715 |
+| six agents, no communication (`indep_opus_6`) | 0.977649 | 0.980071 | 0.97886 |
+
+The seed-to-seed spread of a whole cell (0.0015 and 0.0024) is two to three times the run-to-run
+noise (0.0008): the outcome of a 36-run cell depends on which ideas its agents happen to try first.
+On the means, communication is worth 0.0017, but with two seeds per arm that is inside the spread.
+What can be said: the value of communication at this budget is at most a couple of thousandths,
+about half the value of going from one agent to six (0.003 to 0.004, which does clear the spread),
+and not distinguishable from zero with this many seeds. The honest slide is a range, not a number.
