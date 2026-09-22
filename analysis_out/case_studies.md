@@ -127,7 +127,7 @@ and at 36, so the comparison below uses each cell's final number.
 | Opus, rounds (blind proposals, one winner per round) | 0.986277 | 0.987792 (34 runs) | 0.980496 (34 runs) |
 | Sonnet, open (shared directory) | | | 0.985651 |
 | Sonnet, independent | | | 0.988312, 0.977046 (two seeds) |
-| Haiku, independent | | | 0.976806 |
+| Haiku, independent | | | 0.976806, 0.995414 (two seeds) |
 
 Baseline 0.9973, run-to-run noise 0.0008.
 
@@ -165,4 +165,14 @@ fresh-session fallback for four of its six agents and crashed 8 percent of runs;
 each other's results (the winning run is a2's "DEPTH=10 on top of adopted batch 2^18 + softcap 10 base",
 a depth change stacked on a peer's adopted stack), so the protocol worked once the sessions did.
 
-Still running: a second seed of the Haiku control (`indep_haiku_6_s2`), to check that 0.9768 was not luck.
+**The Haiku replicate, completed 17:47, corrects the surprise.** The second seed of the Haiku control
+finished at 0.995414: 36 runs, no crashes, and not one agent left the learning-rate knobs
+(`results/indep_haiku_6_s2/winner.diff` is two learning rates). The two Haiku seeds are 0.019 apart,
+the widest spread of any arm, against 0.002 for the two independent Opus seeds. So the honest model-strength
+statement is not "Haiku matches Opus" but: a weak model's cell is a lottery on whether one of its six
+agents happens to try the structural changes (width, batch, window), while Opus agents find them in
+every seed. Model strength buys reliability of the search, not a different optimum. For the takeoff
+argument that is the more useful finding: at fixed compute, a stronger researcher does not find better
+ideas here, it stops wasting runs on ideas that cannot pay.
+
+Final standing, 14 cells, all at full budget (opus_3 and opus_6 at 34 by protocol). Nothing is still running.

@@ -1,6 +1,7 @@
-# Results so far (2026-09-22 16:37)
+# Results so far (2026-09-22 17:47)
 
 - indep_haiku_6: OK — all invariants hold for results/indep_haiku_6
+- indep_haiku_6_s2: OK — all invariants hold for results/indep_haiku_6_s2
 - indep_opus_6: OK — all invariants hold for results/indep_opus_6
 - indep_opus_6_s2: OK — all invariants hold for results/indep_opus_6_s2
 - indep_sonnet_6: OK — all invariants hold for results/indep_sonnet_6
@@ -18,6 +19,7 @@
 cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
 -------------------------------------------------------------------------------------------------
 indep_haiku_6       6    1   0.997359   0.976806  0.020553    36       1    30.6   0.146    23.33
+indep_haiku_6_s2      6    1   0.997333   0.995414  0.001919    36       1     0.0   0.152    16.33
 indep_opus_6        6    1   0.997333   0.977649  0.019684    36       1     2.8   0.163    37.20
 indep_opus_6_s2      6    1   0.997333   0.980071  0.017262    36       1     0.0   0.234    32.99
 indep_sonnet_6      6    1   0.997333   0.988312  0.009021    36       1    11.1   0.293  2143.84
@@ -37,6 +39,7 @@ opus_6              6    1   0.997333   0.980496  0.016837    34       6     0.0
 | cell | runs | best@29 | best@34 | best@36 | final |
 |---|---:|---:|---:|---:|---:|
 | indep_haiku_6 | 36 | 0.976806 | 0.976806 | 0.976806 | 0.976806 |
+| indep_haiku_6_s2 | 36 | 0.995414 | 0.995414 | 0.995414 | 0.995414 |
 | indep_opus_6 | 36 | 0.981666 | 0.978436 | 0.977649 | 0.977649 |
 | indep_opus_6_s2 | 36 | 0.981817 | 0.980071 | 0.980071 | 0.980071 |
 | indep_sonnet_6 | 36 | 0.988312 | 0.988312 | 0.988312 | 0.988312 |
