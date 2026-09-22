@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WEIGHT_DECAY from 0.2 to 0.1",
+  "description": "Halved regularization strength for Muon-trained transformer matrices",
+  "status": "ok",
+  "reflection": "No improvement: val_bpb 0.996000 (baseline 0.996000, no change). Weight decay reduction had no effect on convergence. Unlike MATRIX_LR which showed clear sensitivity to scaling, regularization strength appears well-tuned. The plateau in recent rounds suggests we may have found a local optimum with the current model size and time budget. Alternative directions: batch size, model width/architecture, or data limitations may be the next bottleneck. 12 runs remain."
+}

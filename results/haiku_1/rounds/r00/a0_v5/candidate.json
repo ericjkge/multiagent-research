@@ -1,0 +1,6 @@
+{
+  "title": "Reduce warmdown and embedding LR",
+  "description": "WARMDOWN_RATIO 0.5→0.1, EMBEDDING_LR 0.6→0.4",
+  "status": "ok",
+  "reflection": "Result 1.008071 is +0.011 regression from baseline 0.996598. Hypothesis that shorter warmdown preserves training intensity was incorrect; the original 50% warmdown schedule appears essential for convergence. Higher embedding LR (0.6) is also better than 0.4. Original hyperparameters were well-tuned."
+}

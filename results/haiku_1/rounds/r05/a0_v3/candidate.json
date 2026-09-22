@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WEIGHT_DECAY from 0.2 to 0.1",
+  "description": "Halved weight decay for Muon-optimized transformer matrices; complementary regularization tuning after Round 2's successful MATRIX_LR acceleration",
+  "status": "ok",
+  "reflection": "Weight decay reduction worked! val_bpb 0.995539 (baseline 0.996000, -0.000461 improvement). This validates that after tuning optimizer learning rate in Round 2, regularization strength became the next bottleneck. Unlike embedding LR changes (Round 0, 3) which destabilized, or further MATRIX_LR increases (Round 4) which overshot, reducing WD was a clean win—lower regularization on Muon parameters allows faster convergence within the fixed 5-min budget. VRAM stable at 45GB, training completed cleanly at 300.2s. New best baseline."
+}

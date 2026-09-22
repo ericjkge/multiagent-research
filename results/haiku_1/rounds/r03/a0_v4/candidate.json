@@ -1,0 +1,6 @@
+{
+  "title": "Increase UNEMBEDDING_LR",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.04 to accelerate output layer learning",
+  "status": "ok",
+  "reflection": "Hypothesis failed. Result: val_bpb 1.000984 (baseline 0.996000, −0.00498 regression). The 10× increase destabilized the output layer rather than improving it. The unembedding layer learning rate of 0.004 appears to be well-tuned, not a bottleneck. Unlike MATRIX_LR acceleration in Round 2 which succeeded, the embedding/unembedding parameters are more sensitive to LR changes and may need a different tuning strategy. Optimizer parameters are not all equally responsive to acceleration."
+}

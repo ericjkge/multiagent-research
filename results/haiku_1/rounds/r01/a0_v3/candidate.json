@@ -1,0 +1,6 @@
+{
+  "title": "Increase model depth",
+  "description": "Changed DEPTH from 8 to 10 layers to add model capacity for better learning in 5-minute budget",
+  "status": "ok",
+  "reflection": "Hypothesis failed: increasing depth from 8 to 10 caused val_bpb to regress from 0.996598 (baseline) to 1.000953 (+0.0044). VRAM usage also more than doubled from 44GB to 68GB. The larger model did not fit well within the 5-minute training window—likely the model was too large relative to the training budget, leading to poor convergence or overfitting. This suggests the baseline model size is near-optimal for the given constraints, and adding depth without proportional gains in convergence speed is counterproductive. The well-tuned hyperparameters from Round 0 were designed for the baseline architecture."
+}

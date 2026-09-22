@@ -1,0 +1,6 @@
+{
+  "title": "Increase UNEMBEDDING_LR for faster output layer convergence",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to match transformer matrix learning rate",
+  "status": "ok",
+  "reflection": "Hypothesis failed. Result: val_bpb 1.000261 vs baseline 0.996000, a regression of 0.004261. The output layer learning rate was already well-tuned at 0.004. This follows the pattern of Rounds 0 and 1: the learning rate hierarchy is surprisingly sensitive, and Adam parameters appear better-optimized than expected. Only the Muon optimizer (Round 2) responded positively to acceleration—Adam parameters do not. The 150x ratio between embedding (0.6) and unembedding (0.004) may serve a purpose in the training dynamics, even though it appears inverted. Future rounds should focus on other mechanisms or leave Adam LRs unchanged."
+}

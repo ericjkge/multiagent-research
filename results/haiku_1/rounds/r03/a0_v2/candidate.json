@@ -1,0 +1,6 @@
+{
+  "title": "Increase UNEMBEDDING_LR for faster output layer convergence",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to accelerate output layer learning, following Round 2's successful optimizer-tuning strategy",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996000 (equal to baseline 0.996000, no change). Unlike MATRIX_LR acceleration in Round 2, the unembedding learning rate does not appear to be a critical bottleneck. The output layer's learning rate was 15x slower than matrices, but increasing it 10x had zero effect on final convergence. This suggests the 0.004 rate was adequate, and other parameters (or the model architecture itself) are the limiting factors for further improvement. Valuable negative result: rules out unembedding LR as a lever for future rounds."
+}

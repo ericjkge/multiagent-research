@@ -1,0 +1,8 @@
+{
+  "title": "Increase UNEMBEDDING_LR for faster output layer convergence",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.04 (10× acceleration) to balance learning rates between output layer and transformer matrices",
+  "status": "ok",
+  "val_bpb": 0.995856,
+  "improvement": -0.000144,
+  "reflection": "Success! The output layer learning rate acceleration worked, continuing the pattern from Round 2. UNEMBEDDING_LR was 15× slower than MATRIX_LR (0.004 vs 0.06), creating a bottleneck on the critical path from representation to loss. Equalizing at 0.04 (10× acceleration from baseline) yielded a consistent 0.000144 improvement over the Round 2 baseline of 0.996000. This validates that optimizer tuning—specifically balancing learning rates across parameter groups—is the right lever for this 5-minute fixed-budget regime. VRAM remained stable at ~44GB."
+}

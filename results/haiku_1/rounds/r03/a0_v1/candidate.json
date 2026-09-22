@@ -1,0 +1,6 @@
+{
+  "title": "Increase UNEMBEDDING_LR for faster output layer convergence",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to balance learning rates with transformer matrices",
+  "status": "ok",
+  "reflection": "val_bpb 0.996000 (baseline 0.996000, no change). The unembedding layer learning rate was not the limiting factor. Despite the output layer being critical for loss computation, increasing its learning rate 10× produced no effect, suggesting it was either already learning fast enough or not the convergence bottleneck. The optimizer tuning strategy that worked for MATRIX_LR (Round 2) does not extend to unembedding. Future work should explore other parameters: SCALAR_LR, WEIGHT_DECAY, or architectural tweaks like window patterns."
+}

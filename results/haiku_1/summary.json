@@ -1,0 +1,12 @@
+{
+  "cell_id": "haiku_1",
+  "rounds_completed": 6,
+  "final_val_bpb": 0.99412,
+  "training_runs": 20,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 6671.2,
+  "agent_cost_usd": 10.086,
+  "wall_clock_s": 8862.7,
+  "stop_reason": "round cap reached",
+  "gpu_overlaps": 0
+}

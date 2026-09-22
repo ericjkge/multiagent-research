@@ -1,0 +1,6 @@
+{
+  "title": "Increase MATRIX_LR for faster transformer convergence",
+  "description": "Increased Muon optimizer learning rate for transformer matrices from 0.04 to 0.06",
+  "status": "ok",
+  "reflection": "Success: val_bpb improved from baseline 0.996598 to 0.996000 (-0.000598 improvement). The hypothesis was correct—Muon learning rate for matrix parameters was slightly conservative. A 1.5× increase accelerates convergence within the fixed 5-minute budget without destabilizing training or increasing VRAM (still 45GB). This is the right lever to pull when schedule and capacity tuning have been exhausted. Rounds 0 and 1 showed that being too timid or over-capacity are both losing moves; direct parameter learning rate acceleration proved to be the winning strategy."
+}

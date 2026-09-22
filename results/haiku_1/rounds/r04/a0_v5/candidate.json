@@ -1,0 +1,6 @@
+{
+  "title": "Further increase MATRIX_LR to 0.075",
+  "description": "Increase Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25× increment) to continue the optimizer tuning trend from Round 2",
+  "status": "ok",
+  "reflection": "Hypothesis failed. val_bpb 0.998279 is a regression from baseline 0.996000 (~0.002 worse). The attempted further acceleration of MATRIX_LR was too aggressive. This indicates that MATRIX_LR=0.06 is already at or very close to the optimal point for this configuration. The learning rate landscape is narrow: Round 2's 1.5× increase (0.04→0.06) worked consistently, but an additional 1.25× increase (0.06→0.075) destabilized training. Unlike the smooth progression in Round 2, we appear to have hit the stability boundary. Future rounds should explore different hyperparameter families (e.g., EMBEDDING_LR, weight decay schedules, batch size) rather than pushing MATRIX_LR further."
+}

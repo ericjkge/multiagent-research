@@ -1,0 +1,6 @@
+{
+  "title": "Reduce warmdown and embedding learning rates",
+  "description": "Reduced WARMDOWN_RATIO from 0.5 to 0.1 and EMBEDDING_LR from 0.6 to 0.4",
+  "status": "ok",
+  "reflection": "Hypothesis failed: expected shorter warmdown and lower embedding LR to preserve training intensity and stability. Actual result: val_bpb regressed from baseline 0.996598 to 1.007563 (+0.011). The original hyperparameters were better-tuned than anticipated—the full 50% warmdown phase and higher embedding LR (0.6) are apparently necessary. The model likely needs the gradual LR reduction phase for convergence, and embeddings benefit from higher learning rates. This suggests the baseline is already well-optimized for these dimensions."
+}

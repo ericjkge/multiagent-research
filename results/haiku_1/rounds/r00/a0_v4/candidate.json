@@ -1,0 +1,6 @@
+{
+  "title": "Reduce embedding LR and warmdown ratio",
+  "description": "Reduced EMBEDDING_LR from 0.6 to 0.4 and WARMDOWN_RATIO from 0.5 to 0.1 to preserve training intensity and stabilize embeddings",
+  "status": "ok",
+  "reflection": "Hypothesis: shorter warmdown phase (0.1 vs 0.5) would preserve training intensity in fixed 5-min budget; lower embedding LR (0.4 vs 0.6) would stabilize token embedding updates. Result: val_bpb regressed to 1.007579 from baseline 0.996598 (+0.011). The original hyperparameters were better tuned. Takeaway: aggressive embedding LR and longer warmdown phase appear important for this particular setup; simple LR reduction without deeper understanding of the interplay between these schedules is counterproductive."
+}

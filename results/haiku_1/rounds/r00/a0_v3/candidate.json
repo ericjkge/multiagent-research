@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WARMDOWN_RATIO and EMBEDDING_LR",
+  "description": "Reduced warmdown from 0.5 to 0.1 and embedding LR from 0.6 to 0.4 for stability",
+  "status": "ok",
+  "reflection": "The hypothesis was incorrect. Reducing warmdown_ratio from 0.5 to 0.1 and embedding_lr from 0.6 to 0.4 made performance worse: val_bpb increased to 1.007615 from baseline 0.996598 (+0.011). The original schedule and learning rates appear to be better calibrated than predicted. The warmdown phase seems important for preventing overfitting despite the short 5-minute window, and the higher embedding LR is necessary for proper convergence."
+}

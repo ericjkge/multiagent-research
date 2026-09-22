@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+d304b27	0.000000	0.0	crash	
+4a1b413	0.000000	0.0	crash	
+b2e23ad	1.008071	44.0	ok	WARMDOWN_RATIO 0.5→0.1, EMBEDDING_LR 0.6→0.4
+ebd9947	1.007615	44.0	ok	Reduced warmdown from 0.5 to 0.1 and embedding LR from 0.6 to 0.4 for stability
+1540ce3	1.007563	44.0	ok	Reduced WARMDOWN_RATIO from 0.5 to 0.1 and EMBEDDING_LR from 0.6 to 0.4
+712b6cd	1.007579	44.0	ok	Reduced EMBEDDING_LR from 0.6 to 0.4 and WARMDOWN_RATIO from 0.5 to 0.1 to preserve training intensity and stabilize embeddings
+c4bae41	0.000000	0.0	crash	
+cd061ef	0.000000	0.0	crash	
+46ac2e5	0.000000	0.0	crash	
+05167a8	1.000906	66.5	ok	Increased DEPTH from 8 to 10 layers; scaled model_dim 512→640, n_head 4→5
+42df005	1.000953	66.5	ok	Changed DEPTH from 8 to 10 layers to add model capacity for better learning in 5-minute budget
+42b1794	1.000715	66.5	ok	Increased DEPTH from 8 to 10 layers to add model capacity, expecting better feature learning
+f10bfa7	0.996146	44.0	ok	Accelerated Muon optimizer learning rate for transformer matrix parameters to improve convergence in fixed 5-minute budget
+4b1a378	0.996471	44.0	ok	Increased MATRIX_LR from 0.04 to 0.06 to accelerate Muon optimizer convergence on transformer matrices within fixed 5-minute budget
+8151a0a	0.996544	44.0	ok	Increased MATRIX_LR from 0.04 to 0.06 to accelerate Muon optimizer learning rate for transformer matrices
+c7ed637	0.996402	44.0	ok	Increased MATRIX_LR from 0.04 to 0.06 (1.5x) to accelerate Muon optimizer learning of transformer matrices within fixed 5-minute budget.
+b2956b4	0.996259	44.0	ok	Increased MATRIX_LR from 0.04 to 0.06 (1.5x) to accelerate learning of transformer matrix parameters within the fixed 5-minute budget.
+9178ab0	0.996000	44.0	ok	Increased Muon optimizer learning rate for transformer matrices from 0.04 to 0.06
+b5cccf3	0.996000	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to accelerate output layer learning, following Round 2's successful optimizer-tuning strategy
+ab4d604	0.996000	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to balance learning rates with transformer matrices
+5b09a28	1.000261	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.04 (10x) to match transformer matrix learning rate
+b4de6ab	0.000000	0.0	crash	Increased UNEMBEDDING_LR from 0.004 to 0.04 (10× acceleration) to balance learning rates between output layer and transformer matrices
+3c8a1dd	0.000000	0.0	crash	Increased Muon optimizer learning rate for transformer matrices from 0.04 to 0.06
+128bf9a	1.000984	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.04 to accelerate output layer learning
+f0d48c7	0.996000	44.0	ok	Increased Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25× acceleration) to continue the optimizer tuning trend from Round 2.
+c484b19	0.998279	44.0	ok	Increase Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25× increment) to continue the optimizer tuning trend from Round 2
+9e7c0b2	0.000000	0.0	crash	Increased Muon optimizer learning rate for transformer matrices from 0.04 to 0.06
+ed627df	0.996000	44.0	ok	Increased Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25x) to continue Round 2's successful optimization strategy.
+2f0ddfa	0.998677	44.0	ok	Increased Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25× more), continuing Round 2's successful optimizer tuning with conservative step size
+8bedfeb	0.996895	44.0	ok	Continued Muon learning rate acceleration (0.06→0.075, 1.25× increment) following Round 2 success
+608e057	0.996000	44.0	ok	Halved regularization strength for Muon-trained transformer matrices
+518574b	0.994120	44.0	ok	Lower regularization strength on Muon-trained matrices to improve convergence in fixed 5-min budget
+be5fe98	0.996000	44.0	ok	Increased Muon optimizer learning rate for transformer matrices from 0.04 to 0.06
+800b03f	0.996000	44.0	ok	Halved weight decay regularization for Muon-optimized transformer matrices
+3e0a954	0.996000	44.0	ok	Halved weight decay regularization, hypothesizing that after tuning MATRIX_LR, regularization strength was the next bottleneck
+e9238e0	0.995539	44.0	ok	Halved weight decay for Muon-optimized transformer matrices; complementary regularization tuning after Round 2's successful MATRIX_LR acceleration

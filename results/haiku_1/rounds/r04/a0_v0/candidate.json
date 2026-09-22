@@ -1,0 +1,6 @@
+{
+  "title": "Further increase MATRIX_LR to 0.075",
+  "description": "Increased Muon learning rate for transformer matrices from 0.06 to 0.075 (1.25× more), continuing Round 2's successful optimizer tuning with conservative step size",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.998677 (regression vs baseline 0.996000, +0.002677 worse). The learning rate landscape for MATRIX_LR is narrow and peaked at 0.06. The 1.5× increase (0.04→0.06) worked in Round 2, but a further 1.25× increase (0.06→0.075) overshot the optimum. This indicates the search has found a local maximum for this parameter and further acceleration destabilizes convergence. Round 2's MATRIX_LR tuning remains the best improvement to date."
+}

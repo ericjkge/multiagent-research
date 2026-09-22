@@ -1,0 +1,6 @@
+{
+  "title": "Increase model depth",
+  "description": "Increased DEPTH from 8 to 10 layers to add model capacity, expecting better feature learning",
+  "status": "ok",
+  "reflection": "Hypothesis failed: val_bpb regressed from 0.996598 to 1.000715 (+0.004). The deeper model (85.9M params vs 49M) required 68GB VRAM (55% increase vs baseline 44GB) and did not converge well in the fixed 5-minute budget. The original depth of 8 layers was already well-tuned for the training time constraint. Adding capacity without extending training time hurts performance—the model spends more effort optimizing more parameters rather than making progress on fewer parameters."
+}

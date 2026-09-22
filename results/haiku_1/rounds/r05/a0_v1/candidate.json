@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WEIGHT_DECAY from 0.2 to 0.1",
+  "description": "Lower regularization strength on Muon-trained matrices to improve convergence in fixed 5-min budget",
+  "status": "ok",
+  "reflection": "Weight decay reduction validated the complementary tuning strategy after MATRIX_LR success in Round 2. Halving regularization (0.2→0.1) improved convergence without destabilizing training. Result: val_bpb 0.994120 (baseline 0.996000, -0.001880 improvement ✓). This is the best result so far. VRAM stable at 45GB. The pattern holds: after tuning optimizer LR, regularization is the next lever. Further reductions (e.g., 0.05) worth exploring in future rounds."
+}

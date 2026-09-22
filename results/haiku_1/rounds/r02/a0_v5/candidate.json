@@ -1,0 +1,8 @@
+{
+  "title": "Increase MATRIX_LR for faster transformer convergence",
+  "description": "Increased MATRIX_LR from 0.04 to 0.06 (1.5x) to accelerate Muon optimizer learning of transformer matrices within fixed 5-minute budget.",
+  "status": "ok",
+  "val_bpb": 0.996402,
+  "improvement": -0.000196,
+  "reflection": "Success! The increase in Muon learning rate for matrix parameters squeezed better convergence from the same model and budget. Round 0 proved the LR schedule was well-optimized; Round 1 proved capacity alone doesn't help without training time. This round confirmed that accelerating existing parameter updates within the same model is the right lever—training velocity, not capacity or schedule shape, was the constraint. Baseline was well-tuned on those other dimensions but conservative on Muon LR. VRAM stable at 45 GB, no instability. This is a minimal, clean win: one hyperparameter change, measurable improvement, no added complexity."
+}

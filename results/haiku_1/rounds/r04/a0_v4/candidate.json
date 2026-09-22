@@ -1,0 +1,7 @@
+{
+  "title": "Increase MATRIX_LR to 0.075",
+  "description": "Continued Muon learning rate acceleration (0.06→0.075, 1.25× increment) following Round 2 success",
+  "status": "ok",
+  "val_bpb": 0.996895,
+  "reflection": "Hypothesis failed. Increasing MATRIX_LR from 0.06 to 0.075 resulted in val_bpb 0.996895, a regression of 0.000895 from baseline 0.996000. The optimal MATRIX_LR lies between 0.06 and 0.075; we overshot it. Round 2's 1.5× acceleration (0.04→0.06) worked well, but further 1.25× scaling destabilized convergence. The learning rate landscape is narrower than expected—0.06 is closer to optimal than predicted. Future attempts should explore smaller increments (0.06→0.065) or move to untested parameter families (EMBEDDING_LR, WEIGHT_DECAY)."
+}

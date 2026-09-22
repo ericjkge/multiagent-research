@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WEIGHT_DECAY from 0.2 to 0.1",
+  "description": "Halved weight decay regularization, hypothesizing that after tuning MATRIX_LR, regularization strength was the next bottleneck",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996000, no change from baseline. Weight decay is not a limiting factor. This extends the pattern from rounds 3-4: we have reached a plateau where modest hyperparameter changes have null effects. The learning rate landscape is sharply peaked (Round 2's 1.5x was optimal, Round 4's further increase failed), and other parameters (schedules, regularization, embedding LRs) show no improvement. This suggests the bottleneck may now be model capacity, batch size, or the inherent limit of 5-minute budget rather than hyperparameter tuning. With 12 runs remaining, should explore either: (1) batch size effects, (2) different model widths/dimensions, or (3) accept that baseline is near-optimal for this setup."
+}

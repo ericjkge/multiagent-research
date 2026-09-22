@@ -1,0 +1,6 @@
+{
+  "title": "Increase model depth",
+  "description": "Increased DEPTH from 8 to 10 layers; scaled model_dim 512→640, n_head 4→5",
+  "status": "ok",
+  "reflection": "Hypothesis failed. Deeper model (10 layers, 640 dim) achieved val_bpb 1.000906 vs baseline 0.996598 (+0.004 regression). Peak VRAM increased 55% (44GB→68GB) without performance gain. Interpretation: 5-minute budget insufficient for deeper model convergence, or added depth without proportional width doesn't help. Architecture expansion trades VRAM for worse validation loss."
+}

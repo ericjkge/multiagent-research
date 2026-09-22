@@ -1,0 +1,6 @@
+{
+  "title": "Reduce WEIGHT_DECAY from 0.2 to 0.1",
+  "description": "Halved weight decay regularization for Muon-optimized transformer matrices",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996000 (baseline 0.996000, no change). Hypothesis failed. Weight decay is not a convergence bottleneck. Regularization strength at 0.2 is already optimal for this setup. Rounds 2-5 show we've saturated on optimizer tuning (MATRIX_LR) and regularization (WEIGHT_DECAY). Future rounds should explore batch size, architecture variants, or entirely different hyperparameter families (warmup schedules, embedding learning rates in isolation, or scheduler changes)."
+}
