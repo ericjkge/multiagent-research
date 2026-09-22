@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+51261c1	0.987686	43.9	ok	TOTAL_BATCH_SIZE 2^19 -> 2^18 (grad_accum 2->1): double optimizer steps in 5 min
+f211b86	0.988168	43.9	ok	halve TOTAL_BATCH_SIZE 2**19 -> 2**18 (grad_accum 2->1), ~2x optimizer steps
+87636e8	1.003243	44.1	ok	HEAD_DIM 128->64 (4 heads -> 8 heads at d=512), same FLOPs
+884cfca	1.003546	44.1	ok	HEAD_DIM 128 -> 64 (4 heads -> 8 heads at dim 512)
+579a7ee	0.997353	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**18 (grad_accum 2->1, ~2x optimizer steps)
+364f25b	0.988497	43.9	ok	TOTAL_BATCH_SIZE 2**19 -> 2**18 (halve tokens/step, double optimizer steps)
+ab83fc3	0.997297	22.2	ok	TOTAL_BATCH_SIZE 2^18 -> 2^17 (DEVICE_BATCH_SIZE 64): bracket the batch-size optimum
+ef0b9e5	0.999011	22.2	ok	TOTAL_BATCH_SIZE 2**18 -> 2**17 (device batch 64), ~2x steps again
+cc655c8	0.990329	43.9	ok	TOTAL_BATCH_SIZE 2**17, DEVICE_BATCH_SIZE 64 (4x steps vs original baseline)
+4fa4d45	0.996114	44.0	ok	short sliding window 1024->512 (seq/4); frees ~8% FLOPs for more steps
+52d88b8	0.985230	53.7	ok	batch 2^18 (from results.tsv) + DEPTH 8->10 at d=512 (ASPECT_RATIO 51)
+650f4e3	0.990053	43.9	ok	at 2^18/DB=128: scale all four LRs by 1.4x (matrix 0.04->0.056, embed 0.6->0.84, unembed 0.004->0.0056, scalar 0.5->0.7)
+c694380	0.984671	53.9	ok	widen at best batch: ASPECT_RATIO 64->80 (dim 512->640, 5 heads), depth 8, batch 2**18
+e238a02	0.994464	22.3	ok	batch-size ramp: grad_accum 1->2->4 at dev batch 64 (131K->262K->524K tokens/step over training), stock LRs
+f93f367	0.989854	43.9	ok	U-net style learnable skip connections (2nd half blocks read 1st half outputs), at batch 2**18
+3a9f21d	0.987916	45.9	ok	adopt TOTAL_BATCH_SIZE 2**18 + keep short window seq/4 + NEW gated attention output (per-head sigmoid gate)
+09b4ec0	0.985159	63.6	ok	DEPTH 10->12 at d=512 (ASPECT_RATIO 42), batch 2^18
+da5c883	0.985236	53.7	ok	a5's depth-10 @ d512 + batch 2^18, plus my change: WARMDOWN_RATIO 0.5 -> 1.0 (linear LR decay from step 0)
+6dd0342	0.981817	63.9	ok	wider again: ASPECT_RATIO 80->96 (dim 640->768, 6 heads), depth 8, batch 2**18
+ddeda0f	0.984954	53.7	ok	DEPTH 10 @ d512 (ASPECT_RATIO 51) + flat batch 2**18 + all four LRs x0.85
+04a19bb	0.986247	66.2	ok	stack both measured capacity wins: DEPTH 8->10 at ASPECT_RATIO 64 (dim 640, 5 heads, 10 layers), batch 2**18/DB128
+08265af	0.989689	53.7	ok	on best base (2**18 + DEPTH 10): HEAD_DIM 128->256 (2 wide heads) + short window seq/4; gate removed
+e2540b8	0.986355	66.2	ok	scale both axes: DEPTH 10 x dim 640 (ASPECT_RATIO 64), batch 2^18
+c902068	0.987079	66.2	ok	combine the two best size moves: DEPTH 10 AND dim 640 (ASPECT_RATIO 64, 5 heads) at batch 2^18, warmdown 1.0
+5aab81c	1.053934	43.2	ok	ASPECT_RATIO 96->128 (dim 768->1024, 8 heads, ~165M params), device batch 64 + grad_accum 2 to fit VRAM
+a004e4d	1.045863	37.9	ok	widen again: ASPECT_RATIO 96->112 (dim 768->896, 7 heads), depth 8, batch 2**18, dev batch 64 for VRAM
+6e53f33	0.993373	74.0	ok	width ladder step 4: ASPECT_RATIO 112 (dim 896, 7 heads), depth 8, batch 2**18 at DEVICE_BATCH_SIZE=128 (grad_accum 1)
+16e6555	1.036138	37.9	ok	push width further: ASPECT_RATIO 96->112 (dim 768->896, 7 heads), depth 8, batch 2**18 (DB=64, accum 2 for VRAM) + short window seq/4
+9e88466	1.043352	37.9	ok	width probe: dim 896, depth 8 (ASPECT_RATIO 112), batch 2^18 via DB=64 x accum 2
+1c2ec3e	0.991800	65.6	ok	shallow-and-fat: DEPTH 7 at dim 896 (ASPECT_RATIO 128, 7 heads), batch 2^18 -- push width past 768 while trading a layer for VRAM and steps
+070efc7	0.986542	66.2	ok	depth vs width at matched compute: DEPTH 8->10 with ASPECT_RATIO 64 (dim 640, 10 layers) vs best dim 768/8 layers
+0bd9b6c	0.984640	58.5	ok	best width d768/depth8/batch 2**18 + GQA: n_kv_head = n_head/2 (6 q heads, 3 kv heads), cheaper per step
+926d1bf	0.983388	63.9	ok	best shape (dim 768, depth 8, batch 2**18/DB128) + WINDOW_PATTERN all-L (every layer full 2048 ctx instead of SSSL)
+627aeb7	0.980071	63.9	ok	best known config (dim 768 / depth 8 / batch 2**18 / DB 128) + my variation: short window seq/4
+c8d2795	0.984380	58.5	ok	best width (dim 768, depth 8, batch 2^18, DB=128) + GQA: n_kv_head 6->3
+d68fad3	0.982139	65.6	ok	best shape (dim 768, depth 8, SSSL, batch 2**18/DB128) + value embeddings on ALL layers instead of alternating (free capacity, ~no FLOPs)
