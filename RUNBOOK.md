@@ -2,6 +2,28 @@
 
 Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before touching a GPU.
 
+## Tonight (Mon Sep 21): what to run, in this order
+
+The cells that answer the question, cheapest-first. Claim yours in the channel. All Haiku, 36 runs
+each, about 4 to 5 hours wall clock per cell including agent time.
+
+| priority | cell | why |
+|---|---|---|
+| 1 | `open_haiku_6` | the paper's protocol, six agents |
+| 2 | `indep_haiku_6` | the same six agents, blind to each other: value of communication |
+| 3 | `open_haiku_1` | one agent, whole budget, same protocol: value of copies |
+| 4 | `haiku_6` | the round protocol, six agents: rounds vs open |
+| 5 | `haiku_1` | one agent under the round protocol (best-of-5) |
+| 6 | `haiku_3`, `open_haiku_3` | the middle points, only if boxes are free |
+
+Cells 1 and 2 should run on the same box, back to back, so the comparison they make is not a
+comparison between two GPUs. One box can do two cells overnight.
+
+Per box, once: `bash scripts/setup_gpu_box.sh --noise-gate` (first box) or without the flag (others),
+then `export ANTHROPIC_API_KEY=...` (or `claude auth login`), then
+`nohup bash scripts/run_cells.sh <cell> <cell> > runs/tonight.out 2>&1 &`. In the morning:
+`git pull --rebase && git push` to publish `results/`.
+
 ## The compute reality
 
 A training run is 5 minutes plus about 1 minute of startup, compile and eval, so ~6 minutes of GPU

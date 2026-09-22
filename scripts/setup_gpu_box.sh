@@ -32,6 +32,11 @@ export PATH="$HOME/.local/bin:$PATH"
 command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
 claude --version
 
+# The orchestrator's own dependencies (analysis needs scikit-learn and matplotlib).
+python3 -c "import yaml, sklearn, matplotlib" 2>/dev/null || \
+  pip install -q pyyaml scikit-learn matplotlib 2>/dev/null || \
+  pip install -q --break-system-packages pyyaml scikit-learn matplotlib
+
 # Agent calls need an API key, not a claude.ai login: the cells run headless
 # and unattended, and an expired OAuth token fails every call in the cell.
 [ -n "${ANTHROPIC_API_KEY:-}" ] || echo "WARNING: ANTHROPIC_API_KEY is unset; agent calls will fail"
