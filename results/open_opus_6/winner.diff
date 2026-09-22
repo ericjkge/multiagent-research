@@ -1,0 +1,55 @@
+# best run of open_opus_6: a2 07cfd20 val_bpb 0.977896: on a5 depth6/dim768 leader: + a0 warmdown 1.0 + VE placement first-3-and-last {0,1,2,5} instead of alternating {1,3,5}
+# against baseline 228791f
+diff --git a/train.py b/train.py
+index 2e74397..f0c24c6 100644
+--- a/train.py
++++ b/train.py
+@@ -45,8 +45,8 @@ def norm(x):
+ 
+ 
+ def has_ve(layer_idx, n_layer):
+-    """Returns True if layer should have Value Embedding (alternating, last always included)."""
+-    return layer_idx % 2 == (n_layer - 1) % 2
++    """Returns True if layer should have Value Embedding (a2: first three layers + last)."""
++    return layer_idx < 3 or layer_idx == n_layer - 1
+ 
+ 
+ def apply_rotary_emb(x, cos, sin):
+@@ -196,7 +196,7 @@ class GPT(nn.Module):
+         pattern = config.window_pattern.upper()
+         assert all(c in "SL" for c in pattern)
+         long_window = config.sequence_len
+-        short_window = long_window // 2
++        short_window = long_window // 8  # 256: docs are packed, long-range context is mostly unrelated
+         char_to_window = {"L": (long_window, 0), "S": (short_window, 0)}
+         window_sizes = []
+         for layer_idx in range(config.n_layer):
+@@ -430,12 +430,12 @@ class MuonAdamW(torch.optim.Optimizer):
+ # ---------------------------------------------------------------------------
+ 
+ # Model architecture
+-ASPECT_RATIO = 64       # model_dim = depth * ASPECT_RATIO
++ASPECT_RATIO = 128      # model_dim = depth * ASPECT_RATIO (depth 6 -> dim 768)
+ HEAD_DIM = 128          # target head dimension for attention
+ WINDOW_PATTERN = "SSSL" # sliding window pattern: L=full, S=half context
+ 
+ # Optimization
+-TOTAL_BATCH_SIZE = 2**19 # ~524K tokens per optimizer step
++TOTAL_BATCH_SIZE = 2**18 # ~262K tokens per optimizer step
+ EMBEDDING_LR = 0.6      # learning rate for token embeddings (Adam)
+ UNEMBEDDING_LR = 0.004  # learning rate for lm_head (Adam)
+ MATRIX_LR = 0.04        # learning rate for matrix parameters (Muon)
+@@ -443,11 +443,11 @@ SCALAR_LR = 0.5         # learning rate for per-layer scalars (Adam)
+ WEIGHT_DECAY = 0.2      # cautious weight decay for Muon
+ ADAM_BETAS = (0.8, 0.95) # Adam beta1, beta2
+ WARMUP_RATIO = 0.0      # fraction of time budget for LR warmup
+-WARMDOWN_RATIO = 0.5    # fraction of time budget for LR warmdown
++WARMDOWN_RATIO = 1.0    # fraction of time budget for LR warmdown (a0: pure linear decay)
+ FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
+ 
+ # Model size
+-DEPTH = 8               # number of transformer layers
++DEPTH = 6               # number of transformer layers
+ DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
+ 
+ # ---------------------------------------------------------------------------

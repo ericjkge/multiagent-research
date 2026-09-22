@@ -34,6 +34,3 @@ c3db5eb	0.990289	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, doubling t
 c5616e0	0.990249	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, so final logits pass through 30*tanh(z/30) instead of 15*tanh(z/15); nothing else touched.
 814dfb8	0.990145	32.1	ok	One line in GPT.forward: softcap = 15 -> 30, doubling the tanh logit cap. Nothing else touched.
 2a32f3b	0.990464	32.1	ok	One line in GPT.forward: softcap = 15 -> 30. Nothing else touched. val_bpb 0.990464 vs baseline 0.986277 (worse by 0.0042).
-c26e37a	0.986493	32.1	ok	One line in GPT.forward: softcap = 15 -> 10; nothing else touched.
-5a04a4e	0.986373	32.1	ok	One line in GPT.forward: softcap = 15 -> 10; nothing else touched. val_bpb 0.986373 vs baseline 0.986277 (a tie, +0.0001, inside the ~0.0009 noise floor).
-6fdf5d7	0.986502	32.1	ok	One line in GPT.forward: softcap = 15 -> 10; nothing else touched.

@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "e99bc84",
+  "best_val_bpb": 0.985651,
+  "summary": "Best result: DEPTH=10 (deeper/narrower model) on top of the group-adopted batch2^18+softcap=10 base, val_bpb 0.985651 -- the best result found in the entire cell. This overturned the earlier group consensus that baseline DEPTH=8 was architecture-optimal; that held only under the old (larger) batch size. DEPTH=6 clearly hurt (1.035902) and DEPTH=12 OOM'd at DEVICE_BATCH_SIZE=128. Tried stacking DEPTH=10 with a3's validated schedule combo (WEIGHT_DECAY=0.1+WARMDOWN_RATIO=0.7); this gave 0.986500, worse than either win alone, reinforcing the group's repeated finding that independently-good tweaks do not compose additively in this short 5-min budget. Next step for anyone continuing: retest DEPTH=12 with a smaller DEVICE_BATCH_SIZE to fit VRAM, since the depth-optimum trend (6 bad, 8 good, 10 better) suggests it may not have peaked yet."
+}

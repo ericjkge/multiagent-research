@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+f38faea	0.000000	0.0	crash	DEPTH=14 (deeper/narrower model, same aspect ratio)
+f9da54e	0.998353	44.0	ok	WINDOW_PATTERN SSSL->SLSL (more full-attn layers, 25%->50% L)
+2a5fad9	1.002207	40.4	ok	GQA group_size=2 (n_kv_head=n_head/2) at baseline depth/shape
+99311d4	0.000000	0.0	crash	DEVICE_BATCH_SIZE 128->256 (grad_accum 2->1) to raise MFU/throughput
+e742e0a	1.000890	40.0	ok	MLP expansion ratio 4x->3x (more steps within budget), MHA reverted
+62124dc	0.998756	44.0	ok	logit softcap 15->22, everything else baseline (compute-free quality knob)
+66f8974	0.997527	44.0	ok	logit softcap 15->20 (less aggressive clamping) at DEPTH=8 baseline
+9fb5cd2	1.003136	44.1	ok	HEAD_DIM 128->64 (more, narrower heads), everything else baseline
+ee05699	0.996005	44.0	ok	add small LR warmup (WARMUP_RATIO 0->0.05) at baseline DEPTH=8, batch=128
+0f4ef3f	1.044218	26.6	ok	DEPTH=6 (shallower/wider), default batch size — more steps within 5-min budget
+eff8f6f	0.996673	44.0	ok	logit softcap 15->10 (tighter clamp) at DEPTH=8 baseline
+cbda8cb	0.988370	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 for more optimizer steps in fixed budget
+99419ce	0.999791	44.0	ok	WINDOW_PATTERN SSSL->LSSS (same L:S ratio, moved L to first layer) compute-neutral
+4af8efb	0.997355	44.0	ok	combine: a0's LR warmup (0.05) + my softcap=10
+6acd243	0.987994	43.9	ok	combine a1's halved TOTAL_BATCH_SIZE(2**18) with a4's softcap=10 (both independent wins)
+65c2a06	0.987594	43.9	ok	a1's batch2^18 base + my softcap=10 variation
+1300dd0	0.987706	43.9	ok	a4's batch2^18+softcap10 base + my ADAM_BETAS 0.8->0.9 (smoother momentum for smaller-batch/more-steps regime)
+3e9c20d	0.996896	22.2	ok	push further: TOTAL_BATCH_SIZE 2^18->2^17 + softcap=10 (on top of best combo)
+1300dd0	0.988675	43.9	ok	a4 batch2^18+softcap10 base + ADAM_BETAS beta1 0.8->0.9
+8f8a089	0.996646	22.2	ok	further halve TOTAL_BATCH_SIZE to 2**17 (DB=64) on top of a4's softcap=10 base, testing even more optimizer steps
+5a9930e	0.987868	43.9	ok	stack: batch2^18+softcap10 (best combo) + WARMUP_RATIO=0.05
+8f8a089	0.996300	22.2	ok	further halve TOTAL_BATCH_SIZE to 2**17 (DB=64) on top of a4's softcap=10 base
+8686388	0.991456	43.9	ok	batch2^18+softcap10+betas0.9 base + WARMDOWN_RATIO 0.5->0.3
+76f2f7d	0.991159	43.9	ok	revert to a4's batch2^18+softcap=10 base + shorten WARMDOWN_RATIO 0.5->0.3 (more time at peak LR)
+379900e	1.035902	26.5	ok	DEPTH=6 on top of adopted batch2^18+softcap10 base
+a3b8669	0.986867	43.9	ok	a4's batch2^18+softcap=10 base + lengthen WARMDOWN_RATIO 0.5->0.7 (opposite direction of failed 0.3 test)
+84d33b7	0.986436	43.9	ok	batch2^18+softcap10 base (WARMDOWN=0.5 reverted) + WEIGHT_DECAY 0.2->0.1 (less decay for more-steps regime)
+e99bc84	0.985651	66.2	ok	DEPTH=10 (deeper/narrower) on top of adopted batch2^18+softcap10 base
+f2c1301	0.986379	43.9	ok	stack: batch2^18+softcap10 base + my WEIGHT_DECAY=0.1 + a1's WARMDOWN_RATIO=0.7 (final run)
+a0542ac	0.987464	43.9	ok	combine a0's WEIGHT_DECAY=0.1 + a1's WARMDOWN_RATIO=0.7 (both validated wins) + my ADAM_BETAS=0.9 on batch2^18+softcap10 base
+3261716	0.000000	0.0	crash	DEPTH=12 (deeper still) on top of adopted batch2^18+softcap10 base, testing if depth optimum continues past 10
+f1e74b8	0.986059	43.9	ok	pure combo: batch2^18+softcap10+WEIGHT_DECAY=0.1+WARMDOWN_RATIO=0.7, default ADAM_BETAS (isolate betas interference)
+8178f6a	0.986182	66.2	ok	combine a2's DEPTH=10 with a0's WEIGHT_DECAY=0.1 + my WARMDOWN_RATIO=0.7, on batch2^18+softcap=10 base (untested stack of 3 independent wins)
+c75d477	0.986500	66.2	ok	combine my DEPTH=10 win with a3's WD=0.1+WARMDOWN=0.7 schedule combo (best architecture x best schedule)
+708a476	0.990611	44.2	ok	DEPTH=11 (between a2's DEPTH=10 win and DEPTH=12 OOM) on batch2^18+softcap10 base, DEVICE_BATCH_SIZE reduced to 64 for headroom
+2eeb9c6	0.985862	66.2	ok	combine a2's DEPTH=10 with a3's WD=0.1+WARMDOWN=0.7 combo on batch2^18+softcap10 base (retry, final run)

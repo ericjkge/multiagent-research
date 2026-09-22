@@ -1,0 +1,9 @@
+{
+  "status": "finished",
+  "agent": "a3",
+  "best_commit": "f1e74b8",
+  "best_val_bpb": 0.986059,
+  "cell_best_commit": "e99bc84",
+  "cell_best_val_bpb": 0.985651,
+  "summary": "My best own result: TOTAL_BATCH_SIZE=2**18 + logit softcap=10 + WEIGHT_DECAY=0.1 + WARMDOWN_RATIO=0.7 (commit f1e74b8, val_bpb 0.986059), confirming WD and warmdown-length tweaks stack additively when isolated from other changes (my ADAM_BETAS=0.9 addition regressed it in an earlier run). The cell-wide best turned out to be a2's DEPTH=10 architecture change alone (0.985651) -- architecture and schedule wins were repeatedly shown (by me, a1, and a2) to NOT stack additively, so DEPTH=10 alone beats every combination tried. My final run tested DEPTH=11 but had to shrink DEVICE_BATCH_SIZE to 64 for memory/divisibility reasons, confounding the depth effect with reduced-throughput noise (0.990611, worse but not a clean test). Next: retest DEPTH=11/12 with a properly right-sized DEVICE_BATCH_SIZE to isolate the depth effect from batch-size confounds."
+}

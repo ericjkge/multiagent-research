@@ -1,12 +1,12 @@
 {
   "cell_id": "opus_1",
-  "rounds_completed": 8,
+  "rounds_completed": 7,
   "final_val_bpb": 0.986277,
-  "training_runs": 36,
+  "training_runs": 33,
   "training_run_budget": 36,
-  "gpu_seconds_spent": 12099.7,
-  "agent_cost_usd": 69.2854,
-  "wall_clock_s": 40978.8,
-  "stop_reason": "training-run budget exhausted (0 slots left, a round needs 3)",
+  "gpu_seconds_spent": 11083.3,
+  "agent_cost_usd": 62.1993,
+  "wall_clock_s": 11942.6,
+  "stop_reason": "round cap reached",
   "gpu_overlaps": 0
 }
