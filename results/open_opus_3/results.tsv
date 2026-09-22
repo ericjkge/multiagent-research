@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+e82771e	0.000000	0.0	crash	DEPTH 8->12 (dim 512->768, 6 heads): bigger model in same 5 min
+bb93d2b	1.016412	47.8	ok	DEPTH 12 (dim 768, 6 heads), device batch 64 x accum 4
+2608f03	0.997063	44.0	ok	short sliding window 1024->256 (SSSL, last layer full)
+535a774	0.998896	46.0	ok	per-head input-dependent sigmoid gate on attention output (Qwen3-style), zero-init = neutral
+070d6a9	0.988276	43.9	ok	baseline shape, TOTAL_BATCH_SIZE 2^19 -> 2^18 (2x more optimizer steps)
+57ad376	0.998190	44.1	ok	HEAD_DIM 128->64 (8 heads of 64 instead of 4 of 128) at dim 512
+79109f0	0.996545	44.0	ok	Muon MATRIX_LR 0.04 -> 0.06 (LR magnitude family, nobody else claims it)
+105d74b	0.996595	22.2	ok	TOTAL_BATCH_SIZE 2^18 -> 2^17 (device batch 64, accum 1)
+1231b8b	0.995669	44.4	ok	on a0 070d6a9 base: gated ReLU^2 MLP (c_fc*c_gate), hidden 2048->1408, param-matched
+e55870a	1.001337	44.0	ok	Muon MATRIX_LR 0.06 -> 0.09
+5af9b2e	1.036326	26.5	ok	DEPTH 6 (dim 384, 3 heads) at TOTAL_BATCH_SIZE 2^18: smaller model, more steps
+6ed45b0	1.004044	35.8	ok	on a0 070d6a9 base: MLP expansion 4x -> 2x (hidden 2048->1024), cheaper step
+cc7a008	0.993158	43.9	ok	on a0 070d6a9 (bs 2^18): Muon MATRIX_LR 0.04 -> 0.06
+81be7ac	0.993689	22.3	ok	batch-size ramp: grad_accum 1->4 over the run (device batch 64), i.e. 2^17 -> 2^19 tokens/step
+81c54d7	0.987666	45.0	ok	on a0 070d6a9 base: value embeddings on ALL 8 layers (was alternating 4); vocab is only 8192 so ~free FLOPs
+e0f6ea5	0.988486	43.9	ok	on 070d6a9 (bs 2^18): WARMDOWN_RATIO 0.5 -> 1.0 (pure linear LR decay, no plateau)
+a041d8a	0.987961	27.5	ok	width-only sweep: ASPECT_RATIO 64->80 at DEPTH 8 (dim 512->640, 5 heads), bs 2^18, device batch 64
+985eb05	0.997160	45.0	ok	on 81c54d7 (VE all layers): add U-net skip connections, encoder layers 0-3 -> decoder 4-7, learnable lambdas init 0.1
+f11ccc3	0.987528	43.9	ok	on 070d6a9 (bs 2^18): document-aware varlen attention (packed docs never attend across BOS boundaries)
+28ec79d	0.995361	32.7	ok	width-only: ASPECT_RATIO 96 at DEPTH 8 (dim 768, 6 heads), bs 2^18, device batch 64
+a11fabe	0.987507	45.0	ok	VE on all 8 layers (81c54d7) + a2's WARMDOWN_RATIO 1.0: combine the two best free changes
+0af7081	0.986679	45.0	ok	combination: my doc-aware varlen attention (f11ccc3) + a1's value embeddings on ALL layers (81c54d7)
+e0797a3	0.983408	28.3	ok	combine: varlen doc masking (a2) + value embeds on ALL layers (a1/a2) + dim 640 (a0), bs 2^18
+9e6a32b	0.994008	44.9	ok	HEAD_DIM 128->256 (2 heads of 256) on my a11fabe base: complete the 64/128/256 head-dim sweep
+06987a3	0.986508	45.0	ok	on my best 0af7081 (bs 2^18 + varlen doc masking + VE all layers): MATRIX_LR 0.04 -> 0.03
+d8473d6	0.985007	34.7	ok	on new best e0797a3: DEPTH 8->10 at dim 640 (ASPECT_RATIO 64), depth test decoupled from width
+ffabb4b	0.983331	28.3	ok	on a0 e0797a3: drop sliding windows, all layers full 2048 (cheap now that varlen doc-masking bounds attention)
+a8ae283	0.986062	45.0	ok	on 06987a3 stack: EMBEDDING_LR 0.6 -> 0.4 (wte + the now-8 value-embedding tables)
+50c8614	0.988636	33.6	ok	trade attention FLOPs for width on the best stack: short window 1024->256 + dim 640->768
+32f2650	0.982424	55.2	ok	on my ffabb4b (full-window + varlen + VE-all + dim 640): device batch 64->128 (grad_accum 2->1, VRAM headroom) + WARMDOWN 1.0
+55a7c63	0.984640	45.0	ok	on a8ae283 stack: EMBEDDING_LR 0.4 -> 0.25
+f4143c7	0.983454	28.3	ok	final stack: dim 640 + varlen + VE-all + full-2048 windows (a1) + EMBEDDING_LR 0.4 (a2), bs 2^18
+7069252	0.984724	60.3	ok	on my 32f2650 best: MLP expansion 4x -> 5x (hidden 2560->3200 at dim 640), more matrix capacity
+9b04384	0.985999	45.0	ok	on 55a7c63 stack: EMBEDDING_LR 0.25 -> 0.15
+2dbf3ed	0.982130	55.2	ok	final: my best stack 32f2650 + a2's EMBEDDING_LR 0.6->0.4
+65f4144	0.982382	55.2	ok	adopted a1 32f2650 (full-window + varlen + VE-all + dim 640) + my EMBEDDING_LR 0.6 -> 0.25
