@@ -17,6 +17,25 @@ d = json.load(open(p)); d["cell"].update(patch); d.setdefault("resume_patches", 
 json.dump(d, open(p, "w"), indent=2); print("provenance patched:", patch)
 PY
 fi
+# A detached arena-train worker of this cell may still be training after the orchestrator
+# ended. Reclaiming its slot while it runs lets the slot be used twice (37 runs for a 36-run
+# budget, seen on indep_sonnet_6_s2), so wait for it first. The worker and its train.py carry
+# ARENA_DETACHED=1 and ARENA_RUN_DIR in their environment.
+wait_inflight() {
+  local abs i p busy; abs=$(cd "$run_dir" && pwd)
+  for i in $(seq 1 120); do
+    busy=0
+    for p in $(ps -eo pid=); do
+      tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep -q "^ARENA_DETACHED=1$" || continue
+      [ "$(tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep "^ARENA_RUN_DIR=" | cut -d= -f2)" = "$abs" ] && { busy=1; break; }
+    done
+    [ "$busy" = 0 ] && return 0
+    [ "$i" = 1 ] && echo "an arena-train worker of this cell is still training; waiting for it before reclaiming"
+    sleep 10
+  done
+  echo "in-flight worker still running after 20 min; reclaiming anyway"
+}
+wait_inflight
 # Slots claimed by runs that were killed before recording anything are given back, so the cell
 # ends with the full budget of real measurements. Recorded in budget.json as "reclaimed".
 python3 - "$run_dir" <<'PY'
@@ -45,6 +64,7 @@ for pass in 1 2 3; do
   recorded=$(wc -l < "$run_dir/gpu_timeline.jsonl" 2>/dev/null | tr -d ' ')
   budget=$(python3 -c "import json;print(json.load(open('$run_dir/budget.json'))['budget_runs'])")
   [ "${recorded:-0}" -ge "$budget" ] && break
+  wait_inflight
   python3 - "$run_dir" <<'PY'
 import json, sys, collections, os
 d = sys.argv[1]; b = json.load(open(d + "/budget.json"))

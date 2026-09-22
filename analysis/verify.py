@@ -75,7 +75,12 @@ def check(run_dir: Path) -> list[str]:
     by_round: dict[int, list[dict]] = {}
     for c in of_type(records, "candidate"):
         by_round.setdefault(c["round"], []).append(c)
-    for end in of_type(records, "round_end"):
+    ends = of_type(records, "round_end")
+    if cfg.get("protocol") == "open" and ends:
+        # an open cell has one round; a resumed cell closes it again, and only the final close
+        # (the last round_end) is judged against the whole candidate pool
+        ends = ends[-1:]
+    for end in ends:
         winner = end.get("winner")
         if not winner:
             continue
