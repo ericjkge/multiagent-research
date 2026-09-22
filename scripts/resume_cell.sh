@@ -38,7 +38,26 @@ else:
     print("no lost slots to reclaim")
 PY
 echo "=== $(date '+%F %T') resuming $cell from $run_dir ==="
-python3 -m orchestrator.run --resume-run "$run_dir"
+for pass in 1 2 3; do
+  python3 -m orchestrator.run --resume-run "$run_dir"
+  recorded=$(wc -l < "$run_dir/gpu_timeline.jsonl" 2>/dev/null | tr -d ' ')
+  budget=$(python3 -c "import json;print(json.load(open('$run_dir/budget.json'))['budget_runs'])")
+  [ "${recorded:-0}" -ge "$budget" ] && break
+  python3 - "$run_dir" <<'PY'
+import json, sys, collections, os
+d = sys.argv[1]; b = json.load(open(d + "/budget.json"))
+tl = [json.loads(l) for l in open(d + "/gpu_timeline.jsonl")] if os.path.exists(d + "/gpu_timeline.jsonl") else []
+have = collections.Counter((r["agent"], int(r["round"])) for r in tl); kept, lost = [], []
+for c in b.get("claims", []):
+    k = (c["agent"], int(c["round"]))
+    if have[k] > 0: have[k] -= 1; kept.append(c)
+    else: lost.append(c)
+if lost:
+    b["claims"] = kept; b["runs"] = len(kept); b.setdefault("reclaimed", []).extend(lost)
+    json.dump(b, open(d + "/budget.json", "w"), indent=2); print(f"pass: reclaimed {len(lost)} more lost slot(s)")
+PY
+  echo "=== recorded $recorded of $budget after pass $pass; resuming again ==="
+done
 abs_run_dir=$(cd "$run_dir" && pwd)
 for p in $(ps -eo pid=); do d=$(tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep "^ARENA_RUN_DIR=" | cut -d= -f2); [ "$d" = "$abs_run_dir" ] && kill -9 "$p" 2>/dev/null; done
 sleep 2

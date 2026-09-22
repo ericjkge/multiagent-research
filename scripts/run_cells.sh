@@ -36,6 +36,16 @@ for cell in "$@"; do
     [ "$d" = "$abs_run_dir" ] && kill -9 "$p" 2>/dev/null
   done
   sleep 2
+  # Top up: if fewer runs were recorded than the budget (killed runs, early finishers), resume the
+  # cell until every slot is a real measurement. resume_cell.sh does the archiving in that case.
+  recorded=$(wc -l < "$run_dir/gpu_timeline.jsonl" 2>/dev/null | tr -d ' ')
+  budget=$(python3 -c "import json;print(json.load(open('$run_dir/budget.json'))['budget_runs'])" 2>/dev/null)
+  if [ -n "$budget" ] && [ "${recorded:-0}" -lt "$budget" ] && [ "${ARENA_NO_TOPUP:-0}" != "1" ]; then
+    echo "=== $cell recorded $recorded of $budget runs; topping up ==="
+    bash scripts/resume_cell.sh "$run_dir"
+    echo "=== $(date '+%F %T') finished $cell (topped up) ==="
+    continue
+  fi
   python3 -m analysis.report "$run_dir" > /dev/null || true
   if python3 -m analysis.verify "$run_dir"; then dest="results/$cell"; else dest="results/$cell-INVALID"; fi
   rm -rf "$dest"; mkdir -p "$dest"
