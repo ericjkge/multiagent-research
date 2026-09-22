@@ -112,3 +112,50 @@ On the means, communication is worth 0.0017, but with two seeds per arm that is 
 What can be said: the value of communication at this budget is at most a couple of thousandths,
 about half the value of going from one agent to six (0.003 to 0.004, which does clear the spread),
 and not distinguishable from zero with this many seeds. The honest slide is a range, not a number.
+
+## 7. Every cell at full budget: what the top-ups changed (added 14:35)
+
+All twelve cells now stand at 36 recorded runs, except the two round-based Opus cells that lost a slot
+inside a closed round (`opus_3` and `opus_6` at 34: the protocol cannot add a partial round). The
+equal-compute table in `summary.md` (best by run 29, 34 and 36) shows the ordering is the same at 34
+and at 36, so the comparison below uses each cell's final number.
+
+| family | 1 agent | 3 agents | 6 agents |
+|---|---|---|---|
+| Opus, open (shared directory) | 0.980742 | 0.982130 | 0.977896, 0.976408 (two seeds) |
+| Opus, independent (no sharing) | | | 0.977649, 0.980071 (two seeds) |
+| Opus, rounds (blind proposals, one winner per round) | 0.986277 | 0.987792 (34 runs) | 0.980496 (34 runs) |
+| Sonnet, independent | | | 0.988312, 0.977046 (two seeds) |
+| Haiku, independent | | | 0.976806 |
+
+Baseline 0.9973, run-to-run noise 0.0008.
+
+**Headcount pays at six, not at three.** In every Opus family the six-agent cell beat the one-agent
+cell by 0.003 to 0.006. Three agents did not beat one under the open protocol (0.9821 against 0.9807),
+a difference inside the seed-to-seed spread of a cell (0.0015 to 0.0024 for six Opus agents). At this
+budget the headcount effect is visible only at the top of the range.
+
+**Communication is still not measurable.** Six Opus agents with the shared directory: 0.97715 on average
+over two seeds. The same six with no sharing: 0.97886. The 0.0017 in favour of talking is smaller than
+the spread between seeds of the same arm. Best-of-six covers this 36-run search as well as a team.
+
+**The model-strength surprise.** Forced to spend all 36 runs (section 5 recorded the same cell quitting
+at 13), six independent Haiku agents reached 0.976806, level with the best Opus cells. The winning
+diff (`results/indep_haiku_6/winner.diff`) is the same basin every Opus winner landed in: aspect ratio
+96 (width over depth), batch 2^18, short attention window 256, value embeddings on the first and last
+three layers, Muon LR 0.06, weight decay 0.1. Sonnet's two independent seeds split 0.9883 and 0.9770, a
+spread of 0.011, five times the Opus spread. What separates the models on this task is not the ideas
+but the process: Haiku crashed 31 percent of its runs (Opus 0 to 3 percent) and stops when allowed to;
+Sonnet crashed 11 to 22 percent and, in the shared cell, four of six sessions looped 41 twelve-second
+segments each on the belief that the training command was broken, until the orchestrator learned to
+hand a stuck agent a fresh session. The 36-run search space of five-minute `autoresearch` runs is
+shallow enough that a weak model finds the same knobs; a strong model finds them more reliably.
+
+**For the takeoff argument.** The lever that moved results here was spending the compute (Haiku from
+0.9968 to 0.9768 by being made to continue), then headcount (six over one), then organisation (open over
+rounds). Neither model quality nor communication moved the number beyond noise at this budget. That is
+the "compute is the bottleneck" reading of the loop, measured: what the agents could not do was run
+more five-minute experiments per unit of GPU time.
+
+Still running: the one Sonnet cell with sharing (`open_sonnet_6`, 16 of 36 runs at 14:12, topping up
+on pod 3 with the fresh-session fallback).
