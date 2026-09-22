@@ -17,6 +17,26 @@ d = json.load(open(p)); d["cell"].update(patch); d.setdefault("resume_patches", 
 json.dump(d, open(p, "w"), indent=2); print("provenance patched:", patch)
 PY
 fi
+# Slots claimed by runs that were killed before recording anything are given back, so the cell
+# ends with the full budget of real measurements. Recorded in budget.json as "reclaimed".
+python3 - "$run_dir" <<'PY'
+import json, sys, collections
+d = sys.argv[1]
+b = json.load(open(d + "/budget.json"))
+tl = [json.loads(l) for l in open(d + "/gpu_timeline.jsonl")] if __import__("os").path.exists(d + "/gpu_timeline.jsonl") else []
+have = collections.Counter((r["agent"], int(r["round"])) for r in tl)
+kept, lost = [], []
+for c in b.get("claims", []):
+    k = (c["agent"], int(c["round"]))
+    if have[k] > 0: have[k] -= 1; kept.append(c)
+    else: lost.append(c)
+if lost:
+    b["claims"] = kept; b["runs"] = len(kept); b.setdefault("reclaimed", []).extend(lost)
+    json.dump(b, open(d + "/budget.json", "w"), indent=2)
+    print(f"reclaimed {len(lost)} lost slot(s); runs now {b['runs']} of {b['budget_runs']}")
+else:
+    print("no lost slots to reclaim")
+PY
 echo "=== $(date '+%F %T') resuming $cell from $run_dir ==="
 python3 -m orchestrator.run --resume-run "$run_dir"
 abs_run_dir=$(cd "$run_dir" && pwd)

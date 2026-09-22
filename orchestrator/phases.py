@@ -143,6 +143,10 @@ def agent_env(
         "ARENA_SEED": str(ctx.cfg.seed),
         "ARENA_UV_ENV": str(ctx.cfg.repo_path / ".venv"),
         "ARENA_FAKE_BASE_BPB": str(ctx.baseline_bpb or 0.9979),
+        # A training run is ~6 minutes; Claude Code's Bash tool kills commands at 2 minutes by
+        # default, which killed arena-train mid-run and lost the slot. 15 minutes, both limits.
+        "BASH_DEFAULT_TIMEOUT_MS": "900000",
+        "BASH_MAX_TIMEOUT_MS": "900000",
     }
 
 
