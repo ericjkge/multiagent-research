@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+a2b0086	1.002094	66.5	ok	DEPTH=10 (dim 640, 5 heads) instead of DEPTH=8
+ce452c5	1.004693	44.1	ok	HEAD_DIM 128->64 (8 heads of 64 at dim 512, same FLOPs)
+fa0ae36	0.989498	43.9	ok	TOTAL_BATCH_SIZE 2^19 -> 2^18 (grad_accum 2->1, ~2x optimizer steps)
+88efe7e	0.998166	22.2	ok	TOTAL_BATCH_SIZE 2^17, DEVICE_BATCH_SIZE 64 (grad_accum 1)
+c54a1a1	0.993275	43.9	ok	MATRIX_LR 0.04->0.055 at batch 2^18
+f4c9912	0.996679	43.9	ok	U-net style LIFO skip connections between layer halves (learned skip_lambdas, init 0.1)
+5ed5ca9	0.987884	43.9	ok	short sliding window 1024 -> 512 (SSSL pattern), ~8% fewer attn FLOPs
+46ebd9a	0.988849	43.9	ok	short sliding window 512 -> 256
+7beb9eb	0.989226	43.9	ok	WINDOW_PATTERN all-S (only final layer full-context), short=512
+c69abf9	0.987388	43.9	ok	WINDOW_PATTERN SSL (3 full-context layers of 8), short=512
+fa9f875	0.988534	43.9	ok	WINDOW_PATTERN SL (4 full-context layers of 8), short=512
+bced6a4	0.986397	43.9	ok	WARMDOWN_RATIO 0.5 -> 0.7
+01d447d	0.987757	43.9	ok	WARMDOWN_RATIO 0.7 -> 1.0 (pure linear decay)
+67cd043	0.984833	45.0	ok	Value embeddings on ALL layers (was every other layer)
+a677bf9	0.988392	51.6	ok	token smear at embedding: x += smear_lambda * prev_token_emb (learned scalar, init 0.3)
+1a68458	0.985109	45.0	ok	UNEMBEDDING_LR 0.004 -> 0.008
+209a3d8	0.985614	45.0	ok	inductor coordinate_descent_tuning=True (tune bandwidth-bound pointwise kernels)
+1e6b010	0.990728	40.9	ok	MLP expansion 4x -> 3x
+418d5cb	0.984049	49.0	ok	MLP expansion 4x -> 5x
+6fc32ab	0.983147	53.0	ok	MLP expansion 5x -> 6x
+4a8e88c	0.983318	61.1	ok	MLP expansion 6x -> 8x
+6f973e4	0.989912	53.0	ok	gated relu^2 MLP (hidden 4x, up+gate) - same params/FLOPs as ungated 6x
+15fcdd9	0.983005	65.2	ok	DEPTH 8 -> 10 at fixed dim 512 (ASPECT_RATIO 51), MLP 6x
+156f18a	0.982289	53.0	ok	MATRIX_LR 0.04 -> 0.03 at MLP 6x
+33d6cfd	0.983141	53.0	ok	MATRIX_LR 0.03 -> 0.022
+488dbec	0.984308	53.0	ok	WEIGHT_DECAY 0.2 -> 0.4
+4e8d329	0.983402	53.0	ok	WEIGHT_DECAY 0.2 -> 0.1
+b8017b1	0.982867	61.1	ok	MLP 8x re-probe at MATRIX_LR 0.03
+0914981	0.983091	53.0	ok	EMBEDDING_LR 0.6 -> 0.9
+49d825d	0.985770	53.0	ok	logit softcap 15 -> 30
+52e3cc9	0.982384	53.0	ok	logit softcap 15 -> 10
+a2d0782	0.981856	53.0	ok	attention softmax_scale 0.088 (1\/sqrt(128)) -> 0.12 with QK-norm
+344073b	0.985007	53.0	ok	attention softmax_scale 0.12 -> 0.17
+cc6d42a	0.982201	53.0	ok	WARMDOWN_RATIO 0.7 -> 0.85 at the new best config
+cede5ff	0.981181	53.0	ok	EMBEDDING_LR 0.6 -> 0.45
+0ad512b	0.980742	53.0	ok	EMBEDDING_LR 0.45 -> 0.32

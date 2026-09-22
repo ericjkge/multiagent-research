@@ -1,0 +1,22 @@
+{
+  "cell_id": "open_opus_1",
+  "protocol": "open",
+  "share_log": true,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.980742,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 12329.7,
+  "agent_cost_usd": 5.4779,
+  "wall_clock_s": 13076.5,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a0": {
+      "runs": 36,
+      "segments": 1,
+      "cost_usd": 5.477927500000002,
+      "stop": "agent finished"
+    }
+  }
+}
