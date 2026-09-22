@@ -1,0 +1,56 @@
+{
+  "a0": {
+    "session_id": "b655001e-e3d7-4696-9785-e66d50c811df",
+    "segments": 1,
+    "cost_usd": 12.233895999999998,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "c1ea6d2b0a02e9801daaf5a95c322da78be70187",
+    "throttled": 0
+  },
+  "a2": {
+    "session_id": "d73370a7-47b7-41b5-92e7-0099d018612f",
+    "segments": 1,
+    "cost_usd": 11.0426935,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "da6243ef54ff93972e6053764360f261da887abd",
+    "throttled": 0
+  },
+  "a5": {
+    "session_id": "21ea632f-9314-403e-bc87-8299e3552cd6",
+    "segments": 1,
+    "cost_usd": 9.838061,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "76b1d77546c4663d081757dd197bf618d17f22a0",
+    "throttled": 0
+  },
+  "a1": {
+    "session_id": "a81e9674-08e9-407b-af82-607d7d3524dc",
+    "segments": 1,
+    "cost_usd": 10.371938,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "af92bcb3ad1f02ce94860eae790d03f5fca4ea12",
+    "throttled": 0
+  },
+  "a3": {
+    "session_id": "6c258a3a-2d3b-4a9b-a98b-c75eeeb1870f",
+    "segments": 0,
+    "cost_usd": 8.487486500000003,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "9fdfb340bac263e9f4d4ae08d8f8b07396727f18",
+    "throttled": 0
+  },
+  "a4": {
+    "session_id": "c0edd2c1-1b4f-4e9d-b64e-f7dce6d743e0",
+    "segments": 1,
+    "cost_usd": 14.129860499999996,
+    "done": true,
+    "stop": "share spent",
+    "final_commit": "db9547a8fdd75169ccfb4a301a8ca82f8669d21e",
+    "throttled": 0
+  }
+}
