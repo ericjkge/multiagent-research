@@ -63,3 +63,25 @@ Open beat rounds by 0.0055 at a tenth of the agent cost.
 At 36 runs with Opus, copies help (six beat one under both protocols) and organisation matters as much
 as headcount (open beat rounds at both sizes). Whether the six-agent gain is communication or just six
 parallel attempts is what `indep_opus_6` (same six agents, no shared log) is measuring now.
+
+## 4. The control answers the question (added 10:00)
+
+`indep_opus_6`: the same six Opus agents, the same 36 runs, six each, and no shared log at all. Each
+agent saw only its own results. Final 0.977649 against 0.977896 for the six that could talk: a
+difference of 0.00025, a third of the noise band.
+
+So at this budget the six-agent gain is parallel exploration, not communication. Six independent
+hill-climbs with six runs each covered the space as well as a coordinated collective, at the same
+token cost ($37 vs $36). Five of the six independent agents even chose the same approach family
+(batch-size economics) with no way to know it, and the winner was the one that didn't (a0,
+residual-stream topology). Best-of-six beat six-that-talk, and both beat one agent with 36 runs.
+
+This is the paper's own caveat, measured in a research loop: "communication pays only when each
+agent has enough budget to explore on its own". Six five-minute runs is not enough. Whether that
+changes with more budget per agent, or with a stronger model than Opus, is the open question; the
+second seeds of both arms (`open_opus_6_s2`, `indep_opus_6_s2`) are running to check the first result
+is not a one-off.
+
+Standing at 10:00 (gain over baseline, 36 runs unless noted): indep 6 agents 0.0197, open 6 agents
+0.0194, open 1 agent 0.0166, open 3 agents 0.0152, rounds 6 agents 0.0155 (29 runs, cost cap),
+rounds 1 agent 0.0111 (33 runs). Noise band 0.0008.
