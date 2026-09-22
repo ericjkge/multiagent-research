@@ -10,12 +10,16 @@ comparison they make is a comparison between two GPUs.
 
 | priority | cell | why |
 |---|---|---|
-| 1 | `open_sonnet_6` | the paper's protocol, six strong agents (same box as 2) |
-| 2 | `indep_sonnet_6` | the same six agents, blind to each other: value of communication |
-| 3 | `open_sonnet_1` | one strong agent, whole budget, same protocol: value of copies |
-| 4 | `sonnet_6` | the round protocol, six strong agents: rounds vs open |
-| 5 | `open_haiku_6` + `indep_haiku_6` | the same pair with a weak model: does communication need something worth communicating (same box) |
-| 6 | `sonnet_1`, `open_haiku_1`, the 3s | only if boxes are free |
+| 1 and 2 | `open_opus_6`, `indep_opus_6`, same box | the core comparison on the frontier model: value of communication |
+| 3 | `open_opus_1` | one frontier agent, whole budget: value of copies |
+| 4 | `opus_6` (or `sonnet_6` if budget is short) | the round protocol: rounds vs open |
+| 5 | `open_sonnet_6`, `indep_sonnet_6`, same box | the same pair one model down: the slope |
+| 6 | `open_haiku_6`, `indep_haiku_6`, same box | two models down, if a box is free |
+
+Opus agent spend is roughly $150 to $300 per 6-agent open cell (about 5x Sonnet); the core pair is
+$300 to $600 of API calls, which is the price of a result that survives "your agents are weak".
+On a claude.ai Max login the calls are covered by the plan but six parallel Opus sessions will be
+throttled and may hit the plan's limits mid-cell; an API key is safer for the core pair.
 
 Sonnet cells need an **API key** (six parallel sessions on a claude.ai login get throttled; the
 paid smoke test on Sunday night slowed ten-fold that way). Agent spend per Sonnet cell is roughly
