@@ -2,31 +2,25 @@
 
 Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before touching a GPU.
 
-## Tonight (Mon Sep 21): what to run, in this order
+## Tonight (Mon Sep 21): who runs what
 
-The strong model is the experiment; Haiku is there to give the slope with model strength. All cells
-36 runs. Claim yours in the channel. Pairs marked "same box" must run back to back on one GPU, or the
-comparison they make is a comparison between two GPUs.
+All cells are 36 runs. Claim in the channel. Within a family, `open_X_6` and `indep_X_6` (the same six
+agents, unable to see each other) should run back to back on one box: that pair is what measures
+communication.
 
-| priority | cell | why |
+| family | who | cells, in priority order |
 |---|---|---|
-| 1 and 2 | `open_opus_6`, `indep_opus_6`, same box | the core comparison on the frontier model: value of communication |
-| 3 | `open_opus_1` | one frontier agent, whole budget: value of copies |
-| 4 | `opus_6` (or `sonnet_6` if budget is short) | the round protocol: rounds vs open |
-| 5 | `open_sonnet_6`, `indep_sonnet_6`, same box | the same pair one model down: the slope |
-| 6 | `open_haiku_6`, `indep_haiku_6`, same box | two models down, if a box is free |
+| Haiku | Eric | `open_haiku_6`, `indep_haiku_6`, `haiku_6`, `haiku_1`, `open_haiku_1`, then the 3s |
+| Sonnet | Anthony | `open_sonnet_6`, `indep_sonnet_6`, `sonnet_6`, `sonnet_1`, `open_sonnet_1`, then the 3s |
+| Opus (frontier check) | Alvin | `open_opus_6` + `indep_opus_6` on one box; `open_opus_1` if a box is free |
+| whatever is uncovered | Riddhi | the `indep_*_6` twin of any family that lacks one, then a rounds cell |
 
-Opus agent spend is roughly $150 to $300 per 6-agent open cell (about 5x Sonnet); the core pair is
-$300 to $600 of API calls, which is the price of a result that survives "your agents are weak".
-On a claude.ai Max login the calls are covered by the plan but six parallel Opus sessions will be
-throttled and may hit the plan's limits mid-cell; an API key is safer for the core pair.
-
-Sonnet cells need an **API key** (six parallel sessions on a claude.ai login get throttled; the
-paid smoke test on Sunday night slowed ten-fold that way). Agent spend per Sonnet cell is roughly
-$30 to $60 under the open protocol; the cell's dollar ceiling is 250.
+Haiku cells run fine on a claude.ai login. Sonnet and Opus cells want an API key (six parallel
+sessions on a login get throttled; the orchestrator now waits out rate limits, but the GPU idles
+meanwhile). Opus cells have $60 per session and $250 per cell ceilings in their configs.
 
 Per box, once: `bash scripts/setup_gpu_box.sh --noise-gate` (first box) or without the flag (others),
-then `export ANTHROPIC_API_KEY=...`, then
+then `export ANTHROPIC_API_KEY=...` if using a key, then
 `nohup bash scripts/run_cells.sh <cell> <cell> > runs/tonight.out 2>&1 &`. In the morning:
 `git pull --rebase && git push` to publish `results/`.
 
