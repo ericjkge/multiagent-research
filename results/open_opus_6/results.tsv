@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+816ce84	0.988763	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps), LRs unchanged
+f3ef903	1.003634	44.1	ok	HEAD_DIM 128->64: 8 heads of 64 at d=512 instead of 4 heads of 128
+0b28b38	1.002227	66.5	ok	depth 8->10 (dim 512->640): is the 5-min budget under-modelled?
+d0fec2a	0.996845	44.0	ok	LR x1.25 on all three main groups (matrix 0.04->0.05, embed 0.6->0.75, unembed 0.004->0.005)
+3f59c6d	0.997153	45.1	ok	value embeddings on all 8 layers (was alternating 4): free-FLOP embedding capacity
+badf7b2	0.998900	44.0	ok	sequence-length curriculum 512->1024->2048 (tokens/step fixed, shapes pre-compiled)
+f5b87fd	0.996870	22.2	ok	TOTAL_BATCH_SIZE 2**17 (device batch 64), LRs unchanged
+510c918	0.987049	43.9	ok	on a3's 2**18 batch: shrink sliding window 1024->256 in S layers (cheaper attention, more steps)
+5bf1823	0.999969	48.6	ok	deeper+narrower at ~constant matrix FLOPs: depth 8/dim 512 -> depth 12/dim 384 (on a3 batch 2**18)
+0803001	0.987867	43.9	ok	on 2**18 base: WARMDOWN_RATIO 0.5 -> 0.8 (longer LR anneal now that step count doubled)
+85b630d	0.994114	43.9	ok	on a3 batch-2**18 base: drop the tanh logit softcap (saves 2 elementwise passes over a 2.1e9-element logit tensor)
+b55917d	0.988273	43.9	ok	a3 2**18 + prefetching numpy-vectorised train dataloader (CPU 159->74ms/batch)
+49ae1ec	0.988930	44.0	ok	batch ramp on 2**18 base: tokens/step 2**18 for first half, 2**19 for second half
+7be8235	0.988363	43.9	ok	window pattern SSSL->SSSSSSSL: only the last layer keeps full 2048 attention (short=256)
+d2497b3	0.982903	41.5	ok	shallow+wide: depth 6 / dim 640 (on a5 short-window + 2**18 batch)
+7207ad1	0.986614	43.9	ok	stack: a5's window-256 leader + my WARMDOWN_RATIO 0.8 (on 2**18 batch)
+409f633	0.989697	43.9	ok	on a5 window-256 base: tighten logit softcap 15 -> 8
+c1e30cb	0.985590	43.9	ok	stack: a5 window-256 + a0 warmdown 0.8 + my prefetch loader (does the FLOP saving convert to steps once the CPU floor is gone?)
+7a3597a	0.989867	22.2	ok	re-open batch ladder on window-256 + fast-loader stack: TOTAL_BATCH_SIZE 2**17 (device 64)
+dd02668	0.987748	43.9	ok	combine: short 256 windows (mine, 0.987049) + WARMDOWN_RATIO 0.8 (a0/a3, 0.987867) on 2**18 batch
+4ddc839	0.984286	41.9	ok	push shallow+wide further: depth 5 / dim 768 (6 heads)
+c6436e1	0.982265	41.5	ok	on a4's depth6/dim640 leader: WARMDOWN_RATIO 0.5 -> 1.0 (pure linear LR decay from step 0)
+a78fb64	0.992968	40.5	ok	on a4 depth6/dim640 leader: remove value embeddings entirely (closes the VE bracket: all-layers=wash, now zero)
+83d6195	0.983476	41.5	ok	a4 depth-6/dim-640 + a0 warmdown 0.8 + my prefetch loader (unblock the 159ms CPU floor a4's faster shape is sitting on)
+61f43e3	0.988051	41.7	ok	stack (a4 depth6/dim640 + a5 window256 + a0 warmdown0.8 + a1 loader) + my tail weight averaging (EMA of last 40%, reported; raw weights logged too)
+6d26886	0.978654	49.1	ok	on leader d2497b3: widen further at depth 6, dim 640 -> 768 (ASPECT_RATIO 106->128)
+eef0a4b	0.983617	41.5	ok	full stack: my depth 6 / dim 640 shape on a1's window-256 + warmdown 0.8 + prefetch loader
+66d25f5	0.982291	41.5	ok	on my warmdown-1.0 leader: peak LR x1.4 (matrix .056, embed .84, unembed .0056) -- annealing from step 0 halved the average LR
+f084e8b	0.983135	41.5	ok	on a0 leader (depth6/dim640, warmdown 1.0): value-embedding gate reads the full residual (32 -> 640 channels)
+155d93f	0.982987	41.7	ok	on a0's depth6/warmdown-1.0 leader: EMA (Polyak) averaging of the last 10%% of training, evaluated on the averaged weights
+4b739b9	0.988331	37.7	ok	on a0's warmdown-1.0 leader: MLP expansion ratio 4x -> 3x (trade 33% of matrix FLOPs for more tokens/steps)
+6e5d406	0.984430	56.7	ok	width curve at depth 6: dim 768 -> 896 (ASPECT_RATIO 144, 7 heads)
+c9a92f7	0.987336	37.7	ok	allocation triangle at depth 6/dim 640: MLP expansion 4x -> 3x (29.5M -> 24.6M matrix params, cheaper steps)
+6883d9c	0.977973	49.1	ok	a5's depth6/dim768 leader + WARMDOWN_RATIO 1.0 (my 4th A/B pair on the anneal length)
+07cfd20	0.977896	49.5	ok	on a5 depth6/dim768 leader: + a0 warmdown 1.0 + VE placement first-3-and-last {0,1,2,5} instead of alternating {1,3,5}
+9b58bb6	0.984560	56.7	ok	width ladder next rung on a5's leader: depth 6 / dim 896 (7 heads) + a0 warmdown 1.0
