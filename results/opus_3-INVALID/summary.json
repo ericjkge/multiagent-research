@@ -1,0 +1,12 @@
+{
+  "cell_id": "opus_3",
+  "rounds_completed": 6,
+  "final_val_bpb": 0.987792,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 11873.2,
+  "agent_cost_usd": 235.3188,
+  "wall_clock_s": 14892.6,
+  "stop_reason": "round cap reached",
+  "gpu_overlaps": 0
+}
