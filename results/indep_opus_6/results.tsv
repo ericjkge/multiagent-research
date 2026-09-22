@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+686d837	0.987981	43.9	ok	TOTAL_BATCH_SIZE 2^19 -> 2^18 (grad_accum 2 -> 1), LRs unchanged
+10ebdbc	0.988312	43.9	ok	TOTAL_BATCH_SIZE 2^19 -> 2^18 (grad_accum 2 -> 1): 2x optimizer steps in 300s
+ac57d41	0.988049	43.9	ok	TOTAL_BATCH_SIZE 2**19 -> 2**18 (2x optimizer steps, LRs unchanged)
+141d914	0.988497	43.9	ok	halve batch: TOTAL_BATCH_SIZE 2**19 -> 2**18 (doubles optimizer steps)
+c6de0f8	1.001559	44.0	ok	U-Net encoder->decoder skip connections with learned zero-init gates
+599c20f	0.996189	48.8	ok	reshape at fixed FLOPs/token: depth 8->10, MLP 4x->3x, short window seq/2->seq/4 (dim 512 fixed)
+59250bf	0.996087	22.2	ok	TOTAL_BATCH_SIZE 2^17, DEVICE_BATCH_SIZE 64 (grad_accum 1), LRs unchanged
+2b0e9e0	0.995947	22.2	ok	TOTAL_BATCH_SIZE 2^17, DEVICE_BATCH 64 (grad_accum=1): 2x more steps again
+fc91b82	0.994781	22.2	ok	TOTAL_BATCH_SIZE 2**17, device batch 64 (4x steps vs baseline)
+c1f788e	0.986692	48.7	ok	reshape (depth 10, MLP 3x, short window seq/4) on top of batch 2**18
+d338058	0.991359	43.9	ok	at 2^18: more gradient averaging - adam beta1 0.8->0.9, muon momentum ramp 0.85->0.98 over 600 steps
+acd52f6	0.993673	44.0	ok	batch 2**18 + HEAD_DIM 128->64 (8 heads at dim 512, params/FLOPs unchanged)
+eb54697	0.994703	43.9	ok	background-thread prefetch of the dataloader (overlap CPU packing with GPU), TOTAL_BATCH 2^18
+75a8d84	0.984898	53.9	ok	width 512 -> 640 (ASPECT_RATIO 80) on top of 2**18 batch
+87c910b	0.988923	51.5	ok	exact fixed-FLOPs/fixed-param depth<->MLP trade: depth 10/MLP 3x -> depth 12/MLP 2x
+efedbdd	0.988032	48.7	ok	reshaped d10/MLP3x/short-win-4 @2^18 with all LRs x1.3 (matrix 0.052, embed 0.78, unembed 0.0052)
+d4e6375	0.989610	24.6	ok	reshape base (d10/MLP3/win4) + batch 2**17 with all LRs halved (same total update distance, 2x finer steps)
+2e7c056	0.988608	48.7	ok	on a4's reshape base (c1f788e): WARMDOWN_RATIO 0.5 -> 0.35 (longer at peak LR)
+dd3c58c	0.992199	32.7	ok	width 640 -> 768 (ASPECT_RATIO 96), device batch 64 x2 accum
+68d64b2	0.986335	59.9	ok	combine: width 640 (peer's win) + my reshape (depth 10, MLP 3x, short window seq/4), batch 2**18
+ea26c99	0.982021	63.9	ok	capacity-vs-steps: width 640 -> 768 (ASPECT_RATIO 96) at batch 2^18, depth 8
+e85293e	0.984440	53.9	ok	width-640 base (75a8d84) + WARMDOWN_RATIO 0.5 -> 0.65 (longer LR decay)
+3d21370	0.990065	33.8	ok	depth 8 -> 10 at width 640 (same 2**18 batch, device batch 64)
+ae8c232	0.981666	53.9	ok	on cell best (dim 640, depth 8, MLP 4x, 2**18): short window seq/2 -> seq/4, sole change
+77760a2	0.984484	53.9	ok	on the width-640 leader config: WARMDOWN_RATIO 0.5 -> 0.7 (longer linear cooldown)
+e9cd87b	0.993004	66.9	ok	push width further: dim 896 with MLP 3x (to keep memory/FLOPs in budget), depth 8, batch 2^18, device batch 128
+9caf422	0.985629	55.2	ok	cell-best config (dim 640, depth 8, 2**18) + value embeddings on ALL 8 layers instead of alternating 4
+1475c37	0.000000	0.0	crash	width 768 -> 896 (ASPECT_RATIO 112) at batch 2^18, with a chunked fp32 loss head to buy the VRAM
+8369f72	0.985588	55.2	ok	best shape (8L/640d, 2**18 batch) + value embeddings on all 8 layers
+ed6785e	0.979960	63.9	ok	final: width 768 (peer win) + short window seq/4 (my win), depth 8, MLP 4x, batch 2**18
+8c8aa76	0.979659	53.9	ok	final: width 640 / depth 8 / MLP 4x @2**18 with short window seq/4 -> seq/8 plus WARMDOWN 0.7
+fe7e420	0.979108	63.9	ok	combine three separate wins: width 768 + short window seq/4 + WARMDOWN 0.65, depth 8, batch 2**18
+1fd125f	0.978436	63.9	ok	last run: stack the two additive wins - width 768 AND short window seq/8, depth 8 / MLP 4x / 2**18 / warmdown 0.7
+b6579f0	0.978480	63.9	ok	width 768 + short window seq/8 + WARMDOWN 0.7: all three current wins together, depth 8, 2**18
+db469bb	0.977649	63.9	ok	sole change on the leader (768/win-8/wd-0.7): short window seq/8 -> seq/16 (256 -> 128 tokens)
+7fa2af1	0.978546	63.9	ok	sole change on the leader (768/win-16/wd-0.7): short window seq/16 -> seq/32 (128 -> 64 tokens), bracketing the window optimum
