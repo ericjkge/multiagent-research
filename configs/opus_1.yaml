@@ -8,7 +8,7 @@ bon: 5
 
 # 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
 train_run_budget: 36
-train_timeout_s: 600
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
 max_train_attempts: 3
 
 autoresearch_repo: ~/autoresearch
