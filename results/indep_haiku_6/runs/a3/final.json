@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "b8735ea",
+  "best_val_bpb": 0.978964,
+  "summary": "Explored variations on the empirical winning configuration (ASPECT_RATIO=96, BATCH=2^18, DEPTH=8, window=1/8, VE=first3+last3). Best result: 0.978964 with reduced EMBEDDING_LR=0.4 (vs baseline 0.6). Verified that DEPTH=7 is worse than 8 (contradicting memory's -0.0010 claim, likely noise), DEPTH=10 exceeds GPU memory, and window 1/4 severely hurts (0.989947). ASPECT_RATIO=112 also improves slightly (0.979047). Next: more fine-grained searches on EMBEDDING_LR (0.3, 0.35, 0.45) or UNEMBEDDING_LR, since the winning stack was very stable (~0.977-0.980 range) and small LR tweaks seem more effective than architectural variations."
+}

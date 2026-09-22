@@ -1,0 +1,15 @@
+{
+  "cell_id": "indep_haiku_6",
+  "tag": "indep_haiku_6-20260922-125301",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "5f02ec8de16210a0dadbebd29b2f35ab6948f539",
+  "baseline_bpb": 0.976806,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 23.33379205000001,
+  "started_at": 1790081581.8287888,
+  "finished_at": 1790101356.967626,
+  "stop_reason": "all agents finished"
+}

@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "26966cd",
+  "best_val_bpb": 0.982450,
+  "summary": "Discovered that smaller batch sizes (2^18 vs 2^19) provide the largest single win, improving from 0.997359 baseline to 0.993369. Increasing ASPECT_RATIO from 64 to 96 (wider models) further improved to 0.982450, a cumulative -0.01489 improvement. Smaller sliding windows and alternate value embedding placements did not improve results further, suggesting the configuration is near optimal. The winning config uses batch 2^18, ASPECT_RATIO=96, window=long_window//8, and standard alternating value embeddings."
+}
