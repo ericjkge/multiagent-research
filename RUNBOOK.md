@@ -2,21 +2,24 @@
 
 Written Sunday night Sep 20 for a Thursday Sep 24 presentation. Read this before touching a GPU.
 
-## Tonight (Mon Sep 21): who runs what
+## The experiment grid (final, Mon Sep 21 22:05)
 
-All cells are 36 runs. Claim in the channel. Within a family, `open_X_6` and `indep_X_6` (the same six
-agents, unable to see each other) should run back to back on one box: that pair is what measures
-communication.
+Every cell is 36 training runs. Per model family, in this order, and the first three are the minimum:
 
-| family | who | cells, in priority order |
-|---|---|---|
-| Haiku | Eric | `open_haiku_6`, `indep_haiku_6`, `haiku_6`, `haiku_1`, `open_haiku_1`, then the 3s |
-| Sonnet | Anthony | `open_sonnet_6`, `indep_sonnet_6`, `sonnet_6`, `sonnet_1`, `open_sonnet_1`, then the 3s |
-| Opus (frontier check) | Alvin | `open_opus_6` + `indep_opus_6` on one box; `open_opus_1` if a box is free |
-| whatever is uncovered | Riddhi | the `indep_*_6` twin of any family that lacks one, then a rounds cell |
+| # | cell | agents | what it is |
+|---|---|---|---|
+| 1 | `open_X_6` | 6, sharing the log | the paper's protocol |
+| 2 | `indep_X_6` | 6, cannot see each other | same agents, no talking: the control for communication |
+| 3 | `X_1` | 1, whole budget | one agent with the same compute: the control for copies |
+| 4 | `X_6` | 6, lockstep rounds | does the organisation of the group matter |
+| 5 | `open_X_1`, then the 3-agent cells | | only if a box is free |
+
+Families and owners: **Haiku = Eric**, **Sonnet = Anthony**, **Opus = Alvin** (cells 1 and 2 only, as
+the frontier check), **Riddhi** takes cell 2 of any family whose owner cannot fit it, then cell 4.
+Cells 1 and 2 of a family run back to back on one box.
 
 Haiku cells run fine on a claude.ai login. Sonnet and Opus cells want an API key (six parallel
-sessions on a login get throttled; the orchestrator now waits out rate limits, but the GPU idles
+sessions on a login get throttled; the orchestrator waits out rate limits, but the GPU idles
 meanwhile). Opus cells have $60 per session and $250 per cell ceilings in their configs.
 
 Per box, once: `bash scripts/setup_gpu_box.sh --noise-gate` (first box) or without the flag (others),
