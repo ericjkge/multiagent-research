@@ -1,5 +1,5 @@
 # opus x 3 agent(s), OPEN protocol (Park et al. 2609.21032)
-# Open-protocol middle team size; each agent receives 12 of the 36 attempts.
+# The frontier arm: the takeoff claim is about strong researchers, so the core comparison runs here.
 cell_id: open_opus_3
 protocol: open
 harness: claude_code
@@ -16,9 +16,9 @@ max_train_attempts: 3
 autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""
 
-# Keep session and cell settings aligned with the existing Opus open configurations.
+# Opus is about 5x Sonnet per token; a 6-agent open cell is roughly $150 to $300 of agent calls.
 max_budget_usd_per_session: 60.0
-cell_budget_usd: 250.0   # checked between completed agent queries
+cell_budget_usd: 250.0   # hard ceiling: the orchestrator stops the cell here
 open_session_timeout_s: 21600
 open_max_resumes: 12
 seed: 0
