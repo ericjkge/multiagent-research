@@ -21,8 +21,8 @@ autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""
 
 # Opus is about 5x Sonnet per token; a 6-agent open cell is roughly $150 to $300 of agent calls.
-max_budget_usd_per_session: 60.0
-cell_budget_usd: 250.0   # hard ceiling: the orchestrator stops the cell here
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
 open_session_timeout_s: 21600
-open_max_resumes: 12
+open_max_resumes: 40
 seed: 1

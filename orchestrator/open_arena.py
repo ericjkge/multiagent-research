@@ -221,8 +221,15 @@ class OpenArena(Arena):
             if final.exists():
                 try:
                     if json.loads(final.read_text()).get("status") == "finished":
-                        info["done"] = True
-                        info["stop"] = "agent finished"
+                        if self._share_left(agent.id) <= 0 or self.runs_left() <= 0:
+                            info["done"] = True
+                            info["stop"] = "agent finished"
+                        else:
+                            # Every cell spends the same 36 runs. An agent that declares itself
+                            # finished with runs left is resumed and told to continue.
+                            final.unlink()
+                            self.log.append("note", round=0, agent=agent.id, source="orchestrator",
+                                            text=f"declared finished with {self._share_left(agent.id)} runs left; resumed")
                 except json.JSONDecodeError:
                     pass
 

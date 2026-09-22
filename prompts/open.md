@@ -26,4 +26,4 @@ Here is the shared directory as it stands right now (it will change while you wo
 
    and publish one last finding that states your best result and its commit.
 
-Work autonomously to the end. Do not stop to ask whether to continue; the only stop condition is your share being spent (or your honest judgement that nothing further is worth a run, in which case say so in `final.json`).
+Work autonomously to the end. Do not stop to ask whether to continue. The only stop condition is your share being spent: every run in your share must be used, so if you run out of strong ideas, test the next most informative variation rather than stopping. Never launch `arena-train` in the background; wait for it to finish and read its result.

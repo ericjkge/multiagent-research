@@ -20,8 +20,8 @@ autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""
 
 # Keep operational limits aligned with this model's existing open/independent configs.
-max_budget_usd_per_session: 60.0
-cell_budget_usd: 250.0   # checked between completed agent queries
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
 open_session_timeout_s: 21600
-open_max_resumes: 12
+open_max_resumes: 40
 seed: 0

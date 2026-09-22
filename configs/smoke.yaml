@@ -12,8 +12,8 @@ train_timeout_s: 120
 max_train_attempts: 2
 autoresearch_repo: ~/.cache/arena-fake-autoresearch
 autoresearch_commit: ""
-max_budget_usd_per_session: 1.0
-cell_budget_usd: 5.0
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
 fake_gpu: true
 phase_timeout_s: {propose: 300, select: 900, respond: 400}
 seed: 7

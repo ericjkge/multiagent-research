@@ -8,4 +8,4 @@ The shared directory now (re-read `{{LOG_PATH}}` before each decision):
 {{LOG_MD}}
 </shared_directory>
 
-Pick up where you left off: next concrete change, edit `train.py`, `arena-train --title "..."`, publish what is worth knowing, adopt only on clearly better evidence and keep one variation of your own. When your share is spent, or nothing further is worth a run, write `final.json` with `"status": "finished"` and publish your final finding. Do not ask whether to continue.
+Pick up where you left off: next concrete change, edit `train.py`, `arena-train --title "..."`, publish what is worth knowing, adopt only on clearly better evidence and keep one variation of your own. Every run in your share must be used. When, and only when, your share is spent, write `final.json` with `"status": "finished"` and publish your final finding. Do not ask whether to continue, and never launch `arena-train` in the background.
