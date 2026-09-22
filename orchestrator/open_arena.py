@@ -189,10 +189,30 @@ class OpenArena(Arena):
                 self.log.append("session_segment", round=0, agent=agent.id, segment=seg,
                                 cost_usd=result.cost_usd, num_turns=result.num_turns,
                                 is_error=result.is_error, duration_s=round(result.duration_s, 1))
+                # A segment that errored out almost immediately is a rate limit or an
+                # auth failure, not the agent stopping: wait, and do not count it as a
+                # resume.  Six Opus sessions on a claude.ai plan hit the 5-hour window;
+                # the window passes, the cell continues.
+                if result.is_error and result.num_turns <= 1:
+                    info["throttled"] = info.get("throttled", 0) + 1
+                    if info["throttled"] > 36:  # 6 hours of waiting: something else is wrong
+                        info["done"] = True
+                        info["stop"] = f"gave up after {info['throttled']} errored segments: {result.text[:120]}"
+                        break
+                    print(f"  ~ {agent.id}: segment errored at once ({result.text[:80]}); waiting 10 min")
+                    time.sleep(600)
+                    continue
             except HarnessError as exc:
                 self.log.append("session_segment", round=0, agent=agent.id, segment=seg,
                                 error=str(exc)[:1000])
                 print(f"  ! {agent.id}: segment {seg} failed: {exc}")
+                info["throttled"] = info.get("throttled", 0) + 1
+                if info["throttled"] > 36:
+                    info["done"] = True
+                    info["stop"] = "gave up after repeated harness failures"
+                    break
+                time.sleep(120)
+                continue
             info["segments"] += 1
             self._save_sessions()
             self.state.save(self.run_dir)
