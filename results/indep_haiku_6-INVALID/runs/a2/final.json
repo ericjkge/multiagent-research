@@ -1,6 +1,0 @@
-{
-  "status": "finished",
-  "best_commit": "a0ac46e",
-  "best_val_bpb": 1.002563,
-  "summary": "Explored depth-width tradeoffs by increasing depth from 8 to 10 layers while reducing aspect ratio from 64 to 52. This degraded performance significantly (val_bpb 1.002563 vs baseline 0.997359, +0.5% worse). Architecture changes that increase depth without proportional width reduction appear to hurt short-horizon training. Prepared second run with MATRIX_LR increase to 0.06 (observed to help in external results: 0.996937) but GPU queue congestion prevented execution within time window. Recommendation: focus on learning rate optimization (especially Muon LR for matrix params) rather than architectural modifications for this 5-minute training budget."
-}

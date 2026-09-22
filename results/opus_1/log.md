@@ -411,3 +411,49 @@ The diagnostic that matters: final smoothed TRAIN loss was ~2.769, essentially i
 
 **Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.986277.
 
+## Round 7
+_Baseline entering the round: val_bpb 0.986277 (commit 081f627)_
+
+### Proposals
+- `#97` **a0 — Tighten logit softcap 15 → 10**
+  - why: Round 6 measured a clean, confound-free +0.004 val_bpb from doubling the softcap with *unchanged train loss* — the signature of removing a regularizer — so the measured gradient on this axis points the other way, and stepping down it is a one-line, zero-FLOP, zero-VRAM change.
+  - detail: One line in `GPT.forward` (`train.py`, in the block `softcap = 15; logits = self.lm_head(x); logits = logits.float(); logits = softcap * torch.tanh(logits / softcap)`):
+
+- `softcap = 15` → `softcap = 10`
+
+Nothing else changes: DEPTH 12, ASPECT_RATIO 40, model_dim 512, 4 heads of 128, TOTAL_BATCH_SIZE 2**17, all LRs, schedules, Muon config and `has_ve` untouched. Params, FLOPs/token and peak VRAM are all bit-identical to the baseline, so like round 6 this is a pure quality-per-token readout with zero throughput confound (expect ~331M tokens, ~2529 steps, MFU ~38.5%, 32.1 GB).
+
+Mechanism, taken straight from round 6's own diagnostic rather than from theory. Runs #84–#88 all agreed: at softcap 30 the final smoothed *train* loss was equal to or barely above the baseline's (~2.769 vs ~2.768) while val_bpb rose 0.0039–0.0042. Equal train loss with worse val loss is not an expressivity ceiling being lifted — it is a regularizer being removed. The tanh cap scales the logit gradient by sech²(z/s); a tighter s damps updates on positions the model is already confident about and forces gradient signal onto the positions that still carry loss, which is exactly a confidence penalty / label-smoot [...]
+
+### Messages
+- `#98` **a0** _(re: #97)_: Round 7 result (a0, run 34/36, 2 LEFT): FLAT, marginally negative. softcap 15 -> 10 in GPT.forward, one line => val_bpb 0.986493 vs baseline 0.986277. That is +0.0002, well inside the ~0.0009 noise floor. Baseline stands.
+
+Confound-free as promised: params 71.3M, FLOPs/token 3.460347e8, peak VRAM 32.9GB, MFU 38.17%, 328.7M tokens / 2508 steps vs the baseline's 331.5M / 2529 (a ~1% token deficit, i.e. not enough to hide a real effect).
+
+Put together with round 6, the softcap curve is now measured on both sides and it is strongly ASYMMETRIC:
+  s = 10: +0.0002 (flat)
+  s = 15: baseline
+  s = 30: +0.0040 (5 runs, all agreed)
+So 15 sits at or just above the optimum, on a floor that is flat to the left and rises steeply to the right. My round-6 reading was right about the mechanism -- the cap is an active regularizer, not a vestigial stability guard -- but wrong to infer that more of it would [...]
+- `#99` **a0** _(re: #97)_: Round 7 result (a0, run 35/36, 1 LEFT): TIE / no improvement. softcap 15 -> 10 in GPT.forward, one line, nothing else touched => val_bpb 0.986373 vs baseline 0.986277. That is +0.0001, well inside the ~0.0009 noise floor. Baseline stands.
+
+Numbers: params 71.3M, peak VRAM 32.9GB, FLOPs/token unchanged -- all identical to baseline. total_tokens 328.2M vs 331.5M, num_steps 2504 vs 2529, steady-state MFU 38.09% vs 38.48%, so this run saw ~1% LESS compute. Final smoothed TRAIN loss 2.765 vs the baseline's ~2.768, i.e. marginally lower train loss at equal val.
+
+The softcap axis is now measured on both sides of 15 and 15 is the optimum:
+  softcap 30: +0.0040 (5 runs, unanimous, round 6)
+  softcap 15: baseline
+  softcap 10: +0.0001 (this run)
+That asymmetry refutes the mechanism I proposed in #97. I argued the cap acts as a dialable confidence regularizer, in which case more of it should have m [...]
+- `#100` **a0**: Round 7 result (a0, run 36/36 -- budget is now EXHAUSTED): FLAT. softcap 15 -> 10 in GPT.forward, one line, nothing else => val_bpb 0.986502 vs baseline 0.986277. That is +0.00023, about a quarter of the ~0.0009 noise floor: a tie. Baseline stands at 0.986277 (depth 12, dim 512, 4 heads of 128, batch 2^17).
+
+Numbers, confound-free exactly as promised: params 71.3M, peak VRAM 32882MB, total_tokens 328.3M, num_steps 2505, steady-state MFU 38.12%, final smoothed train loss ~2.769. Every one of those matches the baseline run, so the whole (non-)difference is quality per token.
+
+The useful finding is the SHAPE, and it corrects my own round-6 conclusion. I argued from #84-#88 that five runs had measured the gradient d(val_bpb)/d(softcap) as positive at s=15, so the downhill direction was s<15. That inference was wrong: the curve is not locally linear, it is asymmetric. Loosening 15 -> 30 costs [...]
+
+### Experiments run
+- `a0/v0` val_bpb **0.986502** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 10; nothing else touched.
+- `a0/v1` val_bpb **0.986493** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 10; nothing else touched.
+- `a0/v2` val_bpb **0.986373** (32.1 GB) — One line in GPT.forward: softcap = 15 -> 10; nothing else touched. val_bpb 0.986373 vs baseline 0.986277 (a tie, +0.0001, inside the ~0.0009 noise floor).
+
+**Outcome:** nothing beat the baseline; it is unchanged at val_bpb 0.986277.
+

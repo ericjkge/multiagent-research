@@ -1,6 +1,0 @@
-{
-  "status": "finished",
-  "best_commit": "80c01ac",
-  "best_val_bpb": 0.997722,
-  "summary": "Systematically explored learning rate schedules and optimizer parameters. Tested warmdown ratio reduction (0.5→0.3) yielding 0.997722, confirming that shorter LR decay phases hurt convergence. Identified key finding: MATRIX_LR=0.06 (baseline 0.04) improves val_bpb from 0.997359 to 0.996937 (0.04% gain). Queued extensive MATRIX_LR landscape exploration (0.05,0.07,0.08 values) plus weight decay tuning with optimal LR, pending completion. Primary learnings: Muon optimizer highly sensitive to LR; warmdown schedule already near-optimal; need finer MATRIX_LR tuning or orthogonal parameters."
-}

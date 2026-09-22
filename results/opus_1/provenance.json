@@ -9,15 +9,15 @@
         "harness": "claude_code"
       }
     ],
-    "bon": 5,
+    "bon": 3,
     "train_run_budget": 36,
     "nominal_run_seconds": 330.0,
     "train_timeout_s": 900,
     "max_train_attempts": 3,
     "autoresearch_repo": "~/autoresearch",
     "autoresearch_commit": "",
-    "max_budget_usd_per_session": 15.0,
-    "cell_budget_usd": 400.0,
+    "max_budget_usd_per_session": 1000,
+    "cell_budget_usd": 100000,
     "protocol": "rounds",
     "solo_self_critique": false,
     "phase_timeout_s": {
@@ -35,5 +35,12 @@
   "config_fingerprint": "3c97f93b1b50",
   "claude_version": "2.1.278 (Claude Code)",
   "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
-  "started_at": 1790056042.5292122
+  "started_at": 1790056042.5292122,
+  "resume_patches": [
+    {
+      "bon": 3,
+      "cell_budget_usd": 100000,
+      "max_budget_usd_per_session": 1000
+    }
+  ]
 }

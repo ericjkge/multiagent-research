@@ -1,6 +1,0 @@
-{
-  "status": "finished",
-  "best_commit": "ac0d45e",
-  "best_val_bpb": 0.998188,
-  "summary": "Explored learning rate tuning for LLM training optimization. Initial experiment reduced EMBEDDING_LR from 0.6 to 0.4 but worsened performance (0.998188 vs baseline 0.997359). Subsequent experiments (5 additional runs) systematically explored MATRIX_LR tuning (0.06-0.08), weight decay adjustments (0.1-0.2), model depth increases (8→10 layers), and warmdown schedule variations. Evidence from peer experiments showed MATRIX_LR=0.06 achieved 0.996937, suggesting Muon optimizer is the key lever for improvement. Did not beat baseline with completed experiments but identified promising direction (MATRIX_LR tuning around 0.06) for future work within the 5-minute training budget."
-}
