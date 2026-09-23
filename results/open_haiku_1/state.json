@@ -1,0 +1,15 @@
+{
+  "cell_id": "open_haiku_1",
+  "tag": "open_haiku_1-20260923-034156",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "d288325d573d73c250c3a25780f6742e514e98d8",
+  "baseline_bpb": 0.992818,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 0.8271914999999999,
+  "started_at": 1790134916.0876515,
+  "finished_at": 1790154428.0388107,
+  "stop_reason": "all agents finished"
+}
