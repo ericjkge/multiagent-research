@@ -252,7 +252,7 @@ ladder does add is a second, independent confirmation of the headcount effect (s
 open. The within-box protocol comparison remains the Opus grid: open beat rounds at one, three and six
 agents.
 
-## 9. The isolated reruns (Sep 23, from 00:42, in progress)
+## 9. The isolated reruns (Sep 23, 00:42 to 07:12)
 
 Three independent cells rerun on a fresh box (pod 4) under the repaired isolation: private one-commit
 clones, per-agent score tables, the guard-hook denylist, and a transcript scan at archive time. Both
