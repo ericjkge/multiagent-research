@@ -76,15 +76,32 @@ def scan(run_dir: Path) -> dict:
 
 
 def main() -> int:
-    for d in sys.argv[1:]:
-        r = scan(Path(d))
+    strict = "--strict" in sys.argv
+    dirs = [d for d in sys.argv[1:] if d != "--strict"]
+    bad = 0
+    for d in dirs:
+        run_dir = Path(d)
+        prov = json.loads((run_dir / "provenance.json").read_text()) if (run_dir / "provenance.json").exists() else {}
+        independent = prov.get("cell", {}).get("protocol") == "open" and not prov.get("cell", {}).get("open_share_log", True)
+        if strict and not independent:
+            print(f"== {run_dir.name}: sharing on, isolation not required")
+            continue
+        r = scan(run_dir)
+        if strict and not r["agents"]:
+            print(f"== {run_dir.name}: no session transcripts archived, isolation cannot be shown")
+            bad += 1
+            continue
         print(f"== {r['cell']}: winner {r['winner']}")
         for a, h in sorted(r["agents"].items()):
             flag = "LEAK" if (h["results_tsv"] or h["peer_log"] or h["peer_commit"]) else "clean"
             print(f"   {a}: {flag}  results.tsv reads={h['results_tsv']} peer-log reads={h['peer_log']} peer-commit refs={h['peer_commit']}")
             for k, ex in h["examples"]:
                 print(f"       [{k}] {ex}")
-    return 0
+            if strict and flag == "LEAK":
+                bad += 1
+    if strict:
+        print("ISOLATION " + ("FAILED" if bad else "OK"))
+    return 1 if bad else 0
 
 
 if __name__ == "__main__":

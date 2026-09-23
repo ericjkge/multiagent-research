@@ -78,6 +78,29 @@ class WorktreeManager:
         git(self.repo, "worktree", "add", "--detach", str(path), base_commit)
         return path
 
+    def create_clone(self, name: str, base_commit: str) -> Path:
+        """A private repository holding exactly one commit: the independent arm's checkout.
+
+        Unlike a worktree, a clone shares no object store with the other agents, so a peer's
+        commit does not exist in it and cannot be shown, diffed or checked out (found the hard
+        way on Sep 22: "independent" agents were reading each other's commits).
+        """
+        path = self.work_root / name
+        if path.exists():
+            self.remove(path)
+        path.mkdir(parents=True)
+        git(self.repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+        git(path, "init", "-q")
+        git(path, "-c", "protocol.file.allow=always", "fetch", "-q", "--depth", "1",
+            f"file://{self.repo.resolve()}", base_commit)
+        git(path, "checkout", "-q", "--detach", "FETCH_HEAD")
+        return path
+
+    def absorb(self, clone: Path) -> None:
+        """Bring a private clone's commits (HEAD and its refs/arena/*) into the main repo."""
+        git(self.repo, "-c", "protocol.file.allow=always", "fetch", "-q", str(clone),
+            "+HEAD:refs/arena/absorb/latest", "+refs/arena/*:refs/arena/*", check=False)
+
     def keep(self, commit: str, round_idx: int, agent: str, variant: int) -> str:
         """Pin a candidate commit behind a ref so it is never gc'd."""
         ref = f"refs/arena/{self.tag}/r{round_idx:02d}_{agent}_v{variant}"

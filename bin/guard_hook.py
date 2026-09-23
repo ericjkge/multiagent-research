@@ -16,6 +16,7 @@ than failing the round.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 
@@ -94,6 +95,43 @@ def deny(reason: str) -> None:
     sys.exit(0)
 
 
+ISOLATION_TOOLS = {"Bash", "Read", "Grep", "Glob", "LS", "Edit", "Write", "MultiEdit"}
+
+
+def isolation_check(tool: str, tool_input: dict) -> None:
+    """Independent cells (ARENA_SHARE_LOG=0): an agent may not touch its peers' work.
+
+    Added Sep 23 after the audit of the Sep 22 cells: every "independent" agent had read the
+    shared score table and most had inspected or checked out a peer's commit. The agent's
+    private clone holds no peer commit, so this denylist covers the remaining routes: the
+    shared table and logs, the other agents' checkouts, the main repository and any git
+    command that could pull objects or refs from it.
+    """
+    if os.environ.get("ARENA_SHARE_LOG") != "0" or tool not in ISOLATION_TOOLS:
+        return
+    me = os.environ.get("ARENA_AGENT", "")
+    text = " ".join(str(v) for v in tool_input.values())
+    repo = os.path.dirname(os.environ.get("ARENA_UV_ENV", "") or "")
+    checks = [
+        (re.compile(r"results\.tsv"), "the shared score table"),
+        (re.compile(r"results_(a\d+)\.tsv"), "another agent's score table"),
+        (re.compile(r"(?<![\w-])log\.md\b"), "the shared log"),
+        (re.compile(r"(?<![\w-])log_(a\d+)\.md"), "another agent's log"),
+        (re.compile(r"work/open_(a\d+)"), "another agent's checkout"),
+        (re.compile(r"refs/arena|--all\b|\breflog\b|for-each-ref|lost-found|\bfsck\b|cat-file"),
+         "git history outside your own commits"),
+        (re.compile(r"\bgit\s+(?:fetch|pull|remote|clone|submodule|worktree)\b"), "fetching from another repository"),
+    ]
+    for pat, what in checks:
+        for m in pat.finditer(text):
+            peer = m.group(1) if m.groups() else None
+            if peer is not None and peer == me:
+                continue
+            deny(f"This cell runs agents independently: {what} is off limits.")
+    if repo and repo in text and f"{repo}/.venv" not in text:
+        deny("This cell runs agents independently: the main repository is off limits; work in your own checkout.")
+
+
 def main() -> None:
     try:
         event = json.load(sys.stdin)
@@ -102,6 +140,7 @@ def main() -> None:
 
     tool = event.get("tool_name", "")
     tool_input = event.get("tool_input") or {}
+    isolation_check(tool, tool_input)
 
     if tool in {"Bash", "BashOutput"}:
         command = tool_input.get("command", "")
