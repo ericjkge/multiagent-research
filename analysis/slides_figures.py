@@ -219,19 +219,20 @@ def fig2():
 
 # ---- 3. herding -------------------------------------------------------------------------
 # (agent) -> six (label, family, star, note) in time order. Labels paraphrase the agents' own titles.
-ROUNDS_OPUS6 = {  # results/opus_6, proposals by round; star = round winner (became the new baseline)
-    "a0": [("batch ½", "batch", 0, ""), ("head dim 64", "attn", 0, ""), ("head dim 64", "attn", 0, ""),
+ROUNDS_OPUS6 = {  # results/opus_6: what each agent actually RAN each round (candidate titles, not proposals);
+    # star = round winner (became everyone's new baseline). 'not run': the proposal never reached the GPU.
+    "a0": [("batch ¼", "batch", 0, ""), ("wider\n(dim 832)", "shape", 0, ""), ("head dim 64", "attn", 0, ""),
            ("warmdown 0.7", "sched", 1, ""), ("device batch\n128", "speed", 0, ""), ("value emb.\nevery layer", "emb", 0, "")],
-    "a1": [("batch ½", "batch", 0, ""), ("depth 12\n+ head dim 64", "attn", 0, ""), ("head dim 64", "attn", 0, ""),
-           ("warmdown 0.7", "sched", 0, ""), ("device batch\n128", "speed", 1, ""), ("autotune\ncompile", "speed", 1, "")],
-    "a2": [("batch ½", "batch", 0, ""), ("head dim 64", "attn", 0, ""), ("head dim 64", "attn", 0, "not run"),
-           ("warmdown 0.7", "sched", 0, ""), ("window 512", "attn", 0, ""), ("autotune\ncompile", "speed", 0, "not run")],
-    "a3": [("U-net skips", "shape", 0, ""), ("head dim 64", "attn", 0, ""), ("head dim 64", "attn", 0, ""),
-           ("warmdown 0.7", "sched", 0, ""), ("window 512", "attn", 0, ""), ("autotune\ncompile", "speed", 0, "")],
-    "a4": [("batch ½", "batch", 0, ""), ("depth 12\n+ head dim 64", "attn", 0, ""), ("head dim 64", "attn", 0, ""),
-           ("warmdown 0.7", "sched", 0, ""), ("window 512", "attn", 0, ""), ("shared\nvalue emb.", "emb", 0, "")],
-    "a5": [("batch ½", "batch", 1, ""), ("head dim 64", "attn", 0, ""), ("narrower\n+ head dim 64", "shape", 0, ""),
-           ("warmdown 0.7", "sched", 0, ""), ("RoPE base", "attn", 0, ""), ("bf16 logits", "emb", 0, "")],
+    "a1": [("batch ¼", "batch", 0, ""), ("depth 14\n+ head dim 64", "shape", 0, ""), ("head dim 64\n+ Muon LR", "attn", 0, ""),
+           ("warmdown 1.0", "sched", 0, ""), ("window 512\n+ device batch", "attn", 1, ""), ("autotune\ncompile", "speed", 1, "")],
+    "a2": [("batch ½\n+ head dim 64", "batch", 0, ""), ("depth 14\n+ head dim 64", "shape", 0, ""), ("head dim 64", "attn", 0, "not run"),
+           ("matrix LR\n0.028", "sched", 0, ""), ("window 512", "attn", 0, ""), ("autotune\ncompile", "speed", 0, "not run")],
+    "a3": [("U-net skips", "shape", 0, ""), ("depth 14\n+ head dim 64", "shape", 0, ""), ("head dim 64,\nwarmdown 0.3", "attn", 0, ""),
+           ("warmdown 0.7\n+ full attn.", "sched", 0, ""), ("window 256", "attn", 0, ""), ("RoPE base\n100000", "attn", 0, "")],
+    "a4": [("batch ¼", "batch", 0, ""), ("depth 14\n+ head dim 64", "shape", 0, ""), ("head dim 64\n+ Muon LR", "attn", 0, ""),
+           ("attention\nlogit scale", "attn", 0, ""), ("window\npattern", "attn", 0, ""), ("shared\nvalue emb.", "emb", 0, "")],
+    "a5": [("depth 10\n+ batch ½", "shape", 1, ""), ("width 768\n+ head dim 64", "shape", 0, ""), ("narrower\n+ head dim 64", "shape", 0, ""),
+           ("global LR\nx0.75", "sched", 0, ""), ("RoPE base\n1000", "attn", 0, ""), ("bf16 logits", "emb", 0, "")],
 }
 OPEN_OPUS6 = {  # results/open_opus_6, each agent's 1st..6th run (GPU rotation); star = new best in the cell
     "a0": [("LR x1.25", "sched", 0, ""), ("warmdown 0.8", "sched", 0, ""), ("window\n+ warmdown", "sched", 0, ""),
@@ -275,27 +276,27 @@ def _grid(ax, x0, grid, col_label):
 
 
 def _distinct(grid):
-    return [len({grid[a][c][1] for a in grid}) for c in range(6)]
+    return [len({grid[a][c][1] for a in grid if not grid[a][c][3]}) for c in range(6)]
 
 
 def fig3():
     d_r, d_o = _distinct(ROUNDS_OPUS6), _distinct(OPEN_OPUS6)
-    fig = frame("Blind rounds herd. A shared log splits the work.",
-                "Six Opus agents, 36 experiments per workflow. Each square is one experiment, colored by what it changed.\n"
-                "Rounds: columns are one color, everyone tried the same thing. Shared log: rows are mostly one color, each agent owned a direction.",
-                f"Directions tried per round: rounds {', '.join(map(str, d_r))}; shared log {', '.join(map(str, d_o))} "
-                "(converging on width at the end). Labels paraphrase the agents' own run titles; families are hand-coded.\n"
-                "Rounds protocol: proposals are blind, all six run, one winner becomes everyone's new baseline. "
-                "'not run': the session ended before training (harness bug, never a winner).")
+    fig = frame("Rounds move as a pack. A shared log splits the work.",
+                "Six Opus agents, 36 training runs per workflow. Each square is one run, colored by what it changed.\n"
+                "Rounds: columns are mostly one color, the team spent each round on one direction. Shared log: rows are mostly one color.",
+                f"Directions run per round: rounds {', '.join(map(str, d_r))}; shared log {', '.join(map(str, d_o))} "
+                "(converging on width at the end). One search per workflow; families are hand-coded from the run titles.\n"
+                "Rounds: proposals are blind, then every agent sees all six and the others' messages before running. Proposals herded more than runs "
+                "(5 of 6 identical in round 1, 6 of 6 in round 4).")
     ax = fig.add_axes([0.035, 0.2, 0.93, 0.58])
     ax.set_xlim(-0.55, 13.05)
     ax.set_ylim(6.35, -1.0)
     ax.axis("off")
     _grid(ax, 0, ROUNDS_OPUS6, "round")
     _grid(ax, 7.0, OPEN_OPUS6, "run")
-    ax.text(0.04, -0.72, "Blind rounds", fontsize=15, fontweight="bold", color=INK, va="bottom")
+    ax.text(0.04, -0.72, "Rounds", fontsize=15, fontweight="bold", color=INK, va="bottom")
     ax.text(7.04, -0.72, "Shared research log", fontsize=15, fontweight="bold", color=INK, va="bottom")
-    ax.text(0.04, 6.12, "Rounds 2 and 3: all 12 proposals included the same head-dim change,\nand neither round found a winner.",
+    ax.text(0.04, 6.12, "Round 2: four agents ran the same 14-layer model; all four scored worse\nthan the start. Round 3: every run included the same head-dim change.",
             fontsize=10, color=INK2, va="top", linespacing=1.35)
     ax.text(7.04, 6.12, "Before the first run, 4 agents claimed 'batch size', saw the collision\nin the log, and 3 switched to other directions.",
             fontsize=10, color=INK2, va="top", linespacing=1.35)
