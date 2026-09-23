@@ -252,3 +252,27 @@ ladder does add is a second, independent confirmation of the headcount effect (s
 (open, our box) at 0.0117 is a cross-box, single-seed comparison and says nothing about rounds versus
 open. The within-box protocol comparison remains the Opus grid: open beat rounds at one, three and six
 agents.
+
+## 9. The isolated reruns (Sep 23, from 00:42, in progress)
+
+Three independent cells rerun on a fresh box (pod 4) under the repaired isolation: private one-commit
+clones, per-agent score tables, the guard-hook denylist, and a transcript scan at archive time. Both
+finished cells scan clean: every agent, zero reads of the shared table, zero reads of peers' logs, zero
+references to peers' commits (`results/<cell>/isolation.txt`).
+
+The box is about 20 percent slower than Monday's (same GPU model and clocks, 387M tokens in the
+five-minute baseline against 486M), so its untouched baseline is 1.0123 instead of 0.9973 and its finals
+must not be set beside Monday's. The open arm is therefore being rerun on this box as well
+(`open_opus_6_iso`), so that the sharing versus no-sharing comparison is within one machine.
+
+| cell (pod 4, baseline 1.0123) | runs | final | gain | isolation |
+|---|---:|---:|---:|---|
+| `indep_opus_6_iso` | 36 | 0.982146 | 0.0302 | clean, 6 of 6 agents |
+| `indep_sonnet_6_iso` | 36 (7 crashes) | 0.996232 | 0.0161 | clean, 6 of 6 agents |
+| `open_opus_6_iso` | running | | | sharing on by design |
+| `indep_haiku_6_iso` | running | | | |
+
+Two things are already visible. Truly isolated Opus agents get a long way on their own: a 0.030 gain,
+larger than any Monday cell's, though on a slower box where the same knobs are worth more. And the
+Sonnet gap to Opus (0.014) is of the same order as Monday's, with the Sonnet crash rate again far higher
+(7 of 36 against 0 of 36). The communication comparison waits for `open_opus_6_iso`.

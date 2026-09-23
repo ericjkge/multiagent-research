@@ -1,12 +1,14 @@
-# Results so far (2026-09-23 00:04)
+# Results so far (2026-09-23 05:40)
 
 **Read the correction at the top of case_studies.md first: the independent (indep_*) cells were not isolated (agents read the shared score table and peers' commits), so they do not measure the absence of communication.**
 
 - indep_haiku_6: OK — all invariants hold
 - indep_haiku_6_s2: OK — all invariants hold
 - indep_opus_6: OK — all invariants hold
+- indep_opus_6_iso: OK — all invariants hold
 - indep_opus_6_s2: OK — all invariants hold
 - indep_sonnet_6: OK — all invariants hold
+- indep_sonnet_6_iso: OK — all invariants hold
 - indep_sonnet_6_s2: OK — all invariants hold
 - open_opus_1: OK — all invariants hold
 - open_opus_3: OK — all invariants hold
@@ -26,8 +28,10 @@ cell           agents  BoN   baseline      final      gain  runs  rounds  crash%
 indep_haiku_6       6    1   0.997359   0.976806  0.020553    36       1    30.6   0.146    23.33
 indep_haiku_6_s2      6    1   0.997333   0.995414  0.001919    36       1     0.0   0.152    16.33
 indep_opus_6        6    1   0.997333   0.977649  0.019684    36       1     2.8   0.163    37.20
+indep_opus_6_iso      6    1   1.012347   0.982146  0.030201    36       1     0.0   0.240    17.11
 indep_opus_6_s2      6    1   0.997333   0.980071  0.017262    36       1     0.0   0.234    32.99
 indep_sonnet_6      6    1   0.997333   0.988312  0.009021    36       1    11.1   0.293  2143.84
+indep_sonnet_6_iso      6    1   1.012347   0.996232  0.016115    36       1    19.4   0.307     4.38
 indep_sonnet_6_s2      6    1   0.997359   0.977046  0.020313    36       1    22.2   0.285  2077.04
 open_opus_1         1    1   0.997359   0.980742  0.016617    36       1     0.0   0.000     5.48
 open_opus_3         3    1   0.997359   0.982130  0.015229    36       1     2.8   0.199    18.99
@@ -49,8 +53,10 @@ sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0
 | indep_haiku_6 | 36 | 0.976806 | 0.976806 | 0.976806 | 0.976806 |
 | indep_haiku_6_s2 | 36 | 0.995414 | 0.995414 | 0.995414 | 0.995414 |
 | indep_opus_6 | 36 | 0.981666 | 0.978436 | 0.977649 | 0.977649 |
+| indep_opus_6_iso | 36 | 0.982146 | 0.982146 | 0.982146 | 0.982146 |
 | indep_opus_6_s2 | 36 | 0.981817 | 0.980071 | 0.980071 | 0.980071 |
 | indep_sonnet_6 | 36 | 0.988312 | 0.988312 | 0.988312 | 0.988312 |
+| indep_sonnet_6_iso | 36 | 0.998370 | 0.996232 | 0.996232 | 0.996232 |
 | indep_sonnet_6_s2 | 36 | 0.977046 | 0.977046 | 0.977046 | 0.977046 |
 | open_opus_1 | 36 | 0.982289 | 0.981856 | 0.980742 | 0.980742 |
 | open_opus_3 | 36 | 0.983331 | 0.982424 | 0.982130 | 0.98213 |
