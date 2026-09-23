@@ -79,7 +79,7 @@ def fig_models():
     fig, ax = plt.subplots(figsize=(10, 5.625))
     fig.subplots_adjust(left=0.1, right=0.97, top=0.78, bottom=0.13)
     title(fig, "Model strength is the biggest lever",
-          "Six isolated agents per model, 36 five-minute runs, same GPU box (pod 4, baseline 1.0123)")
+          "Six isolated agents per model, 36 five-minute training runs each cell")
     gains = [gain(c) for _, c in cells]
     xs = range(len(cells))
     ax.bar(xs, gains, width=0.55, color=BLUE, zorder=2)
@@ -99,17 +99,17 @@ def fig_models():
 # 2. headcount: six beat one for strong models only -----------------------------
 def fig_headcount():
     panels = [
-        ("Opus  (Monday box)", [("open", ["open_opus_1", "open_opus_3", "open_opus_6"]),
+        ("Opus", [("open", ["open_opus_1", "open_opus_3", "open_opus_6"]),
                                 ("rounds", ["opus_1", "opus_3", "opus_6"])]),
-        ("Sonnet  (Eric's box, rounds · Riddhi's box, open)",
+        ("Sonnet",
          [("open", ["open_sonnet_1", "open_sonnet_3", None]), ("rounds", ["sonnet_1", "sonnet_3", "sonnet_6"])]),
-        ("Haiku  (Anthony's box)", [("open", ["open_haiku_1", "open_haiku_3", "open_haiku_6"]),
+        ("Haiku", [("open", ["open_haiku_1", "open_haiku_3", "open_haiku_6"]),
                                     ("rounds", ["haiku_1", "haiku_3", "haiku_6"])]),
     ]
     fig, axes = plt.subplots(1, 3, figsize=(13.33, 5.6), sharey=True)
     fig.subplots_adjust(left=0.07, right=0.98, top=0.74, bottom=0.19, wspace=0.12)
     title(fig, "More agents help only a model that can use the extra tries",
-          "Gain at 36 runs vs number of agents sharing the budget. Compare within a panel; boxes differ.")
+          "Gain at 36 training runs vs number of agents sharing that budget")
     ns = [1, 3, 6]
     for ax, (name, series) in zip(axes, panels):
         for proto, cells in series:
@@ -146,7 +146,7 @@ def fig_workflow():
     fig, axes = plt.subplots(1, 3, figsize=(13.33, 5.6), sharey=True)
     fig.subplots_adjust(left=0.07, right=0.98, top=0.74, bottom=0.19, wspace=0.08)
     title(fig, "Workflow matters as much as headcount",
-          "Opus, Monday box: best val_bpb found so far vs training runs spent (lower is better)")
+          "Opus: best val_bpb found so far vs training runs spent (lower is better)")
     for ax, n in zip(axes, [1, 3, 6]):
         base = None
         for proto, cell, color in [("open", f"open_opus_{n}", OPEN_C), ("rounds", f"opus_{n}", ROUNDS_C)]:
@@ -172,7 +172,7 @@ def fig_sharing():
     fig, ax = plt.subplots(figsize=(10, 5.625))
     fig.subplots_adjust(left=0.1, right=0.76, top=0.78, bottom=0.17)
     title(fig, "Sharing findings bought nothing detectable",
-          "Six Opus agents, 36 runs, pod 4: shared log vs no access to each other at all")
+          "Six Opus agents, 36 runs: shared log vs no access to each other at all")
     for cell, label, color in [("open_opus_6_iso", "shared log", OPEN_C),
                                ("indep_opus_6_iso", "isolated", GREEN)]:
         xs, ys = curve(cell)
@@ -192,7 +192,7 @@ def fig_sharing():
     ax.set_ylim(0.978, 1.016)
     ax.set_xlabel("training runs")
     ax.set_ylabel("best val_bpb so far")
-    fig.text(0.1, 0.02, "Monday's 'independent' cells read the shared score table; these isolated reruns replace them.",
+    fig.text(0.1, 0.02, "Isolated = own clone and own score table per agent; access to peers blocked and audited.",
              fontsize=10.5, color=MUTED)
     save(fig, "fig4_sharing.png")
 
