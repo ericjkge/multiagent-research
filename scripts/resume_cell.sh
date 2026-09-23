@@ -92,5 +92,10 @@ rm -rf "results/$cell" "results/$cell-INVALID"; mkdir -p "$dest"
 rsync -a --exclude 'work/' "$run_dir/" "$dest/" 2>/dev/null || cp -R "$run_dir/." "$dest/"
 mkdir -p "$dest/claude_sessions"
 find "$HOME/.claude/projects" -name '*.jsonl' -newer "$run_dir/provenance.json" 2>/dev/null | while read -r f; do cp "$f" "$dest/claude_sessions/$(basename "$(dirname "$f")")__$(basename "$f")"; done
+# independent cells must prove their isolation from the archived transcripts
+if ! python3 -m analysis.contamination --strict "$dest" > "$dest/isolation.txt" 2>&1; then
+  case "$dest" in *-INVALID) ;; *) mv "$dest" "$dest-INVALID"; dest="$dest-INVALID"; echo "isolation check failed: archived as $dest";; esac
+fi
+tail -1 "$dest/isolation.txt"
 git add results && git -c user.name="arena-box" -c user.email="arena@local" commit -qm "results: $cell (resumed)" && echo "archived $dest"
 echo "=== $(date '+%F %T') finished $cell ==="

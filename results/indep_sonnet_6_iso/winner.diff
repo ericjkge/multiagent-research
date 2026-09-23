@@ -1,0 +1,13 @@
+# best run of indep_sonnet_6_iso: a0 d77862a val_bpb 0.996232: DEPTH=8, ASPECT_RATIO=80 -> width=640 (isolate depth vs width vs D9/D10)
+# against baseline 228791f (diff built from the archived per-run train.py)
+--- /private/tmp/claude-503/-Users-alvin-Projects/f47153f1-ac89-4418-b969-e9e44c45d8ee/scratchpad/train_baseline.py	2026-09-23 11:40:47
++++ results/indep_sonnet_6_iso/runs/a0/run030/train.py	2026-09-23 02:33:42
+@@ -430,7 +430,7 @@
+ # ---------------------------------------------------------------------------
+ 
+ # Model architecture
+-ASPECT_RATIO = 64       # model_dim = depth * ASPECT_RATIO
++ASPECT_RATIO = 80       # model_dim = depth * ASPECT_RATIO
+ HEAD_DIM = 128          # target head dimension for attention
+ WINDOW_PATTERN = "SSSL" # sliding window pattern: L=full, S=half context
+ 

@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+00e4480	1.063523	26.6	ok	DEPTH=6 (narrower/shallower, more steps in 5min)
+6b380f8	1.001260	66.5	ok	DEPTH=10 (deeper/wider, fewer steps in 5min)
+c32f9fd	0.000000	0.0	crash	DEPTH=12 (even deeper/wider)
+6444955	1.015048	47.8	ok	DEPTH=12 with DEVICE_BATCH_SIZE=64 to fix OOM
+c41c30a	0.998370	60.5	ok	DEPTH=9 (same width 640 as DEPTH=10, one fewer layer, more steps)
+d77862a	0.996232	54.1	ok	DEPTH=8, ASPECT_RATIO=80 -> width=640 (isolate depth vs width vs D9/D10)

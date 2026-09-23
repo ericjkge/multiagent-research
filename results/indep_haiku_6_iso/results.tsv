@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+c0d3731	1.013559	44.0	ok	increase embedding LR from 0.6 to 0.8
+d454df7	1.001925	66.5	ok	Increase depth from 8 to 10 layers
+4f966dc	1.001942	66.5	ok	Increase depth 8→10 to test capacity scaling
+384bc42	1.012457	44.0	ok	Reduce EMBEDDING_LR from 0.6 to 0.3
+8e1bf36	1.017820	44.0	ok	Reduce warmdown ratio from 0.5 to 0.2
+96c396a	1.011943	44.0	ok	Increase MATRIX_LR from 0.04 to 0.05
+8f1fed3	1.015579	44.0	ok	decrease embedding LR from 0.6 to 0.4
+d9e9b68	0.000000	0.0	crash	Increase depth to 12 layers
+962a5b5	0.000000	0.0	crash	Increase depth 8→12 to test further capacity scaling
+f8d62ee	1.013510	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
+b5748f9	1.015329	44.0	ok	Reduce embedding LR from 0.6 to 0.3
+3a30d6a	1.012479	44.0	ok	Increase MATRIX_LR from 0.05 to 0.06
+4b47250	1.012817	44.0	ok	increase matrix LR from 0.04 to 0.05
+f86de1c	1.004821	66.5	ok	Depth 10 + increase MATRIX_LR from 0.04 to 0.06
+5cd29d8	0.000000	0.0	crash	Increase depth 8→11 (depth=12 OOM)
+47fe7ca	1.014915	44.0	ok	Add warmup_ratio 0.05 for training stability
+e5b344f	1.001749	66.5	ok	Increase depth from 8 to 10 layers
+eee450e	1.013271	44.0	ok	Reduce WARMDOWN_RATIO from 0.5 to 0.3, keep MATRIX_LR at 0.05
+8165191	1.013939	44.0	ok	decrease matrix LR from 0.04 to 0.03
+62e2ffb	0.999826	66.5	ok	Depth 10 + increase EMBEDDING_LR from 0.6 to 0.7
+f6fa86a	0.000000	0.0	crash	Depth=10 with wider ASPECT_RATIO (64→80)
+012fd8c	1.001943	66.5	ok	Increase DEPTH from 8 to 10
+7d05af1	0.000000	0.0	crash	Increase depth from 10 to 12 layers
+fb79e81	1.015242	44.0	ok	Reduce EMBEDDING_LR from 0.6 to 0.5, keep MATRIX_LR at 0.05
+c4c0e65	1.017683	44.0	ok	add LR warmup: WARMUP_RATIO 0.0 to 0.1
+080a91d	1.002127	66.5	ok	Depth 10 + EMBEDDING_LR 0.8
+a8f9942	1.001167	66.5	ok	Depth=10 with tuned hyperparameters (LR, weight decay, schedules)
+16e7e31	0.000000	0.0	crash	Increase DEPTH from 10 to 12
+18ee955	0.000000	0.0	crash	Increase depth to 11 layers
+fa91142	1.012943	44.0	ok	Increase UNEMBEDDING_LR from 0.004 to 0.006, keep MATRIX_LR at 0.05
+6e997cb	1.013452	44.0	ok	increase FINAL_LR_FRAC from 0.0 to 0.1 to prevent LR decay to zero
+ff7a446	1.001223	66.5	ok	Depth 10 + EMBEDDING_LR 0.75 (final run)
+c21c52f	1.003590	66.5	ok	Final: depth=10, all-long-context, tuned LRs and schedules
+f05aa67	0.000000	0.0	crash	Increase DEPTH from 10 to 11
+c12f8b7	1.004999	66.5	ok	Depth 10 with higher matrix LR (0.06)
+9ddfc13	1.011649	44.0	ok	Reduce WEIGHT_DECAY from 0.2 to 0.15, keep MATRIX_LR at 0.05

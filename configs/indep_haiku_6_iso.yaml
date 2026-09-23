@@ -1,0 +1,30 @@
+# Isolated rerun (Sep 23): private clone + private score table + hook denylist + strict transcript scan.
+# haiku x 6 agent(s), OPEN protocol (Park et al. 2609.21032): no rounds, shared directory,
+# haiku x 6 INDEPENDENT agents: open protocol with the shared log switched off. Each agent
+# sees only its own entries; this is Park et al.'s best@k control at matched compute.
+cell_id: indep_haiku_6_iso
+protocol: open
+open_share_log: false
+harness: claude_code
+agents:
+  - {id: a0, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a1, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a2, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a3, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a4, model: claude-haiku-4-5-20251001, effort: medium}
+  - {id: a5, model: claude-haiku-4-5-20251001, effort: medium}
+bon: 1
+
+train_run_budget: 36
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: "228791fb499afffb54b46200aca536f79142f117"   # pinned: same baseline code as every Sep 22 cell
+
+# one long session per agent, resumed while its share lasts; a solo agent does all 36 runs in one session
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
+open_session_timeout_s: 21600
+open_max_resumes: 40
+seed: 0

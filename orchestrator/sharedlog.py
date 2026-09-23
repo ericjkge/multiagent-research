@@ -125,12 +125,17 @@ class SharedLog:
         if budget is None:
             bp = self.run_dir / "budget.json"
             budget = json.loads(bp.read_text()) if bp.exists() else None
-        self.results_tsv.write_text(render_results_tsv(records))
         if share:
+            self.results_tsv.write_text(render_results_tsv(records))
             self.markdown.write_text(render_open_log_md(records, budget))
             return
+        # independent: no global table while the cell runs (agents were reading it), one
+        # score table per agent holding only its own runs
+        if self.results_tsv.exists():
+            self.results_tsv.unlink()
         for agent in agents or sorted({r.get("agent") for r in records if r.get("agent")}):
             mine = [r for r in records if r.get("agent") in (agent, None, "")]
+            (self.run_dir / f"results_{agent}.tsv").write_text(render_results_tsv(mine))
             (self.run_dir / f"log_{agent}.md").write_text(
                 render_open_log_md(mine, budget, only_agent=agent)
             )

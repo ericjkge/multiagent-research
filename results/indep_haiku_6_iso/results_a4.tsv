@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+4f966dc	1.001942	66.5	ok	Increase depth 8→10 to test capacity scaling
+962a5b5	0.000000	0.0	crash	Increase depth 8→12 to test further capacity scaling
+5cd29d8	0.000000	0.0	crash	Increase depth 8→11 (depth=12 OOM)
+f6fa86a	0.000000	0.0	crash	Depth=10 with wider ASPECT_RATIO (64→80)
+a8f9942	1.001167	66.5	ok	Depth=10 with tuned hyperparameters (LR, weight decay, schedules)
+c21c52f	1.003590	66.5	ok	Final: depth=10, all-long-context, tuned LRs and schedules

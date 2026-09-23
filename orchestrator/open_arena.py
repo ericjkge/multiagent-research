@@ -118,7 +118,11 @@ class OpenArena(Arena):
             # On resume the agent's private checkout was removed at the end of the earlier
             # segment; recreate it at the agent's own last commit so its memory matches the files.
             last = (self.sessions.get(agent.id) or {}).get("final_commit") or self.state.baseline_commit
-            self.trees.create_named(f"open_{agent.id}", last)
+            if self.cfg.open_share_log:
+                self.trees.create_named(f"open_{agent.id}", last)
+            else:
+                # independent arm: a private clone, so no peer commit exists in this repository
+                self.trees.create_clone(f"open_{agent.id}", last)
         return path
 
     def _system_prompt(self, agent: AgentSpec) -> str:
@@ -131,9 +135,12 @@ class OpenArena(Arena):
             PEER_IDS=", ".join(peers) if peers else "none — you are working alone this cell",
             SHARING=("on: every finding, disconfirmation and score is visible to all agents"
                      if self.cfg.open_share_log else
-                     "OFF: this cell runs agents independently; you see only your own entries"),
+                     "OFF: this cell runs agents independently; you see only your own entries. "
+                     "You have no access to the other agents' code, scores or logs, and must not "
+                     "look for them"),
             LOG_PATH=str(log_path),
-            RESULTS_PATH=str(self.log.results_tsv),
+            RESULTS_PATH=str(self.log.results_tsv if self.cfg.open_share_log
+                             else self.run_dir / f"results_{agent.id}.tsv"),
             QUOTA=str(self.cfg.per_agent_quota or self.cfg.train_run_budget),
             CELL_BUDGET=str(self.cfg.train_run_budget),
         )
@@ -274,6 +281,8 @@ class OpenArena(Arena):
 
         # pin whatever the agent left behind
         commit = self.trees.commit_all(worktree, f"[{self.tag}] open {agent.id}: final state")
+        if not self.cfg.open_share_log:
+            self.trees.absorb(worktree)   # the clone's commits into the main repo, for the archive
         self.trees.keep(commit, 99, agent.id, 0)
         dest = self.run_dir / "runs" / agent.id
         dest.mkdir(parents=True, exist_ok=True)
@@ -327,6 +336,10 @@ class OpenArena(Arena):
         self.state.finished_at = time.time()
         self.state.save(self.run_dir)
         self._publish()
+        if not self.cfg.open_share_log:
+            # the cell is over: the global score table may now exist, for the archive and analysis
+            from .sharedlog import render_results_tsv
+            self.log.results_tsv.write_text(render_results_tsv(self.log.records()))
         self.trees.prune()
         # leave the per-agent worktrees removed, like the round loop does
         for a in self.cfg.agents:

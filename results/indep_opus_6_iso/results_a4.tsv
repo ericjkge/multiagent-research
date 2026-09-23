@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+0f98043	1.000781	43.9	ok	halve global batch to 2^18 tokens (2x optimizer steps), LRs unchanged
+51ac1a0	1.006829	22.2	ok	batch 2^17 tokens (device batch 64): push step count further
+21bd06a	1.010004	44.0	ok	head_dim 64 (8 heads instead of 4) at dim 512, batch 2^18
+df2eaa7	0.986041	53.9	ok	widen model to dim 640 (aspect ratio 80, 5 heads x 128) at depth 8, batch 2^18
+6dd7941	0.982780	32.7	ok	widen further to dim 768 (aspect ratio 96, 6 heads x 128), batch 2^18 via device batch 64 x2
+d99165f	0.982146	32.4	ok	at dim 768: halve batch to 2^17 to recover optimizer steps (1072 -> ~2100)

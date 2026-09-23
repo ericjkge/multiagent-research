@@ -58,6 +58,11 @@ for cell in "$@"; do
     cp "$f" "$dest/claude_sessions/$(basename "$(dirname "$f")")__$(basename "$f")"
   done
   echo "archived $(ls "$dest/claude_sessions" | wc -l | tr -d ' ') session trace(s)"
+  # independent cells must prove their isolation from the archived transcripts
+  if ! python3 -m analysis.contamination --strict "$dest" > "$dest/isolation.txt" 2>&1; then
+    case "$dest" in *-INVALID) ;; *) mv "$dest" "$dest-INVALID"; dest="$dest-INVALID"; echo "isolation check failed: archived as $dest";; esac
+  fi
+  tail -1 "$dest/isolation.txt"
   git add "$dest" && git -c user.name="${GIT_AUTHOR_NAME:-arena-box}" -c user.email="${GIT_AUTHOR_EMAIL:-arena@local}" \
     commit -qm "results: $cell ($stamp)" && echo "archived $dest (committed locally; push in the morning)"
   echo "=== $(date '+%F %T') finished $cell ==="

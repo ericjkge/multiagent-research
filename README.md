@@ -10,7 +10,7 @@ researcher models, team sizes and research organizations under a fixed training-
 launch checks and analysis.** [PROPOSAL.md](PROPOSAL.md) gives the scientific framing and prior work.
 The matrix has 24 conditions: Haiku/Sonnet/Opus, each with rounds and open 1/3/6 plus independent
 3/6. Open solo also serves as independent solo; there is no duplicate one-agent control.
-Independent controls are required for the communication claim, but their isolation needs repair
+Independent controls are required for the communication claim; their isolation was repaired on Sep 23 (see below), and the Sep 22 `indep_*` cells are contaminated (see the correction in `analysis_out/case_studies.md`)
 before production use. See the runbook's known implementation gaps; a config existing is not proof
 that a scientifically valid run has completed.
 
@@ -24,7 +24,7 @@ that a scientifically valid run has completed.
   They publish approaches, findings and scores and can adopt peer code. The protocol is inspired by
   [Park et al.](https://arxiv.org/abs/2609.21032).
 - **Independent:** intended open-protocol control with private histories and no peer access.
-  `open_share_log: false` currently filters Markdown but still exposes the shared score table and
+  `open_share_log: false` now gives each agent a private git clone (no peer commit exists in it), a private score table `results_<id>.tsv`, a guard-hook denylist for the shared table, peers' logs and checkouts, and a transcript scan (`analysis/contamination.py --strict`) that marks the archive INVALID on any peer read. Before Sep 23 it filtered the Markdown log but still exposed the shared score table and the shared git store and
   other artifacts; it is not yet sufficient isolation.
 
 `arena-train --title "..."` claims an attempt and serializes training through a per-cell GPU lock.

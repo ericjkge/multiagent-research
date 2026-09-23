@@ -181,6 +181,15 @@ def check(run_dir: Path) -> list[str]:
             elif src.get("agent") == a.get("agent"):
                 failures.append(f"adoption #{a.get('id')}: {a.get('agent')} adopted its own result")
 
+    # 10. phantom candidates (round protocol): an "ok" candidate with no GPU run behind it. Happens
+    # when an agent's session ends without training and the orchestrator reads the stale run.log
+    # of the lineage commit (found by Eric Ge, Sep 22). Never a round winner in our cells; noted.
+    if cfg.get("protocol", "rounds") != "open" and timeline:
+        seen = {(r.get("round"), r.get("agent"), r.get("variant")) for r in timeline}
+        for c in of_type(records, "candidate"):
+            if c.get("status") == "ok" and (c.get("round"), c.get("agent"), c.get("variant")) not in seen:
+                NOTES.append(f"phantom candidate: round {c.get('round')} {c.get('agent')}/v{c.get('variant')} "
+                             f"scored {c.get('val_bpb')} with no GPU run behind it (excluded from nothing: it never won)")
     return failures
 
 

@@ -1,3 +1,50 @@
+# CORRECTION (Sep 23, 00:20): the "independent" cells were not independent
+
+A reviewer of the Sep 22 snapshot found that agents in the independent control read each other's
+work. An audit of the archived session transcripts (`python -m analysis.contamination results/indep_*`)
+confirms it and shows it was systematic, not a one-off:
+
+| cell | agents that read the shared score table | agents that inspected or checked out a peer's commit |
+|---|---:|---:|
+| `indep_opus_6` | 5 of 6 (up to 36 reads each) | 5 of 6 |
+| `indep_opus_6_s2` | 5 of 6 | 5 of 6 |
+| `indep_haiku_6` | 5 of 5 archived | 4 of 5 |
+| `indep_haiku_6_s2` | 6 of 6 | 4 of 6 |
+| `indep_sonnet_6`, `_s2` | no transcripts archived; same prompt and harness, assume the same |
+
+Two harness defects caused it. The shared `results.tsv` (every agent's commit, score and run title) was
+written into the run directory for all cells and the system prompt pointed every agent at it, sharing
+on or off. And all agents worked in worktrees of one git repository, so a peer's commit could be
+inspected, diffed or checked out with ordinary git commands (`git show`, `git diff`, `git reset --hard`);
+verify only checked for recorded `arena-adopt` events. The winner of `indep_opus_6` (a0) built on a
+peer's code after reading the table.
+
+**What this withdraws.** Every statement below that the independent cells measure "no communication",
+and every number derived from that contrast: section 4 ("the control answers the question"), section 6
+(the seed comparison of the two arms), the "communication is worth at most 0.002" line in section 7 and
+in the summary, and the same claim in the team messages of Sep 22. The measured scores of the independent
+cells stand as observations of a third condition: passive visibility of peers' scores and code with no
+coordination channel and no adoption protocol.
+
+**What still stands.** Six agents beat one under both protocols on our box, and Eric's Sonnet ladder is
+monotone on his; open beat rounds at every headcount on the same box (a workflow difference, not a
+communication difference: session continuity, selection rule and attempt counts differ too); the rounds
+protocol herds without any communication; the open cells' logs show real collaboration (18 adoptions,
+19 findings, 21 disconfirmations in `open_opus_6`); model strength shows up as reliability of the search;
+and none of this demonstrates recursive self-improvement, it studies the organisation of automated
+research at fixed compute.
+
+**Other reviewer points accepted.** Two seeds cannot bound an effect at "a couple of thousandths";
+run-to-run noise (0.0008) is not the variability of a whole search; `open_opus_6_s2` ran one agent at
+seven attempts and one at five after a budget rebuild; `indep_sonnet_6_s2` executed 37 attempts and the
+37th is excluded from its record.
+
+**Fix done, reruns done (section 9b).** True isolation for the independent arm: a per-agent score table, a separate git clone
+per agent so peers' commits do not exist in its repository, a guard-hook denylist for the shared table,
+peers' logs and worktrees, and a transcript scan that fails verification on any peer read. Reruns on Sep 23 (section 9b): no effect of sharing detected against a real no-access control; model strength is the larger lever.
+
+---
+
 # Case studies from the first four Opus cells (Sep 22, 06:50)
 
 Entry numbers (`#n`) refer to `results/<cell>/log.md`. Baseline 0.9973, noise band 0.0008 (six identical runs).
@@ -64,7 +111,7 @@ At 36 runs with Opus, copies help (six beat one under both protocols) and organi
 as headcount (open beat rounds at both sizes). Whether the six-agent gain is communication or just six
 parallel attempts is what `indep_opus_6` (same six agents, no shared log) is measuring now.
 
-## 4. The control answers the question (added 10:00)
+## 4. The control answers the question (added 10:00) — WITHDRAWN, see the correction at the top
 
 `indep_opus_6`: the same six Opus agents, the same 36 runs, six each, and no shared log at all. Each
 agent saw only its own results. Final 0.977649 against 0.977896 for the six that could talk: a
@@ -99,7 +146,7 @@ agent spends its compute at all, and whether its account of what it did can be t
 protocol whose stopping rule is the agent's own judgement, a weak agent's judgement is the bottleneck.
 The cell is archived as INVALID (one slot claimed without a run) and kept for this record.
 
-## 6. Second seeds of the headline pair (added 13:40)
+## 6. Second seeds of the headline pair (added 13:40) — WITHDRAWN as a communication comparison, see the correction
 
 | arm | seed 0 | seed 1 | mean |
 |---|---|---|---|
@@ -136,7 +183,7 @@ cell by 0.003 to 0.006. Three agents did not beat one under the open protocol (0
 a difference inside the seed-to-seed spread of a cell (0.0015 to 0.0024 for six Opus agents). At this
 budget the headcount effect is visible only at the top of the range.
 
-**Communication is still not measurable.** Six Opus agents with the shared directory: 0.97715 on average
+**Communication is still not measurable.** (WITHDRAWN: the independent arm leaked, see the correction.) Six Opus agents with the shared directory: 0.97715 on average
 over two seeds. The same six with no sharing: 0.97886. The 0.0017 in favour of talking is smaller than
 the spread between seeds of the same arm. Best-of-six covers this 36-run search as well as a team.
 
@@ -158,7 +205,7 @@ rounds). Neither model quality nor communication moved the number beyond noise a
 the "compute is the bottleneck" reading of the loop, measured: what the agents could not do was run
 more five-minute experiments per unit of GPU time.
 
-**Sonnet with sharing, completed 16:35.** `open_sonnet_6` finished at 0.985651, between the two
+**Sonnet with sharing, completed 16:35.** (The comparison with the independent seeds below is WITHDRAWN, see the correction.) `open_sonnet_6` finished at 0.985651, between the two
 independent Sonnet seeds (0.9883 and 0.9770). Same verdict as for Opus: with cell-to-cell spread this
 large, sharing does not move the number in a direction the data can resolve. The cell needed the
 fresh-session fallback for four of its six agents and crashed 8 percent of runs; its agents did adopt
@@ -176,3 +223,82 @@ argument that is the more useful finding: at fixed compute, a stronger researche
 ideas here, it stops wasting runs on ideas that cannot pay.
 
 Final standing, 14 cells, all at full budget (opus_3 and opus_6 at 34 by protocol). Nothing is still running.
+
+## 8. The teammates' Sonnet rounds family (added Sep 22, 23:55)
+
+Eric pushed three round-protocol Sonnet cells run on his own box: `sonnet_1` (best-of-5), `sonnet_3`
+(best-of-2) and `sonnet_6`, at 32, 32 and 33 runs (the same partial-round limit as our `opus_3` and
+`opus_6`). All three pass verify. A stopped pilot of `sonnet_6` is archived beside them and excluded
+from every table.
+
+**Read gains, not finals, across boxes.** His box measured the untouched baseline at 1.0140 against our
+0.9973, a gap twenty times the run-to-run noise, so absolute finals are not comparable between the two
+boxes. Within his box the ladder is clean and monotone:
+
+| cell (Eric's box, baseline 1.0140) | runs | final | gain |
+|---|---:|---:|---:|
+| `sonnet_1`, best-of-5 | 32 | 1.0023 | 0.0117 |
+| `sonnet_3`, best-of-2 | 32 | 0.9930 | 0.0211 |
+| `sonnet_6` | 33 | 0.9780 | 0.0360 |
+
+Six beat three beat one, and the six-agent gain is the largest of any cell in the study. On our box the
+Sonnet cells gained 0.0117 (`open_sonnet_6`), 0.0090 and 0.0203 (the two independent seeds): Sonnet's
+cell-to-cell spread is wide enough that a single-seed ladder can look either monotone or flat. What his
+ladder does add is a second, independent confirmation of the headcount effect (six over one, here by
+0.024), on a different box, with a different protocol.
+
+**Do not read protocol from this.** `sonnet_6` (rounds, his box) at 0.0360 against `open_sonnet_6`
+(open, our box) at 0.0117 is a cross-box, single-seed comparison and says nothing about rounds versus
+open. The within-box protocol comparison remains the Opus grid: open beat rounds at one, three and six
+agents.
+
+## 9. The isolated reruns (Sep 23, 00:42 to 07:12)
+
+Three independent cells rerun on a fresh box (pod 4) under the repaired isolation: private one-commit
+clones, per-agent score tables, the guard-hook denylist, and a transcript scan at archive time. Both
+finished cells scan clean: every agent, zero reads of the shared table, zero reads of peers' logs, zero
+references to peers' commits (`results/<cell>/isolation.txt`).
+
+The box is about 20 percent slower than Monday's (same GPU model and clocks, 387M tokens in the
+five-minute baseline against 486M), so its untouched baseline is 1.0123 instead of 0.9973 and its finals
+must not be set beside Monday's. The open arm is therefore being rerun on this box as well
+(`open_opus_6_iso`), so that the sharing versus no-sharing comparison is within one machine.
+
+| cell (pod 4, baseline 1.0123) | runs | final | gain | isolation |
+|---|---:|---:|---:|---|
+| `indep_opus_6_iso` | 36 | 0.982146 | 0.0302 | clean, 6 of 6 agents |
+| `indep_sonnet_6_iso` | 36 (7 crashes) | 0.996232 | 0.0161 | clean, 6 of 6 agents |
+| `open_opus_6_iso` | running | | | sharing on by design |
+| `indep_haiku_6_iso` | running | | | |
+
+Two things are already visible. Truly isolated Opus agents get a long way on their own: a 0.030 gain,
+larger than any Monday cell's, though on a slower box where the same knobs are worth more. And the
+Sonnet gap to Opus (0.014) is of the same order as Monday's, with the Sonnet crash rate again far higher
+(7 of 36 against 0 of 36). The communication comparison waits for `open_opus_6_iso`.
+
+### 9b. All four isolated cells in (Sep 23, 07:12 finish; written 11:45)
+
+| cell (pod 4, baseline 1.0123) | runs | crashes | final | gain | isolation scan |
+|---|---:|---:|---:|---:|---|
+| `open_opus_6_iso` (sharing on) | 36 | 1 | 0.984417 | 0.0279 | not required |
+| `indep_opus_6_iso` (no access to peers) | 36 | 0 | 0.982146 | 0.0302 | clean, 6 of 6 |
+| `indep_sonnet_6_iso` | 36 | 7 | 0.996232 | 0.0161 | clean, 6 of 6 |
+| `indep_haiku_6_iso` | 36 | 8 | 0.999826 | 0.0125 | clean, 6 of 6 |
+
+**Sharing versus true isolation, one machine, one seed each.** Six Opus agents that could not see each
+other at all finished at 0.9821; six that shared everything through the directory finished at 0.9844.
+The difference, 0.0023 in favour of the isolated agents, is inside the spread measured between seeds
+of one arm on Monday (0.0015 to 0.0024), and a one-seed-per-arm design detects nothing smaller than
+about 0.006. So the statement the reviewer asked for now has its control: at 36 runs of five minutes,
+no effect of sharing was detected, in either direction. The open cell still shows the protocol working
+(adoptions, findings, disconfirmations on its log); it did not show a better number.
+
+**Model strength, now measured properly.** With real isolation the ladder is unambiguous: Opus gained
+0.030, Sonnet 0.016, Haiku 0.013, and the weak models crashed a fifth of their runs. Monday's
+"Haiku matches Opus" was copying; alone, Haiku does not find the width, batch and window changes that
+carry the Opus result. Model strength is worth about twice as much as headcount here (six Opus over
+one Opus was 0.003 to 0.006 on Monday's box), and far more than sharing.
+
+**Caveats that stay.** One seed per arm on this box; the box is slower than Monday's, so its gains are
+larger for the same changes and are compared only within it; the Monday `indep_*` cells remain
+contaminated and are kept only as the record of that.

@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+8e1bf36	1.017820	44.0	ok	Reduce warmdown ratio from 0.5 to 0.2
+b5748f9	1.015329	44.0	ok	Reduce embedding LR from 0.6 to 0.3
+e5b344f	1.001749	66.5	ok	Increase depth from 8 to 10 layers
+7d05af1	0.000000	0.0	crash	Increase depth from 10 to 12 layers
+18ee955	0.000000	0.0	crash	Increase depth to 11 layers
+c12f8b7	1.004999	66.5	ok	Depth 10 with higher matrix LR (0.06)

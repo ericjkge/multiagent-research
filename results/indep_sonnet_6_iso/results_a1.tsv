@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+91b61c0	1.001799	66.5	ok	DEPTH=10 (deeper/narrower under fixed ASPECT_RATIO)
+9329028	0.000000	0.0	crash	DEPTH=12 (push deeper further)
+d06309a	1.015012	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 to fix OOM
+e883f82	1.004844	66.5	ok	DEPTH=10, MATRIX_LR=0.05 (Muon LR bump)
+da43376	1.002009	66.5	ok	DEPTH=10 (best config), WARMDOWN_RATIO=0.35 (shorter cooldown)
+984f2f7	1.002941	66.5	ok	DEPTH=10 (best config), WEIGHT_DECAY=0.1 (final run of share)

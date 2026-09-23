@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+8a7f7ef	1.001892	43.9	ok	halve tokens-per-step: TOTAL_BATCH_SIZE 2**19 -> 2**18 (grad_accum 1), LRs unchanged
+65ff337	1.007828	22.2	ok	quarter tokens-per-step: TOTAL_BATCH_SIZE 2**17, device batch 64 (grad_accum 1), LRs unchanged
+4b786d2	1.002599	43.9	ok	at 2**18 batch: scale all LRs ~1.4x (matrix 0.055, embed 0.85, unembed 0.0055)
+62ceae8	0.986791	66.2	ok	bigger model at the better batch: DEPTH 8->10 (dim 512->640), TOTAL_BATCH_SIZE 2**18, baseline LRs
+7043cd0	0.994629	47.8	ok	push model size: DEPTH 12 (dim 768), TOTAL_BATCH_SIZE 2**18 via device batch 64 x grad_accum 2
+14f293f	0.987351	33.5	ok	DEPTH 10 with TOTAL_BATCH_SIZE 2**17 (device batch 64, grad_accum 1): restore ~2000 updates at the larger model

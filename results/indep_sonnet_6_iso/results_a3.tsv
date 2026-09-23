@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+c0f2fbb	1.066017	26.6	ok	DEPTH=6 (smaller/faster model, more steps in 5min budget)
+6f0db0a	0.000000	0.0	crash	DEPTH=12 (larger model, fewer steps in 5min budget)
+07b25a7	1.015028	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 (avoid OOM, larger model fewer steps)
+f3832e5	1.011362	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.06 (higher Muon LR)
+82ca31e	1.013105	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.08 (push Muon LR further)
+5a1ab5d	1.012279	44.0	ok	DEPTH=8, MATRIX_LR=0.06 (repeat, confirm reproducibility of best result)

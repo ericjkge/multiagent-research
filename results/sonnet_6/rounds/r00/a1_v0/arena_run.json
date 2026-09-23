@@ -1,0 +1,18 @@
+{
+  "round": 0,
+  "agent": "a1",
+  "variant": 0,
+  "workdir": "/root/multiagent-research/runs/sonnet_6-20260922-155343/work/r00_a1_v0",
+  "started_at": 1790092832.4553683,
+  "ended_at": 1790093168.0646062,
+  "elapsed_s": 335.61,
+  "charged_s": 335.61,
+  "queued_s": 355.86,
+  "exit_code": 0,
+  "produced_metric": true,
+  "timed_out": false,
+  "fake": false,
+  "spent_s_after": 697.59,
+  "runs_after": 2,
+  "commit": ""
+}

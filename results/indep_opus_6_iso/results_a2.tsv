@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+701da24	1.010895	22.2	ok	shrink width: dim 768 -> 512 (depth 8), buying ~1.7x more optimizer steps
+646fa8b	1.034067	22.2	ok	overlap CPU dataloader with GPU compute via background prefetch thread on its own CUDA stream
+7bc0558	1.006761	22.2	ok	cut dataloader packing buffer 1000 -> 192 to remove the per-step Python best-fit stall
+be8adb5	1.032114	11.3	ok	halve tokens per optimizer step: 2^17 -> 2^16 (device batch 64 -> 32) to buy more Muon steps
+030af2e	1.005200	22.2	ok	sync GPU once per 4 steps instead of every step, so the Python dataloader and launches overlap with compute
+b8f4560	1.007255	22.2	ok	head_dim 128 -> 64 at dim 512 (4 heads -> 8 heads), same params and FLOPs

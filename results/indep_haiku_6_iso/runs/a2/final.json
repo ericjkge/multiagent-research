@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "62e2ffb",
+  "best_val_bpb": 0.999826,
+  "summary": "Achieved 1.2% improvement over baseline (0.999826 vs 1.012347) through systematic hyperparameter search. Key findings: increasing model depth from 8 to 10 layers yields consistent improvements (+1.0%), and increasing embedding learning rate from 0.6 to 0.7 provides additional gains (+0.2%). Depth 12 exceeds VRAM limits. Tested matrix LR increases but found diminishing returns; embedding LR shows clear optimum at 0.7."
+}

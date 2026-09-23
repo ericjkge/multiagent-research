@@ -1,0 +1,31 @@
+commit	val_bpb	memory_gb	status	description
+0b09dd7	1.063457	26.6	ok	Changed DEPTH from 8 to 6 (model_dim 384, 3 heads), all else unchanged
+79e7770	1.063502	26.6	ok	Changed DEPTH from 8 to 6 (n_embd=384, n_head=3), everything else unchanged, to bracket the depth optimum against the many DEPTH=10-12 proposals on the table.
+0490566	1.014346	44.0	ok	Set WARMUP_RATIO from 0.0 to 0.05 (linear LR warmup over first 5% of the 5-min budget), all else unchanged from baseline (DEPTH=8).
+9ad75a7	1.001440	43.9	ok	Changed TOTAL_BATCH_SIZE from 2**19 to 2**18, doubling optimizer steps within the fixed 5-minute wall-clock budget while keeping model size (DEPTH=8) and all LRs/schedules unchanged.
+caf7f73	1.067556	64.5	ok	Changed DEPTH from 8 to 14 (n_embd 512->896, dropped DEVICE_BATCH_SIZE 128->64 to avoid OOM); all other hyperparameters unchanged.
+089b3b0	0.998671	64.2	ok	Kept DEPTH=8, raised ASPECT_RATIO 64->96 so n_embd goes 512->768 and n_head 4->6, widening the model instead of deepening it; complements the DEPTH-only sweeps everyone else proposed this round.
+ba89b68	0.998671	64.2	ok	All 6 proposals this round (a0-a5) independently converged on the same change: ASPECT_RATIO=96 (baseline) + TOTAL_BATCH_SIZE 2**19->2**18. No point running it 6 times.
+1526d2f	1.053958	43.2	ok	Increased ASPECT_RATIO from 96 to 128 (n_embd 768->1024, n_head 6->8) at fixed DEPTH=8; had to drop DEVICE_BATCH_SIZE 128->64 to avoid OOM (first attempt OOM'd at 79GB with DEVICE_BATCH_SIZE=128).
+4230180	1.037841	53.4	ok	Kept ASPECT_RATIO=96 (round-0 winner), increased DEPTH from 8 to 10 (n_embd 768->1024, n_head 8), dropped DEVICE_BATCH_SIZE 128->64 to avoid OOM.
+3305aa6	1.042954	43.2	ok	Increased ASPECT_RATIO from 96 to 128 (n_embd 768->1024, n_head 6->8), and reduced DEVICE_BATCH_SIZE from 128 to 64 to avoid OOM at the larger width (grad_accum_steps auto-doubled to keep TOTAL_BATCH_SIZE fixed).
+9aba3f8	1.037182	53.4	ok	Changed DEPTH from 8 to 10 on top of the ASPECT_RATIO=96 baseline (n_embd 768->1024, 8 heads); had to drop DEVICE_BATCH_SIZE 128->64 to avoid OOM, grad_accum doubled but TOTAL_BATCH_SIZE unchanged.
+186def1	1.052909	43.2	ok	Deviated from the crowded (6-way duplicate) batch+width stack proposal; instead tested whether continuing to widen (ASPECT_RATIO 96->128, n_embd 768->1024) helps further, since 64->96 was a win. Had to drop DEVICE_BATCH_SIZE 128->64 to avoid OOM at n_embd=1024, which halves throughput/steps.
+706d3e4	0.982595	63.9	ok	Kept ASPECT_RATIO=96 (round-0 width win), changed TOTAL_BATCH_SIZE from 2**19 to 2**18 (round-0 batch-size win), stacking both orthogonal wins together.
+fd769af	0.982713	63.9	ok	Changed TOTAL_BATCH_SIZE from 2**19 to 2**18 on top of ASPECT_RATIO=96 baseline, doubling optimizer steps at the wider model width.
+a178211	0.982558	63.9	ok	Changed TOTAL_BATCH_SIZE from 2**19 to 2**18 on top of the ASPECT_RATIO=96 baseline (DEPTH=8), doubling optimizer steps within the fixed 5-minute budget while keeping the wider model.
+e682c96	0.982573	63.9	ok	Changed TOTAL_BATCH_SIZE from 2**19 to 2**18 on top of the ASPECT_RATIO=96 baseline (DEPTH=8 unchanged), doubling optimizer steps in the fixed 5-min budget while keeping the wider model.
+9a093ef	0.982786	63.9	ok	Changed TOTAL_BATCH_SIZE from 2**19 to 2**18 on top of the ASPECT_RATIO=96 baseline (DEPTH=8), doubling optimizer steps at the wider model width; grad_accum_steps auto-halved, no other changes.
+ea62336	0.982613	63.9	ok	Kept ASPECT_RATIO=96 (round-0 width win), changed TOTAL_BATCH_SIZE from 2**19 to 2**18 (round-0 batch-size win) on top of it; grad_accum_steps auto-halves, doubling optimizer steps within the 5-min budget at the wider model.
+b5aa439	0.985242	63.9	ok	Changed WEIGHT_DECAY from 0.2 to 0.0 (Muon cautious weight decay), everything else at baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8)
+300fcef	0.982306	63.9	ok	Halved WEIGHT_DECAY from 0.2 to 0.1 to compensate for doubled optimizer step count since TOTAL_BATCH_SIZE halved in round 2
+94a42dc	0.982470	63.9	ok	Lowered MATRIX_LR from 0.04 to 0.03, all else unchanged from baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8)
+6be5ba3	0.983085	63.9	ok	Changed WEIGHT_DECAY from 0.2 to 0.05 (Muon cautious weight decay), all else at baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8)
+ae1d4da	0.982590	63.9	ok	Changed MATRIX_LR from 0.04 to 0.03 on top of the current baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8); no other changes.
+ad97fb2	0.985987	63.9	ok	Changed WARMDOWN_RATIO from 0.5 to 0.3, giving 70% of the 5-min budget at peak LR instead of 50%, keeping FINAL_LR_FRAC=0.0 and everything else at baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8).
+ca64f76	0.978193	32.4	ok	Halved TOTAL_BATCH_SIZE from 2^18 to 2^17 (also halved DEVICE_BATCH_SIZE 128->64 to keep tokens_per_fwdbwd dividing evenly, grad_accum_steps=1), doubling optimizer step count again within the fixed 5-min budget on top of ASPECT_RATIO=96/DEPTH=8/WEIGHT_DECAY=0.1 baseline.
+79d688d	0.978120	32.4	ok	Halved TOTAL_BATCH_SIZE from 2^18 to 2^17 and DEVICE_BATCH_SIZE from 128 to 64 (grad_accum_steps=1), doubling optimizer steps again within the fixed 5-min budget on top of ASPECT_RATIO=96, DEPTH=8, WEIGHT_DECAY=0.1 baseline.
+8ee0c85	0.978063	32.4	ok	Halved TOTAL_BATCH_SIZE from 2^18 to 2^17 and DEVICE_BATCH_SIZE from 128 to 64 (grad_accum_steps=1), doubling optimizer steps again on top of the round-2 batch-size win; all other hyperparameters (ASPECT_RATIO=96, DEPTH=8, WEIGHT_DECAY=0.1, MATRIX_LR=0.04) unchanged.
+3d989de	0.978041	32.4	ok	Halved TOTAL_BATCH_SIZE from 2^18 to 2^17 and DEVICE_BATCH_SIZE from 128 to 64 (grad_accum_steps=1), doubling optimizer steps again within the fixed 5-min budget on top of the current baseline (ASPECT_RATIO=96, WEIGHT_DECAY=0.1, DEPTH=8).
+3a70d0d	0.982328	63.9	ok	Changed WARMDOWN_RATIO from 0.5 to 0.7 (only 30% of budget at peak LR, longer linear decay to 0), all else at baseline (ASPECT_RATIO=96, TOTAL_BATCH_SIZE=2^18, DEPTH=8, WEIGHT_DECAY=0.1).
+49c1ff3	0.978298	32.4	ok	Halved TOTAL_BATCH_SIZE from 2^18 to 2^17 and DEVICE_BATCH_SIZE from 128 to 64 (grad_accum_steps stays 1) to double optimizer step count again within the fixed 5-min budget, on top of the current baseline (ASPECT_RATIO=96, DEPTH=8, WEIGHT_DECAY=0.1).

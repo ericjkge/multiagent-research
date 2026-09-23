@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "a8f9942",
+  "best_val_bpb": 1.001167,
+  "summary": "Explored model scaling and hyperparameter optimization within VRAM constraints. Found that increasing depth from 8 to 10 substantially improves validation loss (1.012347→1.001942). Further gains (to 1.001167) came from tuning learning rates, batch norm parameters, and LR schedules. Attempts to go deeper (depth=11+) hit OOM; wider models also exceeded memory limits. The sweet spot is depth=10 with carefully tuned optimization."
+}

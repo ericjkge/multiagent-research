@@ -1,0 +1,18 @@
+{
+  "cell_id": "sonnet_6",
+  "tag": "sonnet_6-20260922-142048",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "a5d2ca045830c4ddb280cce95482294c45b12db7",
+  "baseline_bpb": 0.998353,
+  "round_idx": 4,
+  "completed_rounds": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "total_cost_usd": 57.649901,
+  "started_at": 1790086848.8101957,
+  "finished_at": null,
+  "stop_reason": ""
+}

@@ -1,0 +1,31 @@
+commit	val_bpb	memory_gb	status	description
+2df7125	1.002703	66.5	ok	Changed DEPTH from 8 to 10 (model_dim auto-scales to 640, 5 heads); no other hyperparameters touched.
+9acd136	1.002279	66.5	ok	Changed DEPTH from 8 to 10 (model_dim goes 512->640, 4->5 heads), everything else unchanged.
+4c04ff9	1.002351	66.5	ok	Set DEPTH=10 (from 8), keeping ASPECT_RATIO=64 and HEAD_DIM=128; model_dim becomes 640 (5 heads), all LR/schedule logic unchanged since dmodel_lr_scale auto-adjusts.
+63e662b	1.002712	66.5	ok	Changed DEPTH from 8 to 10 (model_dim goes 512->640, 4->5 heads); everything else unchanged, dmodel_lr_scale auto-adjusts AdamW LRs.
+75a758f	1.002496	66.5	ok	Changed DEPTH from 8 to 10 (model_dim auto-adjusts from 512 to 640, 5 heads); everything else unchanged.
+1204491	1.016037	47.8	ok	Set DEPTH=12 (model_dim 640->768, 6 heads); also reduced DEVICE_BATCH_SIZE 128->64 (more grad_accum_steps) to stay within VRAM headroom.
+424fe17	1.016254	47.8	ok	Set DEPTH=12 (model_dim 768, 6 heads); reduced DEVICE_BATCH_SIZE 128->64 (grad_accum doubled 2->4) to keep VRAM headroom vs depth=10's 66.5GB.
+f943b4c	1.016225	47.8	ok	Set DEPTH=12 (model_dim=768, 6 heads) and reduced DEVICE_BATCH_SIZE from 128 to 64 (grad_accum_steps 2->8) to keep VRAM under budget.
+61056b0	1.015935	47.8	ok	Set DEPTH=12 (from 10); OOM'd at DEVICE_BATCH_SIZE=128 so reduced to 64 (grad_accum 2->4, TOTAL_BATCH_SIZE unchanged) to fit in 79GB VRAM.
+61eeeb8	0.000000	0.0	crash	Set DEPTH=12 (model_dim 640->768, 6 heads); at DEVICE_BATCH_SIZE=128 (matching depth=10 setup) this OOMs, so DEVICE_BATCH_SIZE was reduced to 64 (grad_accum 2->4) to fit memory.
+3cdef67	1.005762	66.5	ok	Increased MATRIX_LR from 0.04 to 0.05 (25% higher Muon LR), all else unchanged at DEPTH=10 baseline.
+107aff0	1.005993	66.5	ok	Increased MATRIX_LR from 0.04 to 0.05 (25% higher Muon LR for transformer matrix params), all else unchanged from DEPTH=10 baseline.
+a444c2e	1.006023	66.5	ok	Raised MATRIX_LR from 0.04 to 0.05 (25% increase), all else unchanged from DEPTH=10 baseline.
+2e7d90a	1.005816	66.5	ok	Increased MATRIX_LR from 0.04 to 0.05 (25% higher Muon LR), all else unchanged from DEPTH=10 baseline.
+f2b8783	1.005825	66.5	ok	Changed MATRIX_LR from 0.04 to 0.05 (Muon LR for transformer matrix params), all else unchanged from DEPTH=10 baseline.
+b2c7586	1.005052	66.5	ok	Changed WARMDOWN_RATIO from 0.5 to 0.8, giving a longer/gentler linear LR cooldown starting at progress=0.2 instead of 0.5, all else unchanged from DEPTH=10 baseline.
+2893fec	1.005098	66.5	ok	Changed WARMDOWN_RATIO from 0.5 to 0.8 (longer, gentler LR cooldown starting at progress=0.2 instead of 0.5), all else unchanged from DEPTH=10 baseline.
+29b3167	1.004858	66.5	ok	Increased WARMDOWN_RATIO from 0.5 to 0.8 (longer, gentler linear cooldown starting at progress=0.2 instead of 0.5), all else unchanged from DEPTH=10 baseline.
+4db2deb	1.005063	66.5	ok	Changed WARMDOWN_RATIO from 0.5 to 0.8, giving a longer/gentler linear LR cooldown (starts at progress=0.2 instead of 0.5) within the same fixed 5-minute budget; all else unchanged from DEPTH=10 baseline.
+ac97eb3	1.004892	66.5	ok	Changed WARMDOWN_RATIO from 0.5 to 0.8, giving a longer/gentler linear LR cooldown starting at progress=0.2 instead of 0.5, all else unchanged from DEPTH=10 baseline.
+57fe873	1.005875	66.5	ok	Lowered MATRIX_LR from 0.04 to 0.03 (25% decrease), all else unchanged from DEPTH=10 baseline.
+b78c385	1.005856	66.5	ok	Decreased MATRIX_LR from 0.04 to 0.03 (Muon LR for transformer matrix params), all else unchanged from DEPTH=10 baseline.
+bb7e09f	1.005651	66.5	ok	Decreased MATRIX_LR from 0.04 to 0.03 (25% lower Muon LR for transformer matrix params), all else unchanged from DEPTH=10 baseline.
+0603a0a	1.006195	66.5	ok	Decreased MATRIX_LR (Muon LR) from 0.04 to 0.03, 25% lower, all else unchanged from DEPTH=10 baseline.
+383c559	1.005562	66.5	ok	Decreased MATRIX_LR from 0.04 to 0.03 (25% lower Muon LR), all else unchanged from DEPTH=10 baseline.
+58077a0	1.003940	66.5	ok	Halved cautious Muon weight decay from 0.2 to 0.1, all else unchanged from DEPTH=10 baseline.
+0ecc77e	1.003675	66.5	ok	Halved cautious Muon weight decay from 0.2 to 0.1, everything else unchanged from DEPTH=10 baseline.
+69bab07	1.003733	66.5	ok	Changed WEIGHT_DECAY from 0.2 to 0.1 (halved cautious Muon weight decay), all else unchanged from DEPTH=10 baseline.
+6ac9d38	1.004031	66.5	ok	Halved WEIGHT_DECAY from 0.2 to 0.1 (cautious Muon decay), all else unchanged from DEPTH=10 baseline.
+b945325	1.003496	66.5	ok	Halved WEIGHT_DECAY from 0.2 to 0.1, all else unchanged from DEPTH=10 baseline.
