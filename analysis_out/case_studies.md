@@ -1,3 +1,51 @@
+# CORRECTION (Sep 23, 00:20): the "independent" cells were not independent
+
+A reviewer of the Sep 22 snapshot found that agents in the independent control read each other's
+work. An audit of the archived session transcripts (`python -m analysis.contamination results/indep_*`)
+confirms it and shows it was systematic, not a one-off:
+
+| cell | agents that read the shared score table | agents that inspected or checked out a peer's commit |
+|---|---:|---:|
+| `indep_opus_6` | 5 of 6 (up to 36 reads each) | 5 of 6 |
+| `indep_opus_6_s2` | 5 of 6 | 5 of 6 |
+| `indep_haiku_6` | 5 of 5 archived | 4 of 5 |
+| `indep_haiku_6_s2` | 6 of 6 | 4 of 6 |
+| `indep_sonnet_6`, `_s2` | no transcripts archived; same prompt and harness, assume the same |
+
+Two harness defects caused it. The shared `results.tsv` (every agent's commit, score and run title) was
+written into the run directory for all cells and the system prompt pointed every agent at it, sharing
+on or off. And all agents worked in worktrees of one git repository, so a peer's commit could be
+inspected, diffed or checked out with ordinary git commands (`git show`, `git diff`, `git reset --hard`);
+verify only checked for recorded `arena-adopt` events. The winner of `indep_opus_6` (a0) built on a
+peer's code after reading the table.
+
+**What this withdraws.** Every statement below that the independent cells measure "no communication",
+and every number derived from that contrast: section 4 ("the control answers the question"), section 6
+(the seed comparison of the two arms), the "communication is worth at most 0.002" line in section 7 and
+in the summary, and the same claim in the team messages of Sep 22. The measured scores of the independent
+cells stand as observations of a third condition: passive visibility of peers' scores and code with no
+coordination channel and no adoption protocol.
+
+**What still stands.** Six agents beat one under both protocols on our box, and Eric's Sonnet ladder is
+monotone on his; open beat rounds at every headcount on the same box (a workflow difference, not a
+communication difference: session continuity, selection rule and attempt counts differ too); the rounds
+protocol herds without any communication; the open cells' logs show real collaboration (18 adoptions,
+19 findings, 21 disconfirmations in `open_opus_6`); model strength shows up as reliability of the search;
+and none of this demonstrates recursive self-improvement, it studies the organisation of automated
+research at fixed compute.
+
+**Other reviewer points accepted.** Two seeds cannot bound an effect at "a couple of thousandths";
+run-to-run noise (0.0008) is not the variability of a whole search; `open_opus_6_s2` ran one agent at
+seven attempts and one at five after a budget rebuild; `indep_sonnet_6_s2` executed 37 attempts and the
+37th is excluded from its record.
+
+**Fix in progress.** True isolation for the independent arm: a per-agent score table, a separate git clone
+per agent so peers' commits do not exist in its repository, a guard-hook denylist for the shared table,
+peers' logs and worktrees, and a transcript scan that fails verification on any peer read. The two Opus
+independent seeds are to be rerun under it before any communication claim is made again.
+
+---
+
 # Case studies from the first four Opus cells (Sep 22, 06:50)
 
 Entry numbers (`#n`) refer to `results/<cell>/log.md`. Baseline 0.9973, noise band 0.0008 (six identical runs).
@@ -64,7 +112,7 @@ At 36 runs with Opus, copies help (six beat one under both protocols) and organi
 as headcount (open beat rounds at both sizes). Whether the six-agent gain is communication or just six
 parallel attempts is what `indep_opus_6` (same six agents, no shared log) is measuring now.
 
-## 4. The control answers the question (added 10:00)
+## 4. The control answers the question (added 10:00) — WITHDRAWN, see the correction at the top
 
 `indep_opus_6`: the same six Opus agents, the same 36 runs, six each, and no shared log at all. Each
 agent saw only its own results. Final 0.977649 against 0.977896 for the six that could talk: a
@@ -99,7 +147,7 @@ agent spends its compute at all, and whether its account of what it did can be t
 protocol whose stopping rule is the agent's own judgement, a weak agent's judgement is the bottleneck.
 The cell is archived as INVALID (one slot claimed without a run) and kept for this record.
 
-## 6. Second seeds of the headline pair (added 13:40)
+## 6. Second seeds of the headline pair (added 13:40) — WITHDRAWN as a communication comparison, see the correction
 
 | arm | seed 0 | seed 1 | mean |
 |---|---|---|---|
@@ -136,7 +184,7 @@ cell by 0.003 to 0.006. Three agents did not beat one under the open protocol (0
 a difference inside the seed-to-seed spread of a cell (0.0015 to 0.0024 for six Opus agents). At this
 budget the headcount effect is visible only at the top of the range.
 
-**Communication is still not measurable.** Six Opus agents with the shared directory: 0.97715 on average
+**Communication is still not measurable.** (WITHDRAWN: the independent arm leaked, see the correction.) Six Opus agents with the shared directory: 0.97715 on average
 over two seeds. The same six with no sharing: 0.97886. The 0.0017 in favour of talking is smaller than
 the spread between seeds of the same arm. Best-of-six covers this 36-run search as well as a team.
 
@@ -158,7 +206,7 @@ rounds). Neither model quality nor communication moved the number beyond noise a
 the "compute is the bottleneck" reading of the loop, measured: what the agents could not do was run
 more five-minute experiments per unit of GPU time.
 
-**Sonnet with sharing, completed 16:35.** `open_sonnet_6` finished at 0.985651, between the two
+**Sonnet with sharing, completed 16:35.** (The comparison with the independent seeds below is WITHDRAWN, see the correction.) `open_sonnet_6` finished at 0.985651, between the two
 independent Sonnet seeds (0.9883 and 0.9770). Same verdict as for Opus: with cell-to-cell spread this
 large, sharing does not move the number in a direction the data can resolve. The cell needed the
 fresh-session fallback for four of its six agents and crashed 8 percent of runs; its agents did adopt

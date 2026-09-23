@@ -1,4 +1,6 @@
-# Results so far (2026-09-22 23:56)
+# Results so far (2026-09-23 00:04)
+
+**Read the correction at the top of case_studies.md first: the independent (indep_*) cells were not isolated (agents read the shared score table and peers' commits), so they do not measure the absence of communication.**
 
 - indep_haiku_6: OK — all invariants hold
 - indep_haiku_6_s2: OK — all invariants hold
