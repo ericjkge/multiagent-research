@@ -1,0 +1,25 @@
+commit	val_bpb	memory_gb	status	description
+b907855	1.013144	44.0	ok	One-line change: MATRIX_LR from 0.04 to 0.06 (50% higher Muon LR for matrix params), all else unchanged
+b16e3a5	0.000000	0.0	crash	Tried DEVICE_BATCH_SIZE 128->256 (grad_accum_steps 4->2... actually 2->1); OOM'd at seq_len 2048. No valid intermediate value exists since DEVICE_BATCH_SIZE must evenly divide TOTAL_BATCH_SIZE/MAX_SEQ_LEN=256, so reverted to baseline 128 unchanged.
+6ccfbae	0.000000	0.0	crash	
+96bbeda	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+e4d3701	0.000000	0.0	crash	
+fcc0c21	1.012649	44.0	ok	Raised MATRIX_LR (Muon learning rate) from 0.04 to 0.06, one-line change, everything else identical to baseline.
+ffbe3ba	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+89fb584	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+827b748	1.012957	44.0	ok	Lengthened the LR warmdown tail from half the run to 80% of the run, leaving everything else (DEPTH=8, MATRIX_LR=0.06, batch size) at the round-1 baseline.
+1105dd5	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+f082761	0.000000	0.0	crash	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+c214eb5	1.016251	44.0	ok	Set cautious Muon weight decay to zero, keeping MATRIX_LR=0.06 baseline and everything else unchanged, to test whether decay is net-helpful or net-harmful in a 5-minute budget where it's rarely proposed on the log.
+861e079	0.999094	54.1	ok	Changed ASPECT_RATIO from 64 to 80, keeping DEPTH=8 and DEVICE_BATCH_SIZE=128 unchanged, giving model_dim=640 (5 heads) instead of 512 (4 heads); MATRIX_LR=0.06 baseline kept.
+dc7dcd5	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+6b90b30	0.000000	0.0	crash	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+405109d	1.012413	44.0	ok	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+2922e04	0.000000	0.0	crash	Increased MATRIX_LR (Muon learning rate for matrix params) from 0.04 to 0.06, no other changes
+0ce87f1	1.000015	54.1	ok	Changed ASPECT_RATIO from 64 to 80, keeping DEPTH=8, DEVICE_BATCH_SIZE=128, and MATRIX_LR=0.06 unchanged. This raises model_dim from 512 to 640 (5 heads) via build_model_config, adding ~20M params (50.3M -> 70.8M total) with no other changes.
+6fb8811	1.000118	64.2	ok	Changed ASPECT_RATIO from 80 to 96, keeping DEPTH=8, DEVICE_BATCH_SIZE=128, MATRIX_LR=0.06 unchanged. This raises model_dim from 640 to 768 (6 heads instead of 5).
+280e304	0.999094	54.1	ok	Changed ASPECT_RATIO from 64 to 80, keeping DEPTH=8 and DEVICE_BATCH_SIZE=128 unchanged, giving model_dim=640 (5 heads) instead of 512 (4 heads); MATRIX_LR=0.06 baseline kept.
+2710ccc	0.999094	54.1	ok	Changed ASPECT_RATIO from 64 to 80, keeping DEPTH=8 and DEVICE_BATCH_SIZE=128 unchanged, giving model_dim=640 (5 heads) instead of 512 (4 heads); MATRIX_LR=0.06 baseline kept.
+a5d2ca0	0.998353	64.2	ok	Changed ASPECT_RATIO from 80 to 96, keeping DEPTH=8 and DEVICE_BATCH_SIZE=128 unchanged, giving model_dim=768 (6 heads) instead of 640; MATRIX_LR=0.06 baseline kept. All 6 agents independently proposed this exact change.
+24a5789	1.035625	37.9	ok	Deliberately diverged from the 5/6 identical ASPECT_RATIO=96 proposals to bracket the width optimum from above: ASPECT_RATIO 80->112 (model_dim 640->896, 7 heads) with DEVICE_BATCH_SIZE 128->64 for VRAM safety.
+7c5012d	1.037256	37.9	ok	Increased ASPECT_RATIO from 80 to 112 (model_dim 640->896, 7 heads) at DEPTH=8, and preemptively lowered DEVICE_BATCH_SIZE from 128 to 64 to stay under the VRAM ceiling (grad_accum_steps auto-adjusted 2->4). Deliberately went further than the crowd's ASPECT_RATIO=96 proposal to bracket the width-scaling trend rather than duplicate it, since all 6 agents independently proposed the identical 96 config this round.

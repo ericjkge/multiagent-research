@@ -48,6 +48,36 @@ RULES = (
 
 PROTECTED_FILES = ("prepare.py",)
 
+# An actual `arena-train` launch (not a mention of it inside ps/grep/cat/tail/until loops).
+TRAIN_LAUNCH = re.compile(r"(?:^|[|;&]\s*|\bnohup\s+|\btime\s+)\s*arena-train(?:\s|$)")
+# Long enough for a full GPU queue: six agents x ~6 min each, with margin. Claude Code only
+# honours this if BASH_MAX_TIMEOUT_MS in the agent environment is at least as large.
+TRAIN_TIMEOUT_MS = 3600000
+
+
+def pin_train_foreground(tool_input: dict) -> None:
+    """Keep an arena-train call in the foreground until it finishes.
+
+    Claude Code's default 10-minute shell limit moves a still-running command to the
+    background and tells the agent it will be notified -- but in `claude -p` there is no
+    later turn to notify, and a session that ends to "wait" kills the training run with
+    it. Pin the call's timeout to outlast the whole GPU queue and refuse backgrounding.
+    Added 2026-09-22 after sonnet_6 lost ~half its attempts this way.
+    """
+    updated = dict(tool_input)
+    updated["timeout"] = TRAIN_TIMEOUT_MS
+    updated.pop("run_in_background", None)
+    payload = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "permissionDecisionReason": "arena-train runs in the foreground with a 60 min timeout.",
+            "updatedInput": updated,
+        }
+    }
+    print(json.dumps(payload))
+    sys.exit(0)
+
 
 def deny(reason: str) -> None:
     payload = {
@@ -84,6 +114,8 @@ def main() -> None:
                     deny(reason)
         elif ADD_DEPS.search(command) or EXFIL.search(command):
             deny("Disallowed command chained onto an arena command.")
+        elif tool == "Bash" and TRAIN_LAUNCH.search(command):
+            pin_train_foreground(tool_input)
 
     if tool in {"Edit", "Write", "NotebookEdit", "MultiEdit"}:
         path = str(tool_input.get("file_path", ""))
