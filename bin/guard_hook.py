@@ -107,10 +107,40 @@ def isolation_check(tool: str, tool_input: dict) -> None:
     shared table and logs, the other agents' checkouts, the main repository and any git
     command that could pull objects or refs from it.
     """
-    if os.environ.get("ARENA_SHARE_LOG") != "0" or tool not in ISOLATION_TOOLS:
+    if tool not in ISOLATION_TOOLS:
         return
     me = os.environ.get("ARENA_AGENT", "")
     text = " ".join(str(v) for v in tool_input.values())
+    run_dir = os.environ.get("ARENA_RUN_DIR", "")
+    # Every protocol: no other cell's run directory, no archived cell, no other session's files.
+    if run_dir:
+        own = os.path.basename(run_dir.rstrip("/"))
+        for m in re.finditer(r"runs/([A-Za-z0-9_]+-\d{8}-\d{6})", text):
+            if m.group(1) != own:
+                deny("Another cell's run directory is off limits.")
+        if re.search(r"(?<![\w-])results/", text):
+            deny("Archived cells are off limits.")
+        if re.search(r"\.claude/projects", text):
+            deny("Other sessions' transcripts are off limits.")
+    if os.environ.get("ARENA_SHARE_LOG") != "0":
+        return
+    # Independent cells: inside the run directory only the agent's own files.
+    if run_dir:
+        own = os.path.basename(run_dir.rstrip("/"))
+        allowed = re.compile(rf"^(?:work/open_{me}(?:/|$)|log_{me}\.md|results_{me}\.tsv|slots/{me}(?:/|$)|"
+                             rf"runs/{me}(?:/|$)|transcripts/open_{me}_|$)")
+        for m in re.finditer(re.escape(own) + r"/([^\s\"'|;&)>]*)", text):
+            if not allowed.match(m.group(1)):
+                deny("This cell runs agents independently: inside the run directory only your own files "
+                     f"(work/open_{me}, log_{me}.md, results_{me}.tsv, slots/{me}, runs/{me}) are yours to read.")
+        if re.search(r"(?:^|[\s\"'=])\.\.(?:/|$|\s)", text) or "/../" in text:
+            deny("This cell runs agents independently: no paths above your own checkout.")
+    if re.search(r"(?:^|[|;&\s])(?:ps|pgrep|pstree|top|htop|lsof|fuser|w|who)\b", text) or "/proc/" in text:
+        deny("This cell runs agents independently: process lists show other agents' commands; "
+             "arena-train runs in the foreground and returns when your run is done.")
+    for m in re.finditer(r"open-(a\d+)", text):   # /tmp/claude-*/...-work-open-aN task outputs
+        if m.group(1) != me:
+            deny("This cell runs agents independently: another agent's session files are off limits.")
     repo = os.path.dirname(os.environ.get("ARENA_UV_ENV", "") or "")
     checks = [
         (re.compile(r"results\.tsv"), "the shared score table"),
@@ -130,6 +160,11 @@ def isolation_check(tool: str, tool_input: dict) -> None:
             deny(f"This cell runs agents independently: {what} is off limits.")
     if repo and repo in text and f"{repo}/.venv" not in text:
         deny("This cell runs agents independently: the main repository is off limits; work in your own checkout.")
+    if run_dir:
+        top = os.path.dirname(os.path.dirname(run_dir.rstrip("/")))   # the orchestrator repo
+        for m in re.finditer(re.escape(top) + r"/([^\s\"'|;&)>]*)", text):
+            if not m.group(1).startswith("runs/" + os.path.basename(run_dir.rstrip("/"))):
+                deny("This cell runs agents independently: the orchestrator repository is off limits except your own run directory.")
 
 
 def main() -> None:
