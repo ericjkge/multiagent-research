@@ -1,0 +1,6 @@
+{
+  "title": "Activation function: squared ReLU → GELU",
+  "description": "Changed MLP activation from F.relu(x).square() to F.gelu(x)",
+  "status": "crash",
+  "reflection": "Hypothesis: GELU is standard in modern LLMs and offers smoother gradients than squared ReLU. Reality: the change regressed val_bpb to 1.014313 vs baseline 0.996221 (−0.018 BPB, 1.8% worse). The unconventional squared ReLU activation is actually better-tuned for this specific model and training regime. Architectural changes are not a solution to the tight local optimum — the baseline design choices appear genuinely optimal."
+}

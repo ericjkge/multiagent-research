@@ -1,0 +1,6 @@
+{
+  "title": "Increase unembedding learning rate",
+  "description": "UNEMBEDDING_LR 0.004 → 0.008: doubled lm_head LR to rebalance embedding:unembedding ratio from 150:1 to 75:1",
+  "status": "ok",
+  "reflection": "Achieved val_bpb 0.996089, improving 0.000132 BPB over baseline 0.996221. First improvement in Round 4. The untested UNEMBEDDING_LR was severely undertrained (150:1 ratio with embeddings); doubling to 0.008 while keeping it conservative (still 75:1 ratio) improved final projection layer convergence. This validates the strategy of testing orthogonal parameter groups after MATRIX_LR and WEIGHT_DECAY changes in Round 3. The gain is modest but consistent with the tight local optimum pattern: incremental parameter-group rebalancing continues to unlock improvements where architectural changes and generic hyperparameter tweaks failed."
+}

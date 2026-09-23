@@ -1,0 +1,6 @@
+{
+  "title": "Increase unembedding learning rate",
+  "description": "UNEMBEDDING_LR 0.004 → 0.01 (2.5x): rebalance output-layer learning rate by addressing the extreme 150:1 imbalance with embedding LR",
+  "status": "ok",
+  "reflection": "Submitted UNEMBEDDING_LR increase (0.004→0.01) to test parameter-group rebalancing on the lm_head layer. The 150:1 ratio with EMBEDDING_LR (0.6) is extreme and untested. This complements Round 3's MATRIX_LR success and follows the pattern that parameter-group-specific LR adjustments can escape tight local optima. Job submitted via arena-train; results pending."
+}

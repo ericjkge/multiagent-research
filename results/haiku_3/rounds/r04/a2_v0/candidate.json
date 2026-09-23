@@ -1,0 +1,7 @@
+{
+  "title": "Activation function: squared ReLU → GELU",
+  "description": "Changed MLP activation from F.relu(x).square() to F.gelu(x) to test if standard smooth activation improves optimization.",
+  "status": "crash",
+  "val_bpb": 1.014147,
+  "reflection": "Significant regression: val_bpb 1.014147 vs baseline 0.996221 (−0.0179 worse). GELU activation performs substantially worse than the original squared ReLU on this model. Despite being non-standard, the squared ReLU was apparently well-tuned for this specific task. This provides strong negative evidence that the baseline architecture, including its unusual activation choice, occupies a genuine local optimum. The tight local optimum may be dependent on the specific activation function choice. Hyperparameter tweaks and architectural changes have now all failed—the baseline appears to be locally optimal across multiple dimensions."
+}

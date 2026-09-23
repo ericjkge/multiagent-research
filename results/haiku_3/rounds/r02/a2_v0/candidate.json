@@ -1,0 +1,6 @@
+{
+  "title": "MLP Expansion Reduction (4x → 3x)",
+  "description": "Reduce per-step FLOPs to fit more steps in 5-minute budget",
+  "status": "abandoned",
+  "reflection": "Abandoned because a0 independently proposed the identical change (#35). Running duplicate experiments wastes the group's limited budget (26 runs remaining). Let a0 run MLP once; if it succeeds, we have the result; if it crashes, they retry within their attempt budget. This preserves compute for exploring orthogonal ideas like a1's Muon LR increase."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Increase DEPTH to 12 with reduced batch size",
+  "description": "Increased model depth from 8→12 layers, reduced DEVICE_BATCH_SIZE 128→64 to fit in memory.",
+  "status": "ok",
+  "reflection": "val_bpb 1.014134 (worse than baseline 0.996598). The depth increase hurt performance. Likely causes: (1) reduced batch size from 128→64 may have damaged convergence dynamics, or (2) larger model capacity needs tuning of learning rates/schedules. The approach of just increasing depth without rebalancing other hyperparameters appears suboptimal for this 5-minute budget."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Increase Muon matrix learning rate",
+  "description": "Increased MATRIX_LR from 0.04 to 0.05 (25%) to strengthen gradient signal for transformer matrices undertrained at 15× lower LR than embeddings",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996553 (tied with baseline 0.996553). No improvement despite 25% increase to Muon matrix LR. This further confirms the baseline is in an extremely tight local optimum. All single-parameter tweaks (depth, MLP width, embedding LR, weight decay, matrix LR) have either regressed or tied with baseline. The untested levers remaining are multi-parameter coordination (ADAM_BETAS + LR adjustments) or fundamentally different architecture (activations, window patterns). Round 3 should explore these or declare the local optimum genuine."
+}

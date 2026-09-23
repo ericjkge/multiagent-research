@@ -1,0 +1,6 @@
+{
+  "title": "Reduce weight decay to 0.1",
+  "description": "Reduced WEIGHT_DECAY from 0.2 to 0.1 for Muon optimizer matrices; allows stronger early learning while maintaining natural decay schedule.",
+  "status": "ok",
+  "reflection": "Weight decay reduction had negligible effect: val_bpb 0.996553 vs baseline 0.996598 (improvement of 0.000045, within noise). The baseline regularization strength appears well-calibrated. This confirms the pattern from Round 0: the model/optimizer is in a good regime, and small hyperparameter tweaks don't move val_bpb. We may need to explore orthogonal directions (e.g., architecture patterns, attention mechanisms) rather than tuning existing parameters."
+}

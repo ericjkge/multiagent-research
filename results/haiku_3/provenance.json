@@ -1,0 +1,51 @@
+{
+  "cell": {
+    "cell_id": "haiku_3",
+    "agents": [
+      {
+        "id": "a0",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a1",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a2",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      }
+    ],
+    "bon": 2,
+    "train_run_budget": 36,
+    "nominal_run_seconds": 330.0,
+    "train_timeout_s": 900,
+    "max_train_attempts": 3,
+    "autoresearch_repo": "~/autoresearch",
+    "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
+    "max_budget_usd_per_session": 1000.0,
+    "cell_budget_usd": 100000.0,
+    "protocol": "rounds",
+    "solo_self_critique": false,
+    "phase_timeout_s": {
+      "propose": 900,
+      "select": 7200,
+      "respond": 1200
+    },
+    "open_share_log": true,
+    "open_per_agent_quota": true,
+    "open_max_resumes": 8,
+    "open_session_timeout_s": 5400,
+    "fake_gpu": false,
+    "seed": 0
+  },
+  "config_fingerprint": "3cccd531fe97",
+  "claude_version": "2.1.280 (Claude Code)",
+  "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "started_at": 1790115811.3636367
+}

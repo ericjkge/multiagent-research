@@ -1,0 +1,8 @@
+{
+  "title": "Increase per-layer scalar learning rate",
+  "description": "SCALAR_LR 0.5→0.7 (+40%): increase learning rates for resid_lambdas (residual path scales) and x0_lambdas (skip connection scales)",
+  "status": "ok",
+  "val_bpb": 0.995001,
+  "improvement": 0.0,
+  "reflection": "Result: tied baseline, no improvement. SCALAR_LR=0.5 is already well-tuned despite resid_lambdas appearing undertrained at 0.006 effective LR (100× lower than embeddings). Per-layer multiplicative parameters may require conservative learning rates to avoid destabilizing layer information flow, contrary to the pattern seen with MATRIX_LR and UNEMBEDDING_LR. The parameter-group LR tuning strategy does not apply uniformly—some groups benefit from higher rates, others require stability. This suggests remaining improvements may come from weight decay reduction (a0's proposal) or other untested mechanisms rather than further LR scaling. The baseline remains at 0.995001."
+}

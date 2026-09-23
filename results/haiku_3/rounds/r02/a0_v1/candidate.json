@@ -1,0 +1,6 @@
+{
+  "title": "Reduce MLP width from 4x to 3x embedding dimension",
+  "description": "Trade MLP capacity for faster training: achieved 944 steps (vs ~600 baseline) but val_bpb unchanged at 0.996553, indicating optimal capacity-speed tradeoff in baseline.",
+  "status": "ok",
+  "reflection": "MLP reduction successfully sped up training by ~57% (944 vs 600 steps), but the reduced capacity exactly offset the benefit of longer training. Result is identical to baseline (0.996553). This mirrors the earlier finding that larger models (slower per-step) also failed to improve val_bpb. The baseline's capacity-speed balance is already optimal; trading one for the other does not help. Architectural changes alone (without accompanying adjustments) do not overcome the tight local optimum the baseline occupies."
+}

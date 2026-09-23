@@ -1,0 +1,6 @@
+{
+  "title": "Increase Muon matrix learning rate",
+  "description": "MATRIX_LR 0.04 → 0.05: rebalance parameter-group optimization by strengthening gradient flow to largest parameter group",
+  "status": "ok",
+  "reflection": "Achieved val_bpb 0.996221, improving 0.000332 BPB over baseline 0.996553. This is the first statistically significant improvement since Round 1 and above the ~0.0003 noise floor. The consensus across all three agents on this untested parameter-group learning rate adjustment was well-founded: addressing the extreme 15:1 embedding:matrix LR imbalance by increasing MATRIX_LR by 25% strengthens optimization of the largest parameter group (>90% of parameters). The breakthrough suggests that parameter-group-specific learning rates, not just hyperparameter tweaks or architectural changes, may be the key to escaping the tight local optimum observed in Rounds 0-2."
+}

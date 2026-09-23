@@ -1,0 +1,8 @@
+{
+  "title": "Increase SCALAR_LR from 0.5 to 0.7",
+  "description": "Tuned per-layer residual path scales by increasing SCALAR_LR from 0.5 to 0.7 to rebalance undertrained parameter group (120:1 imbalance with embeddings)",
+  "status": "ok",
+  "val_bpb": 0.993742,
+  "improvement": 0.001259,
+  "reflection": "Largest single improvement yet (0.001259 vs baseline 0.995001). Continued the successful parameter-group LR tuning strategy from Rounds 3-4. Per-layer residual scales (resid_lambdas) had extremely low effective LR (0.005 vs embeddings 0.6), creating a 120:1 imbalance similar to the unembedding imbalance we fixed in Round 4. A 40% increase to 0.7 suggests multiplicative layer parameters respond well to stronger gradients when other parameter groups are properly balanced. This confirms parameter-group LR tuning remains the high-ROI search direction. Total improvement across rounds: 0.996598 → 0.993742 (0.002856 or 0.29% improvement)."
+}

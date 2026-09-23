@@ -1,0 +1,6 @@
+{
+  "title": "Increase Muon matrix learning rate to 0.05",
+  "description": "Increased MATRIX_LR from 0.04 to 0.05 (25%) to strengthen gradient signal for transformer matrices (>90% of parameters)",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996553 (tied baseline). The tight local optimum persists: all three agents independently converged on this same idea as the most promising untested lever, but increasing matrix LR provides no improvement. The 15x embedding-to-matrix LR ratio appears well-calibrated despite seeming extreme. This confirms the baseline is genuinely trapped in a tight attractor—single-parameter changes on fundamental optimizer knobs (LR ratios, weight decay, model capacity, MLP width) have all failed or been neutral across 3 rounds. Next steps would require either: (1) multi-parameter coordination (e.g., ADAM_BETAS + LR adjustment), (2) fundamentally different architectures (activations, attention patterns), or (3) accepting that the 5-minute budget with this hardware/tokenizer is already near-optimal for this model configuration."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "MLP width reduction 4x -> 3x",
+  "description": "Reduced MLP expansion from 4x to 3x embedding dimension to free compute for more training steps",
+  "status": "crash",
+  "reflection": "Hypothesis failed: reducing MLP width from 4x to 3x to enable ~15-20% more training steps resulted in val_bpb 1.004876, a significant regression of +0.008323 from baseline 0.996553. The capacity loss from smaller MLPs outweighed any benefit from fitting more gradient steps into the 5-minute budget. This suggests the baseline MLP width (4x) is well-calibrated to the model's architecture and learning dynamics. The baseline remains remarkably robust—every structural change attempted (depth scaling, MLP width) has regressed, confirming we may have hit a tight local optimum that is difficult to escape without fundamentally rethinking the architecture or training procedure."
+}

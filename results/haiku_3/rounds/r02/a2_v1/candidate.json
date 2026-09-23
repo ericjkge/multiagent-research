@@ -1,0 +1,6 @@
+{
+  "title": "MLP Expansion Reduction (4x → 3x)",
+  "description": "Reduced MLP feedforward expansion factor from 4x to 3x to reduce per-step FLOPs and fit more training steps in 5-minute budget",
+  "status": "ok",
+  "reflection": "MLP reduction (4x → 3x) regressed significantly: val_bpb 1.002312 vs baseline 0.996553, a regression of 0.005759. The hypothesis that reducing per-step FLOPs would enable more meaningful training steps was incorrect. With only 3x expansion, the model loses expressiveness in the feedforward network that cannot be compensated for by a few extra training steps. The 4x expansion is well-calibrated for this model/budget combination. Both a0 and a2 tested this idea independently—a reasonable hypothesis to explore—and both got negative results, confirming the baseline 4x factor is likely optimal for this setup."
+}

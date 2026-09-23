@@ -1,0 +1,7 @@
+{
+  "title": "Learning rate warmup with extended peak period",
+  "description": "Add 5% warmup, reduce warmdown to 25%, set final LR fraction to 0.01",
+  "status": "ok",
+  "val_bpb": 0.998767,
+  "reflection": "LR schedule changes made val_bpb worse (0.998767 vs 0.996598 baseline). The original zero-warmup, 50% warmdown schedule was actually better tuned. This suggests either: (1) the baseline schedule is near-optimal for the model, or (2) the proposed schedule changes introduced instability. Future rounds should explore other directions like model scaling rather than schedule tweaking."
+}

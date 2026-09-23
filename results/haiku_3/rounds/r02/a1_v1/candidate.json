@@ -1,0 +1,6 @@
+{
+  "title": "MLP width reduction 4x → 3x",
+  "description": "Reduced feedforward expansion from 4× to 3× embedding dimension, trading capacity for more training steps within the 5-minute budget.",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996553 — exactly at baseline. The hypothesis that reducing MLP width to enable more optimizer steps would improve generalization was incorrect. The baseline model size was already optimal for this task/budget; neither increasing capacity (depth scaling, which failed) nor decreasing it (this run) improved results. The tight attractor described in prior rounds appears to represent a genuine optimum, not an under-trained model. 944 steps completed, same VRAM as baseline (~45GB). The baseline remains the best known solution."
+}

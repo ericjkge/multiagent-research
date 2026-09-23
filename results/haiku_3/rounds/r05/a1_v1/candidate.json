@@ -1,0 +1,8 @@
+{
+  "title": "Increase SCALAR_LR from 0.5 to 0.7",
+  "description": "Increased per-layer scalar learning rate by 40% to improve residual path and skip connection adaptation",
+  "status": "ok",
+  "val_bpb": 0.994872,
+  "improvement": 0.000129,
+  "reflection": "Per-layer scalars were severely undertrained (0.006 effective LR vs embeddings at 0.735). The 40% increase to SCALAR_LR=0.7 improved val_bpb from 0.995001 to 0.994872 (+0.000129 improvement). This continues the successful pattern of parameter-group LR tuning that worked in Rounds 3-4. The improvement is consistent with Round 3's marginal gain and suggests per-layer scalar parameters benefit from faster adaptation. Achieved 924 training steps in 5 minutes."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Reduce weight decay regularization",
+  "description": "Reduced WEIGHT_DECAY from 0.2 to 0.1 to test if baseline is over-regularized",
+  "status": "ok",
+  "reflection": "Hypothesis was incorrect: reducing weight decay hurt generalization (val_bpb 0.998232 vs baseline 0.996598, +0.0016 worse). The baseline WD=0.2 provides beneficial regularization for this model/task combination. Regularization is not the constraint; deeper changes to architecture or optimization strategy are needed. The baseline remains robust against orthogonal perturbations."
+}

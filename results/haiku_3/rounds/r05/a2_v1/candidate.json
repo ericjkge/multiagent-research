@@ -1,0 +1,6 @@
+{
+  "title": "Increase SCALAR_LR to 0.8",
+  "description": "Increased per-layer scalar learning rate from 0.5 to 0.8 (60% increase) to address undertrained resid_lambdas after tuning other parameter groups.",
+  "status": "ok",
+  "reflection": "Strong improvement of +0.001061 (0.995001 → 0.993940) confirms the pattern: parameter-group LR tuning is the productive direction. Resid_lambdas were undertrained at 0.005 relative to newly-tuned MATRIX_LR (0.05) and UNEMBEDDING_LR (0.008). The 60% increase was justified by evidence that larger increases worked well in prior rounds (UNEMBEDDING_LR's 100% increase yielded +0.001220). Validates: (1) parameter-group rebalancing strategy, (2) SCALAR_LR was a bottleneck, (3) multiplicative scalars benefit from stronger learning when other components well-tuned. New best: 0.993940."
+}

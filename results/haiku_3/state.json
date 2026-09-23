@@ -1,0 +1,20 @@
+{
+  "cell_id": "haiku_3",
+  "tag": "haiku_3-20260922-222331",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "b3a9d57b80f2bc154096fd59a21d31b03f1456ef",
+  "baseline_bpb": 0.993742,
+  "round_idx": 6,
+  "completed_rounds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "total_cost_usd": 21.493888250000005,
+  "started_at": 1790115811.3636367,
+  "finished_at": 1790124894.7053988,
+  "stop_reason": "round cap reached"
+}

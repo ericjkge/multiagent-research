@@ -1,0 +1,8 @@
+{
+  "title": "Increase unembedding learning rate",
+  "description": "Double UNEMBEDDING_LR from 0.004 to 0.008, reducing embedding:unembedding ratio from 150:1 to 75:1",
+  "status": "ok",
+  "val_bpb": 0.995001,
+  "improvement": 0.001220,
+  "reflection": "Strong result: lm_head (final projection 768→32768) was severely undertrained at 0.004 vs embedding 0.6. Doubling to 0.008 broke through the tight local optimum. This is the first substantial orthogonal lever tested on Round 3's MATRIX_LR improvement—the fact that it compounds (not cancels) suggests Round 3's +0.000332 may have been real signal, not noise. Parameter-group learning rate adjustments (MATRIX_LR→0.05, now UNEMBEDDING_LR→0.008) appear to be the high-ROI region after exhausting single-pass hyperparameters."
+}

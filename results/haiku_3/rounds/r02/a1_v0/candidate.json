@@ -1,0 +1,6 @@
+{
+  "title": "MLP width reduction 4x→3x",
+  "description": "Reduced MLP expansion factor from 4x to 3x embedding dimension to free compute budget.",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.996553 (matches baseline). MLP reduction enabled 944 steps vs baseline's ~600, using the full 300s budget. Validation performance unchanged suggests the model was over-parameterized in MLPs for this fixed-time regime; smaller MLPs allow more training iterations without generalization loss. The compute freed did not translate to val_bpb improvement, matching the pattern from prior rounds: the baseline occupies a tight local optimum."
+}

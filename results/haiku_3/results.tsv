@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+c00b1cc	0.000000	0.0	crash	
+5390f92	0.000000	0.0	crash	
+772a74c	0.998767	44.0	ok	Add 5% warmup, reduce warmdown to 25%, set final LR fraction to 0.01
+bdc4128	0.000000	0.0	crash	
+790bd6f	1.001338	66.5	ok	Increased DEPTH from 8 to 10 (25% more layers) to improve model capacity
+c730327	1.014134	47.8	ok	Increased model depth from 8→12 layers, reduced DEVICE_BATCH_SIZE 128→64 to fit in memory.
+228791f	0.000000	0.0	crash	
+870dfc0	0.000000	0.0	crash	
+4fe8784	0.000000	0.0	crash	
+7955294	0.996747	44.0	ok	Reduced EMBEDDING_LR from 0.6 to 0.5 to balance parameter group update rates
+ffe0796	0.996553	44.0	ok	Reduced WEIGHT_DECAY from 0.2 to 0.1 for Muon optimizer matrices; allows stronger early learning while maintaining natural decay schedule.
+c400857	0.998232	44.0	ok	Reduced WEIGHT_DECAY from 0.2 to 0.1 to test if baseline is over-regularized
+01e7595	0.996553	44.0	ok	Reduce per-step FLOPs to fit more steps in 5-minute budget
+8bb2ec5	0.996553	44.0	ok	Reduced MLP expansion factor from 4x to 3x embedding dimension to free compute budget.
+4783b14	0.996553	44.0	ok	Reduced feedforward expansion from 4× to 3× embedding dimension, trading capacity for more training steps within the 5-minute budget.
+69e6436	0.996553	44.0	ok	Trade MLP capacity for faster training: achieved 944 steps (vs ~600 baseline) but val_bpb unchanged at 0.996553, indicating optimal capacity-speed tradeoff in baseline.
+dfee69e	1.004876	40.0	ok	Reduced MLP expansion from 4x to 3x embedding dimension to free compute for more training steps
+7c874bb	1.002312	40.0	ok	Reduced MLP feedforward expansion factor from 4x to 3x to reduce per-step FLOPs and fit more training steps in 5-minute budget
+b100300	0.997323	44.0	ok	MATRIX_LR 0.04 → 0.05 (25% increase to transformer matrices)
+5fe286f	0.996553	44.0	ok	Increased MATRIX_LR from 0.04 to 0.05 (25%) to strengthen gradient signal for transformer matrices undertrained at 15× lower LR than embeddings
+e82ae45	0.996553	44.0	ok	Increased MATRIX_LR from 0.04 to 0.05 (25%) to strengthen gradient signal for transformer matrices (>90% of parameters)
+1ce5e75	0.996553	44.0	ok	Increased MATRIX_LR from 0.04 to 0.05 (+25%) to address 15x imbalance with embedding LR
+22345c2	0.000000	0.0	crash	MATRIX_LR 0.04 → 0.05 (25% increase to strengthen signal on transformer matrices)
+4335d01	0.996221	44.0	ok	MATRIX_LR 0.04 → 0.05: rebalance parameter-group optimization by strengthening gradient flow to largest parameter group
+5eb6791	0.995001	44.0	ok	Double UNEMBEDDING_LR from 0.004 to 0.008, reducing embedding:unembedding ratio from 150:1 to 75:1
+20d5f26	0.996221	44.0	ok	UNEMBEDDING_LR 0.004 → 0.01 (2.5x): rebalance output-layer learning rate by addressing the extreme 150:1 imbalance with embedding LR
+b57b247	0.996089	44.0	ok	UNEMBEDDING_LR 0.004 → 0.008: doubled lm_head LR to rebalance embedding:unembedding ratio from 150:1 to 75:1
+2343e90	1.014313	44.0	ok	Changed MLP activation from F.relu(x).square() to F.gelu(x)
+1728bd7	1.014147	44.0	ok	Changed MLP activation from F.relu(x).square() to F.gelu(x) to test if standard smooth activation improves optimization.
+9310c25	1.015091	44.0	ok	Changed activation function from F.relu(x).square() to F.gelu(x) in MLP forward pass
+0adc773	0.995260	44.0	ok	Increased SCALAR_LR from 0.5 to 0.7 to strengthen learning of per-layer residual scalars (resid_lambdas, x0_lambdas)
+a0708ec	0.995001	44.0	ok	SCALAR_LR 0.5→0.7 (+40%): increase learning rates for resid_lambdas (residual path scales) and x0_lambdas (skip connection scales)
+2313584	0.995001	44.0	ok	Double UNEMBEDDING_LR from 0.004 to 0.008, reducing embedding:unembedding ratio from 150:1 to 75:1
+7e664e7	0.994872	44.0	ok	Increased per-layer scalar learning rate by 40% to improve residual path and skip connection adaptation
+9f46432	0.993940	44.0	ok	Increased per-layer scalar learning rate from 0.5 to 0.8 (60% increase) to address undertrained resid_lambdas after tuning other parameter groups.
+b3a9d57	0.993742	44.0	ok	Tuned per-layer residual path scales by increasing SCALAR_LR from 0.5 to 0.7 to rebalance undertrained parameter group (120:1 imbalance with embeddings)

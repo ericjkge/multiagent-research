@@ -1,0 +1,6 @@
+{
+  "title": "Increase SCALAR_LR per-layer scalar learning rate",
+  "description": "Increased SCALAR_LR from 0.5 to 0.7 to strengthen learning of per-layer residual scalars (resid_lambdas, x0_lambdas)",
+  "status": "ok",
+  "reflection": "val_bpb regressed to 0.995260 (+0.000259 vs baseline 0.995001). Per-layer scalars are multiplicative parameters; the higher learning rate of 0.7 overshoots the optimal value. The strategy of identifying undertrained parameter groups and increasing their LRs has succeeded for MATRIX_LR and UNEMBEDDING_LR, but scalar parameters appear to need more conservative tuning. The baseline remains 0.995001."
+}

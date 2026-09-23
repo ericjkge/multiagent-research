@@ -1,0 +1,6 @@
+{
+  "title": "MLP activation: squared ReLU → GELU",
+  "description": "Changed activation function from F.relu(x).square() to F.gelu(x) in MLP forward pass",
+  "status": "crash",
+  "reflection": "Significant regression: val_bpb 1.015091 vs baseline 0.996221 (+0.0189 worse). The unusual squared ReLU activation was a deliberate design choice, well-tuned for this model. GELU, despite being standard in modern LLMs, performs poorly here. Suggests the model was initialized and hyperparameter-tuned specifically for squared ReLU. Architectural changes alone (without full retuning) cannot escape the tight local optimum. Single-parameter tweaks remain most viable path forward, but require novel parameter groups not yet tested (e.g., activation scaling, initialization schemes, or true multi-parameter coordination)."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Reduce embedding learning rate",
+  "description": "Reduced EMBEDDING_LR from 0.6 to 0.5 to balance parameter group update rates",
+  "status": "ok",
+  "reflection": "Small regression: val_bpb 0.996747 vs baseline 0.996598 (+0.000149 worse). The embedding LR of 0.6 is already well-tuned; reducing it made things slightly worse. Two independent agents converged on this idea, but it did not improve performance. The 0.15x ratio reduction from 15x to 12.5x (embedding to matrix LR) was insufficient to help. Suggests optimizer balance is already near-optimal or that embedding learning rate is a sensitive parameter that doesn't benefit from reduction."
+}

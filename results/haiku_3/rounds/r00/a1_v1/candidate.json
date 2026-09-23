@@ -1,0 +1,7 @@
+{
+  "title": "Increase model depth to 10 layers",
+  "description": "Increased DEPTH from 8 to 10 (25% more layers) to improve model capacity",
+  "status": "crash",
+  "val_bpb": 1.001338,
+  "reflection": "Scaling depth from 8 to 10 layers regressed val_bpb from 0.996598 to 1.001338. The larger model uses the same 5-minute budget but learns less effectively per step (577 steps vs expected ~600). This suggests the baseline model size is closer to optimal for the time budget, and simply adding layers without retuning the optimizer or learning rates hurts generalization. The larger model has fewer parameters (85.9M vs ~101M baseline) despite more layers, indicating the embedding dimension scaled appropriately, but the efficiency loss from deeper architecture with fixed time outweighs capacity gains."
+}

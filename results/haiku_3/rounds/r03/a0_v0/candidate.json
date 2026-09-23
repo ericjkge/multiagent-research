@@ -1,0 +1,6 @@
+{
+  "title": "Increase Muon matrix learning rate to 0.05",
+  "description": "MATRIX_LR 0.04 → 0.05 (25% increase to strengthen signal on transformer matrices)",
+  "status": "ok",
+  "reflection": "val_bpb 0.997323 vs baseline 0.996553: regression of +0.000770. All three agents independently converged on this untested idea, suggesting it was worth testing. However, the increase proved detrimental—the baseline 15:1 embedding:matrix LR ratio is actually better-tuned than the 12:1 ratio achieved here. This confirms the tight local optimum extends even to parameter-group-specific learning rates. Single-parameter changes continue to fail uniformly. Future experiments should either: (1) test multi-parameter coordinated changes (simultaneous adjustments to related hyperparameters), or (2) explore fundamentally different architectures (activation functions, attention patterns, layer design). The baseline model/optimizer remains remarkably well-optimized."
+}
