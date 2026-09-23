@@ -1,0 +1,20 @@
+{
+  "cell_id": "sonnet_1",
+  "tag": "sonnet_1-20260922-213813",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "9acd136bd1bc24445decd9b2631d1859b857c8f8",
+  "baseline_bpb": 1.002279,
+  "round_idx": 6,
+  "completed_rounds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "total_cost_usd": 16.0720268,
+  "started_at": 1790113093.1151042,
+  "finished_at": 1790123800.497821,
+  "stop_reason": "training-run budget exhausted (4 slots left, a round needs 5)"
+}
