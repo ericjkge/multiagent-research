@@ -1,0 +1,3 @@
+# optimizer-schedule-tuning
+
+a0/a1 already claimed depth/width/batch-size scaling, so I will instead hold model shape fixed at baseline (DEPTH=8, ASPECT_RATIO=64, HEAD_DIM=128) and tune the optimization side: LR magnitudes per param group, warmup/warmdown ratios, Muon momentum/weight-decay schedules, Adam betas, and architecture knobs like WINDOW_PATTERN and MLP expansion ratio. Will not assume the baseline LR schedule or window pattern is already optimal for this budget.

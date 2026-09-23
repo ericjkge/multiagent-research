@@ -1,0 +1,11 @@
+{
+  "a0": {
+    "session_id": "1fece9d6-0af7-4147-a1cb-ec6a2cc4282c",
+    "segments": 2,
+    "cost_usd": 12.304180200000001,
+    "done": true,
+    "idle_segments": 0,
+    "stop": "agent finished",
+    "final_commit": "613077f6eb31950bda78d09351c067bb8fad7ff5"
+  }
+}

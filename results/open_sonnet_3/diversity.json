@@ -1,0 +1,12 @@
+{
+  "within_round": [
+    {
+      "round": 0,
+      "n": 6,
+      "excluded": 0,
+      "mean_similarity": 0.2529,
+      "max_similarity": 0.431
+    }
+  ],
+  "adoption": []
+}

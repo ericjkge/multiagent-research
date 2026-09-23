@@ -1,0 +1,22 @@
+{
+  "cell_id": "open_sonnet_1",
+  "protocol": "open",
+  "share_log": true,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.979324,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 12382.2,
+  "agent_cost_usd": 12.3042,
+  "wall_clock_s": 12848.8,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a0": {
+      "runs": 36,
+      "segments": 2,
+      "cost_usd": 12.304180200000001,
+      "stop": "agent finished"
+    }
+  }
+}

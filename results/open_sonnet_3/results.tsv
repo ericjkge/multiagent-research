@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+53e2ea2	0.995733	44.0	ok	increase MATRIX_LR 0.04->0.05
+8ed1474	0.997685	44.0	ok	mostly-short attention windows (WINDOW_PATTERN=SSSSSSSS, only last layer forced long) to cut attn cost and see more tokens/sec
+6f769d2	0.997183	44.0	ok	increase MATRIX_LR 0.05->0.07
+55e6e3f	0.996063	44.0	ok	combine a1's MATRIX_LR=0.05 with a0's WINDOW_PATTERN=SSSSSSSS (test if independent gains stack)
+d1b75d5	0.997811	44.0	ok	MATRIX_LR=0.05 (best), WARMDOWN_RATIO 0.5->0.3
+945bdee	1.000478	40.4	ok	GQA: n_kv_head=n_head/2 on top of MATRIX_LR=0.05 base (cheaper KV proj, more compute for other steps)
+f55bfae	0.996236	44.0	ok	WARMDOWN_RATIO 0.5->0.7 (matrix_lr=0.05)
+6745141	0.999412	40.0	ok	MLP_RATIO 4.0->3.0 (smaller MLP hidden dim, faster steps) on top of MATRIX_LR=0.05 base
+ff9067a	0.997153	44.0	ok	EMBEDDING_LR 0.6->0.4 (matrix_lr=0.05 base)
+ef64550	0.996061	48.1	ok	MLP_RATIO 4.0->5.0 (bigger MLP hidden dim, more capacity per step) on top of MATRIX_LR=0.05 base
+0730ea6	0.996378	44.0	ok	EMBEDDING_LR 0.6->0.8 (matrix_lr=0.05 base)
+ac7e1d7	0.997937	44.0	ok	MATRIX_LR=0.05 base + WINDOW_PATTERN=LSSS (long-window layers early instead of late)
+710e1c7	0.997140	44.0	ok	WEIGHT_DECAY 0.2->0.05 (matrix_lr=0.05 base)
+d2a0894	0.997126	44.0	ok	logit softcap 15->20 (looser cap, on top of MATRIX_LR=0.05 base)
+090d2b3	0.998947	44.0	ok	MATRIX_LR=0.05 base + logit softcap 15->25 (less aggressive logit capping)
+2d51323	1.014820	44.0	ok	MLP activation ReLU^2 -> GELU on top of MATRIX_LR=0.05 base
+3d26f95	0.995713	44.0	ok	fine-tune MATRIX_LR 0.05->0.045
+f825c37	1.011560	42.9	ok	disable value-embedding residual entirely (USE_VALUE_EMBEDS=False) on top of MATRIX_LR=0.05 base, frees VE-table compute for more steps
+ccd20b7	0.995319	44.0	ok	MATRIX_LR=0.05 base + small LR warmup (WARMUP_RATIO 0.0->0.03)
+832a5dc	0.994545	45.1	ok	value embeddings on ALL layers (not alternating) on top of MATRIX_LR=0.05 base -- removing VE hurt a lot, test if more VE helps further
+cc5bd9d	0.995306	44.0	ok	confirm a0's WARMUP_RATIO=0.03 finding (matrix_lr=0.05 base) independent run
+5f24af6	0.994677	45.1	ok	VE_ALL_LAYERS=True + MATRIX_LR=0.045 (a1's marginal-best LR combined with all-layer VE)
+090d2b3	0.997100	45.1	ok	MATRIX_LR=0.05 base + logit softcap 15->25 (less aggressive logit capping)
+cdc7228	0.993862	45.1	ok	VE_ALL_LAYERS=True (new best base) + WINDOW_PATTERN=SSSSSSSS (a0's finding): test stacking again with new best base
+ce6724a	0.997152	45.1	ok	adopt VE_ALL_LAYERS=True (a2) + my confirmed WARMUP_RATIO=0.03, matrix_lr=0.05
+1dcdfb0	0.996968	45.1	ok	a2's best base (VE_ALL_LAYERS + SSSSSSSS window + MATRIX_LR=0.05) + my confirmed WARMUP_RATIO=0.03
+44967d6	0.994317	45.1	ok	VE_ALL_LAYERS + MATRIX_LR=0.05 base, EMBEDDING_LR 0.6->0.5 (more VE params now share this LR group)
+da7157c	0.994525	45.1	ok	MATRIX_LR 0.05->0.055 on top of best base (VE_ALL_LAYERS + WINDOW_PATTERN=SSSSSSSS) -- check if LR optimum shifted
+8bd8f30	0.995981	45.1	ok	final: a2's best base (VE_ALL_LAYERS+SSSSSSSS+MATRIX_LR=0.05) + my EMBEDDING_LR 0.6->0.5
+f84e5e0	0.994304	45.1	ok	best base (VE_ALL_LAYERS+SSSSSSSS+MATRIX_LR=0.05) + ve_gate_channels 32->64
+046f6e1	0.994062	45.1	ok	same all-short window pattern but short_window=seq_len/4 (was /2) to cut attn cost further
+4d082ae	0.994441	45.1	ok	final run: independent reproduction of group-best config (VE_ALL_LAYERS + WINDOW_PATTERN=SSSSSSSS + MATRIX_LR=0.05, previously 0.993862) to confirm it's not noise
+ccd20b7	0.994527	45.1	ok	MATRIX_LR=0.05 base + small LR warmup (WARMUP_RATIO 0.0->0.03)
+e4b5b31	0.994594	45.1	ok	best base (VE_ALL_LAYERS+SSSSSSSS+MATRIX_LR=0.05) + WARMDOWN_RATIO 0.5->0.6
+a83e4a1	0.994169	45.1	ok	adopt MATRIX_LR=0.05 (a1) + MLP expansion ratio 4x->3x (faster/cheaper MLP, more steps in budget)
+a7b6495	0.994013	45.1	ok	final: confirmed best config (VE_ALL_LAYERS+WINDOW_PATTERN=SSSSSSSS+MATRIX_LR=0.05, WARMDOWN_RATIO=0.5) - locking in group best for cell close-out

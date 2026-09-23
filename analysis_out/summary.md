@@ -52,3 +52,42 @@ opus_6              6    1   0.997333   0.980496  0.016837    34       6     0.0
 | opus_1 | 33 | 0.986277 | 0.986277 | 0.986277 | 0.986277 |
 | opus_3 | 34 | 0.987792 | 0.987792 | 0.987792 | 0.987792 |
 | opus_6 | 34 | 0.981817 | 0.980496 | 0.980496 | 0.980496 |
+
+## Sonnet open-protocol solo/three (Riddhi, 2026-09-23)
+
+- open_sonnet_1: OK — all invariants hold for results/open_sonnet_1
+- open_sonnet_3: OK — all invariants hold for results/open_sonnet_3
+
+```
+cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
+-------------------------------------------------------------------------------------------------
+open_sonnet_1       1    1   1.012531   0.979324  0.033207    36       1     2.8   0.000    12.30
+open_sonnet_3       3    1   1.012531   0.993862  0.018669    36       1     0.0   0.253    48.71
+```
+
+**Baseline discrepancy, not yet root-caused.** These two cells measured their own baseline at 1.012531
+on the same pinned `autoresearch_commit` (`228791f`) that every other cell in this file measured at
+~0.997333–0.997359 -- a difference of ~0.0152, roughly 5x the RUNBOOK's 0.003 noise-gate tolerance, and
+consistent across every other row, not just open_sonnet_6. Checked and ruled out: non-deterministic
+shard ordering in `prepare.py` (`list_parquet_files()` sorts explicitly). Not yet identified: the actual
+cause. These cells ran on Modal (`modal_app.py`, not committed) rather than the rented boxes the rest of
+the grid used, which is the most likely place to look next.
+
+Recomputed against the shared 0.997333 baseline used by the rest of the grid, for comparability:
+
+| cell | final | gain vs. shared 0.997333 |
+|---|---:|---:|
+| open_sonnet_1 | 0.979324 | 0.018009 |
+| open_sonnet_3 | 0.993862 | 0.003471 |
+| open_sonnet_6 | 0.985651 | 0.011682 |
+
+Under this shared reference, solo (1 agent) beats both three- and six-agent Sonnet cells. Treat this as
+directional, not conclusive: swapping the reference baseline doesn't correct for a possible non-additive
+effect (e.g. a compute-speed difference between boxes would change how many training steps different
+configs get in the fixed 5-minute window, not shift every measurement by the same constant), and it's a
+single seed per cell.
+
+**Missing relative to the rest of `results/`:** no `claude_sessions/` (full raw session traces) and no
+`winner.diff` -- the Modal execution path didn't capture the former, and the git history for the latter
+lived only on the run's now-terminated ephemeral container. `log.jsonl`, `transcripts/`, and `report.md`
+are complete for both cells.

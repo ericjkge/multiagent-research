@@ -1,0 +1,3 @@
+# optimizer & LR-schedule tuning
+
+Tune AdamW/Muon learning rates, betas, weight-decay schedule, warmup/warmdown ratios, and muon momentum ramp under the fixed architecture; will not assume the given LR/schedule constants in train.py are already tuned for the 300s budget. Will not sweep model depth/width (a0's territory) unless evidence suggests optimizer gains are exhausted.

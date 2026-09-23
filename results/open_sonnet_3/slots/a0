@@ -1,0 +1,3 @@
+# optimizer & schedule tuning
+
+Tune LR values/schedule shape (warmup/warmdown ratio, final_lr_frac), weight-decay schedule, Muon momentum schedule, and adam betas at fixed DEPTH=8 architecture; will not assume the baseline schedule shapes (linear warmdown, WD linear-to-0, momentum ramp to step 300) are optimal, and will not change model architecture/size (that's a1's slot).

@@ -1,0 +1,15 @@
+{
+  "cell_id": "open_sonnet_3",
+  "tag": "open_sonnet_3-20260923-034429",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "cdc7228cf00f4e5a808c8dd3d4ee07b44722b2e9",
+  "baseline_bpb": 0.993862,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 48.71235659999999,
+  "started_at": 1790135069.9890122,
+  "finished_at": 1790147476.4954891,
+  "stop_reason": "all agents finished"
+}

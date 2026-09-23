@@ -1,0 +1,34 @@
+{
+  "cell_id": "open_sonnet_3",
+  "protocol": "open",
+  "share_log": true,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.993862,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 12335.0,
+  "agent_cost_usd": 48.7124,
+  "wall_clock_s": 12406.5,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a2": {
+      "runs": 12,
+      "segments": 5,
+      "cost_usd": 17.744648599999998,
+      "stop": "agent finished"
+    },
+    "a1": {
+      "runs": 12,
+      "segments": 4,
+      "cost_usd": 9.575808599999998,
+      "stop": "agent finished"
+    },
+    "a0": {
+      "runs": 12,
+      "segments": 8,
+      "cost_usd": 21.3918994,
+      "stop": "agent finished"
+    }
+  }
+}

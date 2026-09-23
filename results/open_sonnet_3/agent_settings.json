@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/runner/arena/bin/guard_hook.py"
+          }
+        ]
+      }
+    ]
+  }
+}
