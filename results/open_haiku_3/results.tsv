@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+3984c16	0.997355	44.0	ok	Reduce EMBEDDING_LR from 0.6 to 0.3
+7e083dc	1.000596	66.5	ok	Increase depth from 8 to 10
+f690b02	1.000690	66.5	ok	Increased depth (10 layers), reduced width (640 dim) - test deeper/narrower
+716bfff	0.997786	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
+3ee9f66	0.991949	49.3	ok	Reduced depth (6 layers), full width (768 dim) - test shallower
+e27228b	0.998305	44.0	ok	Reduce depth to 6, increase ASPECT_RATIO to 80 (shallower, wider)
+f5e0390	0.997963	44.0	ok	EMBEDDING_LR=0.5 (midway tune)
+44dd81f	0.998266	44.0	ok	DEPTH=8 with ASPECT_RATIO=72 (slightly wider baseline)
+7be1515	0.998600	44.0	ok	Reduce WARMDOWN_RATIO from 0.5 to 0.3 (keep higher learning rate longer)
+ea47532	0.999405	44.0	ok	Change MLP activation from relu(x).square() to gelu(x)
+2b800c4	0.998181	44.0	ok	Try narrower model with ASPECT_RATIO=56
+3078ea7	0.998891	44.0	ok	Increase EMBEDDING_LR from 0.6 to 0.8
+c04e5c1	0.998386	44.0	ok	Change WINDOW_PATTERN from SSSL to LLLL (all full attention)
+82ce95e	0.994809	57.0	ok	Reduce HEAD_DIM from 128 to 96
+91dc2df	0.998048	57.0	ok	Increase HEAD_DIM from 128 to 160
+a1f96ff	0.998169	57.0	ok	Adopt a2's EMBEDDING_LR=0.3 (best result so far: 0.997355)
+8d8095c	0.998012	57.0	ok	EMBEDDING_LR=0.3 + WEIGHT_DECAY=0.1 (reduced weight decay)
+bd02971	1.039023	24.2	ok	Further reduced depth (5 layers), full width (768 dim)
+0153e86	0.996691	49.4	ok	Reduce WEIGHT_DECAY from 0.2 to 0.1
+a2ff105	0.996702	49.4	ok	Adopt a0's shallower/wider model (DEPTH=6, ASPECT_RATIO=128)
+60031ee	1.037945	24.2	ok	Very shallow (4 layers), full width (768 dim)
+7632c47	0.994955	49.3	ok	Shallower/wider with HEAD_DIM=96 (a1's improvement)
+15fbcf1	0.994254	49.3	ok	Shallower/wider with reduced WARMDOWN_RATIO=0.3
+13b6067	0.993903	49.3	ok	DEPTH=6, ASPECT_RATIO=128, EMBEDDING_LR=0.5 (fine-tune)
+2c596f6	1.017291	51.3	ok	Shallower/wider with HEAD_DIM=80
+109f16f	0.992399	49.3	ok	DEPTH=6, MATRIX_LR=0.05 (increase matrix lr)
+8fb7601	1.025872	51.3	ok	HEAD_DIM=80 + WARMDOWN=0.3 (tuning smaller heads)
+48f047e	0.997339	57.0	ok	DEPTH=7, ASPECT_RATIO=96 (768 dim, 7 layers)
+814089f	1.042720	53.2	ok	HEAD_DIM=104 + WARMDOWN=0.3 (interpolating heads)
+337b2ea	0.993162	49.3	ok	DEPTH=6, WEIGHT_DECAY=0.15
+d81b318	0.998852	49.4	ok	HEAD_DIM=96, WARMDOWN=0.3, EMBEDDING_LR=0.7 (final optimization)
+8c48e43	1.000415	37.9	ok	DEPTH=6, HEAD_DIM=96 (smaller head dimension)
+88beac0	0.999176	49.4	ok	Best config + MATRIX_LR=0.05 (combining improvements)
+a17e2d7	0.991730	49.3	ok	DEPTH=6, UNEMBEDDING_LR=0.006
+b00ca9e	0.991387	49.3	ok	DEPTH=6, UNEMBEDDING_LR=0.008
+dee7ac2	0.990882	49.3	ok	DEPTH=6, UNEMBEDDING_LR=0.010 (final)

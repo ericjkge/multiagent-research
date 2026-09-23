@@ -1,0 +1,34 @@
+{
+  "cell_id": "open_haiku_3",
+  "protocol": "open",
+  "share_log": true,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.990882,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 12101.1,
+  "agent_cost_usd": 4.6112,
+  "wall_clock_s": 12164.9,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a2": {
+      "runs": 12,
+      "segments": 2,
+      "cost_usd": 3.1997032000000005,
+      "stop": "agent finished"
+    },
+    "a0": {
+      "runs": 12,
+      "segments": 1,
+      "cost_usd": 0.5164646,
+      "stop": "agent finished"
+    },
+    "a1": {
+      "runs": 12,
+      "segments": 1,
+      "cost_usd": 0.8950497999999999,
+      "stop": "agent finished"
+    }
+  }
+}

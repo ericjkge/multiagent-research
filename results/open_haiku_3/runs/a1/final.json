@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "82ce95e",
+  "best_val_bpb": 0.994809,
+  "summary": "Explored model architecture variations including depth/width tradeoffs, attention patterns, and learning rates. Found that reducing HEAD_DIM from 128 to 96 yields best result (0.994809), beating baseline by 0.18%. Initial focus on depth variations (testing DEPTH 4-10) showed shallower models generally better. Discovered that a0's even more extreme shallow model (DEPTH=6) achieves 0.991949, suggesting continued depth reduction may help, though extreme reduction like DEPTH=4 causes performance degradation. Most architectural changes (warmdown, activation functions, window patterns) provided minimal benefit over baseline in 5-minute training window."
+}

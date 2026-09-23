@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "dee7ac2",
+  "best_val_bpb": 0.990882,
+  "summary": "Achieved val_bpb 0.990882 through systematic exploration of model depth and hyperparameter tuning. Key finding: 6-layer depth is optimal (narrower models at 4-5 layers and deeper at 7+ layers all underperformed). Shallower/wider architecture (DEPTH=6, ASPECT_RATIO=128) beats baseline by 0.5%. Fine-tuning UNEMBEDDING_LR from baseline 0.004 to 0.010 yielded progressive improvements, suggesting the lm_head learning rate was previously under-optimized. Final configuration: DEPTH=6, ASPECT_RATIO=128, HEAD_DIM=128, EMBEDDING_LR=0.6, UNEMBEDDING_LR=0.010, MATRIX_LR=0.04, WEIGHT_DECAY=0.2."
+}
