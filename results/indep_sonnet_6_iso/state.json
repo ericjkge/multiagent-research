@@ -1,0 +1,15 @@
+{
+  "cell_id": "indep_sonnet_6_iso",
+  "tag": "indep_sonnet_6_iso-20260923-044216",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "d77862a5e7cb8fd6f40606cfafdb6448a4990037",
+  "baseline_bpb": 0.996232,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 4.384787800000001,
+  "started_at": 1790138537.0539107,
+  "finished_at": 1790148807.2771223,
+  "stop_reason": "all agents finished"
+}

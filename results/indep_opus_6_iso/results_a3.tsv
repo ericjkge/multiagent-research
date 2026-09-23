@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+440abfc	1.000800	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps, grad_accum=1)
+81ca2ea	1.010210	22.2	ok	TOTAL_BATCH_SIZE 2**17, device batch 64 (4x steps vs baseline)
+6f458d9	0.988145	33.8	ok	depth 8->10 (dim 512->640) at batch 2**18, device batch 64 (grad_accum 2)
+a0e20cf	0.994653	47.8	ok	depth 10->12 (dim 640->768) at batch 2**18, device batch 64
+f718c60	0.991023	40.3	ok	depth 10 widened: ASPECT_RATIO 64->76 (dim 640->768) at batch 2**18 — width vs depth at equal dim
+6a5be8e	0.990440	40.0	ok	pure depth test: depth 12 at fixed dim 640 (ASPECT_RATIO 53), batch 2**18

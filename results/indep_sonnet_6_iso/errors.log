@@ -1,0 +1,104 @@
+
+=== open a2 ===
+Traceback (most recent call last):
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 309, in run
+    info = fut.result()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 151, in _run_agent
+    worktree = self._worktree(agent)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 125, in _worktree
+    self.trees.create_clone(f"open_{agent.id}", last)
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 92, in create_clone
+    git(self.repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 27, in git
+    raise GitError(f"git {' '.join(args)} failed in {repo}:\n{proc.stderr.strip()}")
+orchestrator.worktrees.GitError: git config uploadpack.allowAnySHA1InWant true failed in /root/autoresearch:
+error: could not lock config file .git/config: File exists
+
+
+=== open a2 ===
+Traceback (most recent call last):
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 309, in run
+    info = fut.result()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 151, in _run_agent
+    worktree = self._worktree(agent)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 125, in _worktree
+    self.trees.create_clone(f"open_{agent.id}", last)
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 92, in create_clone
+    git(self.repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 27, in git
+    raise GitError(f"git {' '.join(args)} failed in {repo}:\n{proc.stderr.strip()}")
+orchestrator.worktrees.GitError: git config uploadpack.allowAnySHA1InWant true failed in /root/autoresearch:
+error: could not lock config file .git/config: File exists
+
+
+=== open a3 ===
+Traceback (most recent call last):
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 309, in run
+    info = fut.result()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 151, in _run_agent
+    worktree = self._worktree(agent)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 125, in _worktree
+    self.trees.create_clone(f"open_{agent.id}", last)
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 92, in create_clone
+    git(self.repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 27, in git
+    raise GitError(f"git {' '.join(args)} failed in {repo}:\n{proc.stderr.strip()}")
+orchestrator.worktrees.GitError: git config uploadpack.allowAnySHA1InWant true failed in /root/autoresearch:
+error: could not lock config file .git/config: File exists
+
+
+=== open a1 ===
+Traceback (most recent call last):
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 309, in run
+    info = fut.result()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 151, in _run_agent
+    worktree = self._worktree(agent)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/multiagent-research/orchestrator/open_arena.py", line 125, in _worktree
+    self.trees.create_clone(f"open_{agent.id}", last)
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 92, in create_clone
+    git(self.repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+  File "/root/multiagent-research/orchestrator/worktrees.py", line 27, in git
+    raise GitError(f"git {' '.join(args)} failed in {repo}:\n{proc.stderr.strip()}")
+orchestrator.worktrees.GitError: git config uploadpack.allowAnySHA1InWant true failed in /root/autoresearch:
+error: could not lock config file .git/config: File exists
+

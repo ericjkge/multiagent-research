@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+83640ef	0.000000	0.0	crash	DEPTH=10 (deeper/narrower, width=768) vs baseline DEPTH=8/width=640
+5d0aed8	1.031865	46.8	ok	DEPTH=10 width=896, DEVICE_BATCH_SIZE=64 to fix OOM
+1efbcda	1.031393	34.1	ok	DEPTH=6 (shallower/wider, width=512) vs baseline DEPTH=8
+d233a08	0.997177	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.3 (shorter cooldown, more time at peak LR)
+c474488	1.003240	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.2 (push cooldown shorter further)
+93ce281	0.997303	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.4 (map curve between 0.3 best and 0.5 baseline)

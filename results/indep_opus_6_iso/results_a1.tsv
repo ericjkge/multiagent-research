@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+414957f	1.001379	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps, grad_accum=1)
+33e4268	1.008119	22.2	ok	quarter batch: TOTAL_BATCH_SIZE 2**17, device batch 64
+1916b20	0.997025	43.9	ok	flat-concat fast dataloader in train.py (removes CPU packing bottleneck), batch 2**18
+0e6a355	0.994308	53.7	ok	DEPTH 8 -> 10 at fixed model_dim 512 (more capacity now that throughput is higher)
+f8923b5	0.995232	63.6	ok	DEPTH 10 -> 12 at fixed model_dim 512
+a57aebd	0.996529	53.7	ok	back to DEPTH 10; WARMDOWN_RATIO 0.5 -> 0.35 (more time at full LR)

@@ -1,0 +1,15 @@
+{
+  "cell_id": "indep_opus_6_iso",
+  "tag": "indep_opus_6_iso-20260923-044156",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "d99165f529af41566492b4e5c20880e3db42ae65",
+  "baseline_bpb": 0.982146,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 17.105154499999998,
+  "started_at": 1790138517.071916,
+  "finished_at": 1790151025.1433687,
+  "stop_reason": "all agents finished"
+}

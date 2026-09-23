@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+2b65202	1.001629	66.5	ok	DEPTH=10 (up from 8), width auto-scaled via ASPECT_RATIO
+ed9df4b	0.000000	0.0	crash	DEPTH=12, continuing depth sweep
+026e0b4	1.015093	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 to fix OOM
+aec5df3	0.000000	0.0	crash	DEPTH=11, DEVICE_BATCH_SIZE=128, narrowing depth sweep between 10 and 12
+69b8e82	1.011977	44.2	ok	DEPTH=11, DEVICE_BATCH_SIZE=64 to fix OOM, narrowing depth sweep
+9cb7d8b	1.002182	66.5	ok	DEPTH=10 (best shape) + WARMDOWN_RATIO=0.3 (shorter cooldown, more time at full LR)

@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+2149a5f	1.066267	26.6	ok	shallower DEPTH=6 (vs default 8) for more steps in fixed time budget
+52d5bd7	0.000000	0.0	crash	deeper DEPTH=12 (vs default 8)
+7b6369f	1.014859	47.8	ok	deeper DEPTH=12 with DEVICE_BATCH_SIZE=64 to avoid OOM
+78696ea	1.012919	44.0	ok	DEPTH=8 baseline with MATRIX_LR=0.055 (up from 0.04)
+2c2ef38	1.013932	44.0	ok	DEPTH=8 baseline with WARMDOWN_RATIO=0.35 (shorter cooldown, was 0.5)
+8c164c1	1.014791	44.0	ok	DEPTH=8 baseline with WINDOW_PATTERN=SSLL (more full-context layers, was SSSL)

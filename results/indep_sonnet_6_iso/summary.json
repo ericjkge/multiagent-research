@@ -1,0 +1,52 @@
+{
+  "cell_id": "indep_sonnet_6_iso",
+  "protocol": "open",
+  "share_log": false,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.996232,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 10089.2,
+  "agent_cost_usd": 4.3848,
+  "wall_clock_s": 10270.2,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a0": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.6671126,
+      "stop": "agent finished"
+    },
+    "a3": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.6449892000000002,
+      "stop": "agent finished"
+    },
+    "a1": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.7782754000000002,
+      "stop": "agent finished"
+    },
+    "a4": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.7982742,
+      "stop": "agent finished"
+    },
+    "a5": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.8237672000000001,
+      "stop": "agent finished"
+    },
+    "a2": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 0.6723692000000002,
+      "stop": "agent finished"
+    }
+  }
+}

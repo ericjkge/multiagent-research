@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+414957f	1.001379	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps, grad_accum=1)
+8a7f7ef	1.001892	43.9	ok	halve tokens-per-step: TOTAL_BATCH_SIZE 2**19 -> 2**18 (grad_accum 1), LRs unchanged
+440abfc	1.000800	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps, grad_accum=1)
+0f98043	1.000781	43.9	ok	halve global batch to 2^18 tokens (2x optimizer steps), LRs unchanged
+33e4268	1.008119	22.2	ok	quarter batch: TOTAL_BATCH_SIZE 2**17, device batch 64
+65ff337	1.007828	22.2	ok	quarter tokens-per-step: TOTAL_BATCH_SIZE 2**17, device batch 64 (grad_accum 1), LRs unchanged
+81ca2ea	1.010210	22.2	ok	TOTAL_BATCH_SIZE 2**17, device batch 64 (4x steps vs baseline)
+51ac1a0	1.006829	22.2	ok	batch 2^17 tokens (device batch 64): push step count further
+1916b20	0.997025	43.9	ok	flat-concat fast dataloader in train.py (removes CPU packing bottleneck), batch 2**18
+4b786d2	1.002599	43.9	ok	at 2**18 batch: scale all LRs ~1.4x (matrix 0.055, embed 0.85, unembed 0.0055)
+6f458d9	0.988145	33.8	ok	depth 8->10 (dim 512->640) at batch 2**18, device batch 64 (grad_accum 2)
+21bd06a	1.010004	44.0	ok	head_dim 64 (8 heads instead of 4) at dim 512, batch 2^18
+0e6a355	0.994308	53.7	ok	DEPTH 8 -> 10 at fixed model_dim 512 (more capacity now that throughput is higher)
+62ceae8	0.986791	66.2	ok	bigger model at the better batch: DEPTH 8->10 (dim 512->640), TOTAL_BATCH_SIZE 2**18, baseline LRs
+a0e20cf	0.994653	47.8	ok	depth 10->12 (dim 640->768) at batch 2**18, device batch 64
+df2eaa7	0.986041	53.9	ok	widen model to dim 640 (aspect ratio 80, 5 heads x 128) at depth 8, batch 2^18
+f8923b5	0.995232	63.6	ok	DEPTH 10 -> 12 at fixed model_dim 512
+7043cd0	0.994629	47.8	ok	push model size: DEPTH 12 (dim 768), TOTAL_BATCH_SIZE 2**18 via device batch 64 x grad_accum 2
+f718c60	0.991023	40.3	ok	depth 10 widened: ASPECT_RATIO 64->76 (dim 640->768) at batch 2**18 — width vs depth at equal dim
+6dd7941	0.982780	32.7	ok	widen further to dim 768 (aspect ratio 96, 6 heads x 128), batch 2^18 via device batch 64 x2
+a57aebd	0.996529	53.7	ok	back to DEPTH 10; WARMDOWN_RATIO 0.5 -> 0.35 (more time at full LR)
+14f293f	0.987351	33.5	ok	DEPTH 10 with TOTAL_BATCH_SIZE 2**17 (device batch 64, grad_accum 1): restore ~2000 updates at the larger model
+6a5be8e	0.990440	40.0	ok	pure depth test: depth 12 at fixed dim 640 (ASPECT_RATIO 53), batch 2**18
+d99165f	0.982146	32.4	ok	at dim 768: halve batch to 2^17 to recover optimizer steps (1072 -> ~2100)
+701da24	1.010895	22.2	ok	shrink width: dim 768 -> 512 (depth 8), buying ~1.7x more optimizer steps
+76033a9	0.990125	27.3	ok	shrink width 768 -> 640 (ASPECT_RATIO 96->80), depth 8 unchanged: buy ~30% more optimizer steps
+646fa8b	1.034067	22.2	ok	overlap CPU dataloader with GPU compute via background prefetch thread on its own CUDA stream
+8b6f6c0	1.007564	22.2	ok	shrink width 640 -> 512 (ASPECT_RATIO 80->64), depth 8: continue the size sweep toward Chinchilla
+7bc0558	1.006761	22.2	ok	cut dataloader packing buffer 1000 -> 192 to remove the per-step Python best-fit stall
+ece5fb0	0.990844	28.0	ok	value embeddings on every layer (4 -> 8) at dim 640: near-FLOP-free capacity in the CPU-bound regime
+be8adb5	1.032114	11.3	ok	halve tokens per optimizer step: 2^17 -> 2^16 (device batch 64 -> 32) to buy more Muon steps
+3a960bb	1.010386	14.0	ok	halve batch 2**17 -> 2**16 (device batch 32) at 8x640: tokens are CPU-capped, so optimizer steps are nearly free
+030af2e	1.005200	22.2	ok	sync GPU once per 4 steps instead of every step, so the Python dataloader and launches overlap with compute
+c867ac3	0.997068	27.3	ok	head_dim 128 -> 64 at dim 640 (5 heads -> 10 heads), FLOP-identical, everything else back to best config
+b8f4560	1.007255	22.2	ok	head_dim 128 -> 64 at dim 512 (4 heads -> 8 heads), same params and FLOPs
+40cae8a	0.988531	33.5	ok	depth 8 -> 10 at the winning width 640 (ASPECT_RATIO 64): add capacity via depth rather than width

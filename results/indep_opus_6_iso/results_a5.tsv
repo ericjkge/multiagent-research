@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+76033a9	0.990125	27.3	ok	shrink width 768 -> 640 (ASPECT_RATIO 96->80), depth 8 unchanged: buy ~30% more optimizer steps
+8b6f6c0	1.007564	22.2	ok	shrink width 640 -> 512 (ASPECT_RATIO 80->64), depth 8: continue the size sweep toward Chinchilla
+ece5fb0	0.990844	28.0	ok	value embeddings on every layer (4 -> 8) at dim 640: near-FLOP-free capacity in the CPU-bound regime
+3a960bb	1.010386	14.0	ok	halve batch 2**17 -> 2**16 (device batch 32) at 8x640: tokens are CPU-capped, so optimizer steps are nearly free
+c867ac3	0.997068	27.3	ok	head_dim 128 -> 64 at dim 640 (5 heads -> 10 heads), FLOP-identical, everything else back to best config
+40cae8a	0.988531	33.5	ok	depth 8 -> 10 at the winning width 640 (ASPECT_RATIO 64): add capacity via depth rather than width

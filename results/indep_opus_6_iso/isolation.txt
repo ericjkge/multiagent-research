@@ -1,0 +1,8 @@
+== indep_opus_6_iso: winner ('a4', 'd99165f', 0.982146)
+   a0: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+   a1: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+   a2: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+   a3: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+   a4: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+   a5: clean  results.tsv reads=0 peer-log reads=0 peer-commit refs=0
+ISOLATION OK

@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+2b65202	1.001629	66.5	ok	DEPTH=10 (up from 8), width auto-scaled via ASPECT_RATIO
+91b61c0	1.001799	66.5	ok	DEPTH=10 (deeper/narrower under fixed ASPECT_RATIO)
+2149a5f	1.066267	26.6	ok	shallower DEPTH=6 (vs default 8) for more steps in fixed time budget
+c0f2fbb	1.066017	26.6	ok	DEPTH=6 (smaller/faster model, more steps in 5min budget)
+00e4480	1.063523	26.6	ok	DEPTH=6 (narrower/shallower, more steps in 5min)
+ed9df4b	0.000000	0.0	crash	DEPTH=12, continuing depth sweep
+9329028	0.000000	0.0	crash	DEPTH=12 (push deeper further)
+52d5bd7	0.000000	0.0	crash	deeper DEPTH=12 (vs default 8)
+6f0db0a	0.000000	0.0	crash	DEPTH=12 (larger model, fewer steps in 5min budget)
+6b380f8	1.001260	66.5	ok	DEPTH=10 (deeper/wider, fewer steps in 5min)
+026e0b4	1.015093	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 to fix OOM
+d06309a	1.015012	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 to fix OOM
+7b6369f	1.014859	47.8	ok	deeper DEPTH=12 with DEVICE_BATCH_SIZE=64 to avoid OOM
+07b25a7	1.015028	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 (avoid OOM, larger model fewer steps)
+c32f9fd	0.000000	0.0	crash	DEPTH=12 (even deeper/wider)
+aec5df3	0.000000	0.0	crash	DEPTH=11, DEVICE_BATCH_SIZE=128, narrowing depth sweep between 10 and 12
+e883f82	1.004844	66.5	ok	DEPTH=10, MATRIX_LR=0.05 (Muon LR bump)
+78696ea	1.012919	44.0	ok	DEPTH=8 baseline with MATRIX_LR=0.055 (up from 0.04)
+f3832e5	1.011362	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.06 (higher Muon LR)
+6444955	1.015048	47.8	ok	DEPTH=12 with DEVICE_BATCH_SIZE=64 to fix OOM
+69b8e82	1.011977	44.2	ok	DEPTH=11, DEVICE_BATCH_SIZE=64 to fix OOM, narrowing depth sweep
+da43376	1.002009	66.5	ok	DEPTH=10 (best config), WARMDOWN_RATIO=0.35 (shorter cooldown)
+2c2ef38	1.013932	44.0	ok	DEPTH=8 baseline with WARMDOWN_RATIO=0.35 (shorter cooldown, was 0.5)
+82ca31e	1.013105	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.08 (push Muon LR further)
+c41c30a	0.998370	60.5	ok	DEPTH=9 (same width 640 as DEPTH=10, one fewer layer, more steps)
+9cb7d8b	1.002182	66.5	ok	DEPTH=10 (best shape) + WARMDOWN_RATIO=0.3 (shorter cooldown, more time at full LR)
+984f2f7	1.002941	66.5	ok	DEPTH=10 (best config), WEIGHT_DECAY=0.1 (final run of share)
+8c164c1	1.014791	44.0	ok	DEPTH=8 baseline with WINDOW_PATTERN=SSLL (more full-context layers, was SSSL)
+5a1ab5d	1.012279	44.0	ok	DEPTH=8, MATRIX_LR=0.06 (repeat, confirm reproducibility of best result)
+d77862a	0.996232	54.1	ok	DEPTH=8, ASPECT_RATIO=80 -> width=640 (isolate depth vs width vs D9/D10)
+83640ef	0.000000	0.0	crash	DEPTH=10 (deeper/narrower, width=768) vs baseline DEPTH=8/width=640
+5d0aed8	1.031865	46.8	ok	DEPTH=10 width=896, DEVICE_BATCH_SIZE=64 to fix OOM
+1efbcda	1.031393	34.1	ok	DEPTH=6 (shallower/wider, width=512) vs baseline DEPTH=8
+d233a08	0.997177	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.3 (shorter cooldown, more time at peak LR)
+c474488	1.003240	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.2 (push cooldown shorter further)
+93ce281	0.997303	54.1	ok	DEPTH=8 baseline, WARMDOWN_RATIO=0.4 (map curve between 0.3 best and 0.5 baseline)
