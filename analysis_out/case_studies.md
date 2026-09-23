@@ -302,3 +302,21 @@ one Opus was 0.003 to 0.006 on Monday's box), and far more than sharing.
 **Caveats that stay.** One seed per arm on this box; the box is slower than Monday's, so its gains are
 larger for the same changes and are compared only within it; the Monday `indep_*` cells remain
 contaminated and are kept only as the record of that.
+
+## 10. The teammates' cells, as of Sep 23 13:50
+
+Eric pushed the Sonnet rounds family from his box (section 8). Riddhi pushed two open-protocol Sonnet
+cells run on Modal H100s at 11:57 today, plus a YAML fix and a Modal deployment. Nothing from Anthony.
+
+| cell (Riddhi's box, baseline 1.0125) | agents | runs | final | gain | crashes |
+|---|---:|---:|---:|---:|---:|
+| `open_sonnet_1` | 1 | 36 | 0.979324 | 0.0332 | 1 |
+| `open_sonnet_3` | 3 | 36 | 0.993862 | 0.0187 | 0 |
+
+Both pass verify. Her box measures the untouched baseline at 1.0125, within noise of pod 4's 1.0123 and
+Eric's 1.0140, so the three "slow" boxes form one comparison group and Monday's pods (0.9973) another.
+Within that group her single Sonnet agent with 36 runs of its own gained more (0.033) than any six-agent
+cell, and three Sonnet agents gained less than one. Single seeds, so no more than a reminder that at this
+budget one agent with a long memory is a strong configuration, which the Opus grid also showed
+(`open_opus_1` beat `open_opus_3` on Monday). `open_sonnet_6` (0.9857, Monday's box) is not comparable
+with these two.
