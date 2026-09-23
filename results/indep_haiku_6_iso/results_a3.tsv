@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+96c396a	1.011943	44.0	ok	Increase MATRIX_LR from 0.04 to 0.05
+3a30d6a	1.012479	44.0	ok	Increase MATRIX_LR from 0.05 to 0.06
+eee450e	1.013271	44.0	ok	Reduce WARMDOWN_RATIO from 0.5 to 0.3, keep MATRIX_LR at 0.05
+fb79e81	1.015242	44.0	ok	Reduce EMBEDDING_LR from 0.6 to 0.5, keep MATRIX_LR at 0.05
+fa91142	1.012943	44.0	ok	Increase UNEMBEDDING_LR from 0.004 to 0.006, keep MATRIX_LR at 0.05
+9ddfc13	1.011649	44.0	ok	Reduce WEIGHT_DECAY from 0.2 to 0.15, keep MATRIX_LR at 0.05

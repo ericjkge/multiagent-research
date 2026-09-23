@@ -1,0 +1,15 @@
+Exception in thread Thread-2 (worker):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/multiagent-research/runs/open_opus_6_iso-20260923-073357/work/open_a3/train.py", line 518, in worker
+    torch.cuda.set_device(device)
+  File "/root/autoresearch/.venv/lib/python3.10/site-packages/torch/cuda/__init__.py", line 565, in set_device
+    device = _get_device_index(device)
+  File "/root/autoresearch/.venv/lib/python3.10/site-packages/torch/cuda/_utils.py", line 373, in _get_device_index
+    return _torch_get_device_index(device, optional, allow_cpu)
+  File "/root/autoresearch/.venv/lib/python3.10/site-packages/torch/_utils.py", line 872, in _get_device_index
+    raise ValueError(
+ValueError: Expected a torch.device with a specified index or an integer, but got:cuda

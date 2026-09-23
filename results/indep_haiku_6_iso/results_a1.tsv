@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+384bc42	1.012457	44.0	ok	Reduce EMBEDDING_LR from 0.6 to 0.3
+f8d62ee	1.013510	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
+47fe7ca	1.014915	44.0	ok	Add warmup_ratio 0.05 for training stability
+012fd8c	1.001943	66.5	ok	Increase DEPTH from 8 to 10
+16e7e31	0.000000	0.0	crash	Increase DEPTH from 10 to 12
+f05aa67	0.000000	0.0	crash	Increase DEPTH from 10 to 11

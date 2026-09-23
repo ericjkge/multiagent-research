@@ -1,0 +1,2 @@
+== open_opus_6_iso: sharing on, isolation not required
+ISOLATION OK

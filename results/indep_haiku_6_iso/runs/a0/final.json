@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "e5b344f",
+  "best_val_bpb": 1.001749,
+  "summary": "Discovered that increasing model depth from 8 to 10 layers significantly improves validation performance from 1.012347 to 1.001749. This translates to ~1% better bits-per-byte with the fixed 5-minute training budget. Attempted hyperparameter tuning (embedding LR reduction, warmdown adjustment) and further depth increases (11, 12) which either hurt performance or exceeded VRAM capacity. The optimal configuration uses depth=10 with baseline hyperparameters (ASPECT_RATIO=64, EMBEDDING_LR=0.6, MATRIX_LR=0.04)."
+}

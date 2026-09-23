@@ -1,0 +1,69 @@
+{
+  "cell": {
+    "cell_id": "indep_haiku_6_iso",
+    "agents": [
+      {
+        "id": "a0",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a1",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a2",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a3",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a4",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      },
+      {
+        "id": "a5",
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "medium",
+        "harness": "claude_code"
+      }
+    ],
+    "bon": 1,
+    "train_run_budget": 36,
+    "nominal_run_seconds": 330.0,
+    "train_timeout_s": 900,
+    "max_train_attempts": 3,
+    "autoresearch_repo": "~/autoresearch",
+    "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
+    "max_budget_usd_per_session": 1000.0,
+    "cell_budget_usd": 100000.0,
+    "protocol": "open",
+    "solo_self_critique": false,
+    "phase_timeout_s": {
+      "propose": 900,
+      "select": 3600,
+      "respond": 1200
+    },
+    "open_share_log": false,
+    "open_per_agent_quota": true,
+    "open_max_resumes": 40,
+    "open_session_timeout_s": 21600,
+    "fake_gpu": false,
+    "seed": 0
+  },
+  "config_fingerprint": "aa8d14f41560",
+  "claude_version": "2.1.280 (Claude Code)",
+  "autoresearch_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "started_at": 1790151029.0375614
+}

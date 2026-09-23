@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+d76f5cc	1.011661	22.2	ok	4x smaller batch (2^19->2^17 tok/step, accum 1), LRs x ~0.55 (sqrt scaling)
+9d7c511	1.003678	43.9	ok	halve TOTAL_BATCH_SIZE to 2**18 (2x optimizer steps, grad_accum 1)
+020b900	1.025211	40.4	ok	GQA: n_kv_head = n_head//2 (halves K/V and value-embedding tables)
+c3cefee	1.022087	44.0	ok	U-net skip connections: layers 4-7 add learned lambda * output of layers 3-0
+6767b23	1.003924	53.9	ok	depth 8->10 at fixed width 512 (explicit MODEL_DIM replaces ASPECT_RATIO)
+430c6c6	1.009644	22.2	ok	batch 2^17 with ORIGINAL (unscaled) LRs: isolates LR-vs-batch coupling
+e7106ef	1.014691	44.0	ok	FlexAttention with block-diagonal document masking (no cross-document attention) replacing dense FA3
+876221a	1.009719	39.8	ok	MLP_RATIO 4 -> 3 (cheaper block, more steps) on 2**18 batch base
+9122bb4	1.005791	44.0	ok	on a0 2**18 base: HEAD_DIM 128->64 (8 heads instead of 4, full MHA, same dim)
+5f7b42a	1.001286	49.7	ok	on a0 2**18 base: per-channel (vector) resid/x0 lambdas instead of per-layer scalars
+ce82646	1.001467	63.8	ok	depth 10->12 at fixed width 512
+8e15129	1.008286	22.3	ok	batch-size RAMP on 2**18 base: grad_accum 1->2->4 (2^17->2^19 tok/step) at 35%/75% of budget
+4c3bb80	0.000000	0.0	crash	a0 2**18 base + background-thread dataloader prefetch (overlap Python packing/BPE with GPU)
+baf8355	0.989682	51.9	ok	MLP_RATIO 4 -> 6 (wider MLP; FLOPs are cheap at 23% MFU) on 2**18 base
+c0c11f0	0.998855	43.9	ok	short sliding window 1024->512 (SSSL pattern, 2**18 base): cheaper attention, more steps
+0c646d3	0.996286	61.0	ok	per-channel lambdas + depth 10 at fixed width 512 (stacking a1's depth win)
+b48980c	0.986500	63.6	ok	depth 12 (width 512) x TOTAL_BATCH_SIZE 2**18: composition of my depth finding with a0's batch finding
+b2f480a	1.004589	49.7	ok	on a5 per-channel-lambda base: MATRIX_LR (Muon) 0.04 -> 0.06, everything else identical
+99b3fbe	1.006746	49.7	ok	a5 5f7b42a base + O(log n) bisect dataloader on a prefetch thread (input pipeline was the bottleneck)
+8a43b9d	0.988276	64.1	ok	MLP_RATIO 6 -> 9 (push the wide-MLP curve further)
+e01669e	0.989532	51.9	ok	stack: a0 MLP_RATIO=6 base + my short window 1024->512 (SHORT_WINDOW_DIV=4)
+4c0ddd2	0.990240	71.1	ok	MLP_RATIO 6 base + per-channel resid/x0 lambdas + depth 10 (width 512)
+b1b4aa1	0.990459	40.0	ok	width 512->640 at depth 12, 2**18 batch (device batch 64, accum 2 for VRAM)
+a885cff	0.995750	43.9	ok	stack: depth12 + MLP_RATIO 6 + short window 512 + per-channel lambdas, plus my variation: value embeddings on EVERY layer (device batch 64)
+cc699f4	0.988078	63.8	ok	a1 depth-12 base + tail weight averaging: EMA (decay 0.99) over the last 25% of the budget, evaluated instead of the last iterate
+d12516f	0.987973	38.5	ok	depth12 (a1) + MLP_RATIO 6 (a0) + short window 512 (a2), device batch 64 x accum 2
+a38e795	0.986010	65.2	ok	a1 depth-12 base + value embeddings on EVERY layer (was alternating 6/12)
+586cb4f	0.993828	72.4	ok	a1 depth-12 base + per-channel resid/x0 lambdas (only change)
+77101ab	0.993330	37.3	ok	depth 12->14 at width 512, 2**18 batch (device batch 64, accum 2)
+096888e	0.986243	63.6	ok	cell best (depth12, 2**18) + short window 512 + per-channel lambdas: composition test of the two cheapest wins at depth 12
+93761a5	0.985510	63.6	ok	on a1 depth-12 leader: WARMDOWN_RATIO 0.5->0.7 (longer LR cooldown) + bisect dataloader (data-identical, only affects step count)
+c912f39	0.986119	63.6	ok	a1 depth-12 base + UNEMBEDDING_LR 0.004 -> 0.012 (only change)
+7f8586d	0.992769	74.2	ok	depth-12 + VE on every layer (mine) + a5 per-channel resid/x0 lambdas
+519bd87	0.998103	33.7	ok	FLOP-matched depth reallocation: depth 14 x MLP_RATIO 3 (vs a1 depth 12 x MLP 4), device batch 64 accum 2
+b52eec2	0.984417	63.6	ok	my depth-12 base at DEVICE_BATCH_SIZE 128 + a2's short window 1024->512 (SHORT_WINDOW_DIV=4)
+5baae23	0.986300	63.6	ok	push the schedule axis: WARMDOWN_RATIO 0.7->0.9 on my 0.985510 leader (near-linear LR decay over the whole run)

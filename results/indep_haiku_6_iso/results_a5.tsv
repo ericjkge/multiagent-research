@@ -1,0 +1,7 @@
+commit	val_bpb	memory_gb	status	description
+c0d3731	1.013559	44.0	ok	increase embedding LR from 0.6 to 0.8
+8f1fed3	1.015579	44.0	ok	decrease embedding LR from 0.6 to 0.4
+4b47250	1.012817	44.0	ok	increase matrix LR from 0.04 to 0.05
+8165191	1.013939	44.0	ok	decrease matrix LR from 0.04 to 0.03
+c4c0e65	1.017683	44.0	ok	add LR warmup: WARMUP_RATIO 0.0 to 0.1
+6e997cb	1.013452	44.0	ok	increase FINAL_LR_FRAC from 0.0 to 0.1 to prevent LR decay to zero
