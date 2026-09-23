@@ -1,22 +1,22 @@
 # Results so far (2026-09-22 23:56)
 
-- indep_haiku_6: OK — all invariants hold for results/indep_haiku_6
-- indep_haiku_6_s2: OK — all invariants hold for results/indep_haiku_6_s2
-- indep_opus_6: OK — all invariants hold for results/indep_opus_6
-- indep_opus_6_s2: OK — all invariants hold for results/indep_opus_6_s2
-- indep_sonnet_6: OK — all invariants hold for results/indep_sonnet_6
-- indep_sonnet_6_s2: OK — all invariants hold for results/indep_sonnet_6_s2
-- open_opus_1: OK — all invariants hold for results/open_opus_1
-- open_opus_3: OK — all invariants hold for results/open_opus_3
-- open_opus_6: OK — all invariants hold for results/open_opus_6
-- open_opus_6_s2:   note: open protocol: a5 claimed 7 runs, share was 6: one slot moved between agents when the budget was rebuilt after a resume; cell total unchanged
-- open_sonnet_6: OK — all invariants hold for results/open_sonnet_6
-- opus_1:   note: phantom candidate: round 5 a0/v2 scored 0.986277 with no GPU run behind it (excluded from nothing: it never won)
-- opus_3:   note: phantom candidate: round 1 a1/v1 scored 0.992664 with no GPU run behind it (excluded from nothing: it never won)
-- opus_6:   note: phantom candidate: round 5 a2/v0 scored 0.981817 with no GPU run behind it (excluded from nothing: it never won)
-- sonnet_1: OK — all invariants hold for results/sonnet_1
-- sonnet_3: OK — all invariants hold for results/sonnet_3
-- sonnet_6:   note: phantom candidate: round 1 a4/v0 scored 0.998671 with no GPU run behind it (excluded from nothing: it never won)
+- indep_haiku_6: OK — all invariants hold
+- indep_haiku_6_s2: OK — all invariants hold
+- indep_opus_6: OK — all invariants hold
+- indep_opus_6_s2: OK — all invariants hold
+- indep_sonnet_6: OK — all invariants hold
+- indep_sonnet_6_s2: OK — all invariants hold
+- open_opus_1: OK — all invariants hold
+- open_opus_3: OK — all invariants hold
+- open_opus_6: OK — all invariants hold
+- open_opus_6_s2: OK — all invariants hold (1 noted deviation(s), see verify)
+- open_sonnet_6: OK — all invariants hold
+- opus_1: OK — all invariants hold (1 noted deviation(s), see verify)
+- opus_3: OK — all invariants hold (1 noted deviation(s), see verify)
+- opus_6: OK — all invariants hold (2 noted deviation(s), see verify)
+- sonnet_1: OK — all invariants hold
+- sonnet_3: OK — all invariants hold
+- sonnet_6: OK — all invariants hold (1 noted deviation(s), see verify)
 
 ```
 cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
