@@ -320,3 +320,11 @@ cell, and three Sonnet agents gained less than one. Single seeds, so no more tha
 budget one agent with a long memory is a strong configuration, which the Opus grid also showed
 (`open_opus_1` beat `open_opus_3` on Monday). `open_sonnet_6` (0.9857, Monday's box) is not comparable
 with these two.
+
+**Anthony's Haiku family (pushed Sep 23, 16:01, his box, baseline 0.9966).** All six cells verify. Open:
+one agent 0.9928, three 0.9909, six 0.9951. Rounds: 0.9941, 0.9937, 0.9943 at 20, 21 and 28 runs (the
+round cells lost slots to crashes and carry phantom candidates, noted by verify). Gains of 0.002 to 0.006
+against 0.017 to 0.021 for Opus on a comparably fast box: the weak model barely moves the number under
+any organisation, and adding Haiku agents adds nothing. Together with the isolated ladder on pod 4 this
+is the model-strength result from the other side: headcount and workflow only pay for a model that can
+use the extra tries.

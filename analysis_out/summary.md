@@ -1,7 +1,10 @@
-# Results so far (2026-09-23 13:47)
+# Results so far (2026-09-23 14:01)
 
 **Read the correction at the top of case_studies.md first: the independent (indep_*) cells were not isolated (agents read the shared score table and peers' commits), so they do not measure the absence of communication.**
 
+- haiku_1: OK — all invariants hold (8 noted deviation(s), see verify)
+- haiku_3: OK — all invariants hold (10 noted deviation(s), see verify)
+- haiku_6: OK — all invariants hold (11 noted deviation(s), see verify)
 - indep_haiku_6: OK — all invariants hold
 - indep_haiku_6_iso: OK — all invariants hold
 - indep_haiku_6_s2: OK — all invariants hold
@@ -11,6 +14,9 @@
 - indep_sonnet_6: OK — all invariants hold
 - indep_sonnet_6_iso: OK — all invariants hold
 - indep_sonnet_6_s2: OK — all invariants hold
+- open_haiku_1: OK — all invariants hold
+- open_haiku_3: OK — all invariants hold
+- open_haiku_6: OK — all invariants hold
 - open_opus_1: OK — all invariants hold
 - open_opus_3: OK — all invariants hold
 - open_opus_6: OK — all invariants hold
@@ -29,6 +35,9 @@
 ```
 cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
 -------------------------------------------------------------------------------------------------
+haiku_1             1    6   0.996598   0.994120  0.002478    20       6    22.2   0.000    10.09
+haiku_3             3    2   0.996598   0.993742  0.002856    21       6    19.4   0.216    21.49
+haiku_6             6    1   0.996598   0.994321  0.002277    28       6     8.3   0.199    27.37
 indep_haiku_6       6    1   0.997359   0.976806  0.020553    36       1    30.6   0.146    23.33
 indep_haiku_6_iso      6    1   1.012347   0.999826  0.012521    36       1    22.2   0.171     1.79
 indep_haiku_6_s2      6    1   0.997333   0.995414  0.001919    36       1     0.0   0.152    16.33
@@ -38,6 +47,9 @@ indep_opus_6_s2      6    1   0.997333   0.980071  0.017262    36       1     0.
 indep_sonnet_6      6    1   0.997333   0.988312  0.009021    36       1    11.1   0.293  2143.84
 indep_sonnet_6_iso      6    1   1.012347   0.996232  0.016115    36       1    19.4   0.307     4.38
 indep_sonnet_6_s2      6    1   0.997359   0.977046  0.020313    36       1    22.2   0.285  2077.04
+open_haiku_1        1    1   0.996598   0.992818  0.003780    36       1     0.0   0.000     0.83
+open_haiku_3        3    1   0.996598   0.990882  0.005716    36       1     0.0   0.113     4.61
+open_haiku_6        6    1   0.996598   0.995085  0.001513    36       1     0.0   0.100    27.42
 open_opus_1         1    1   0.997359   0.980742  0.016617    36       1     0.0   0.000     5.48
 open_opus_3         3    1   0.997359   0.982130  0.015229    36       1     2.8   0.199    18.99
 open_opus_6         6    1   0.997333   0.977896  0.019437    36       1     0.0   0.183    35.93
@@ -58,6 +70,9 @@ sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0
 
 | cell | runs | best@29 | best@34 | best@36 | final |
 |---|---:|---:|---:|---:|---:|
+| haiku_1 | 20 | 0.996000 | 0.994120 | 0.994120 | 0.99412 |
+| haiku_3 | 21 | 0.995001 | 0.993742 | 0.993742 | 0.993742 |
+| haiku_6 | 28 | 0.994321 | 0.994321 | 0.994321 | 0.994321 |
 | indep_haiku_6 | 36 | 0.976806 | 0.976806 | 0.976806 | 0.976806 |
 | indep_haiku_6_iso | 36 | 0.999826 | 0.999826 | 0.999826 | 0.999826 |
 | indep_haiku_6_s2 | 36 | 0.995414 | 0.995414 | 0.995414 | 0.995414 |
@@ -67,6 +82,9 @@ sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0
 | indep_sonnet_6 | 36 | 0.988312 | 0.988312 | 0.988312 | 0.988312 |
 | indep_sonnet_6_iso | 36 | 0.998370 | 0.996232 | 0.996232 | 0.996232 |
 | indep_sonnet_6_s2 | 36 | 0.977046 | 0.977046 | 0.977046 | 0.977046 |
+| open_haiku_1 | 36 | 0.993136 | 0.992818 | 0.992818 | 0.992818 |
+| open_haiku_3 | 36 | 0.991949 | 0.991730 | 0.990882 | 0.990882 |
+| open_haiku_6 | 36 | 0.995457 | 0.995085 | 0.995085 | 0.995085 |
 | open_opus_1 | 36 | 0.982289 | 0.981856 | 0.980742 | 0.980742 |
 | open_opus_3 | 36 | 0.983331 | 0.982424 | 0.982130 | 0.98213 |
 | open_opus_6 | 36 | 0.978654 | 0.977973 | 0.977896 | 0.977896 |
