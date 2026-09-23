@@ -131,12 +131,12 @@ def fig1():
              ("Sonnet", "indep_sonnet_6_iso", "winner: wider model"),
              ("Haiku", "indep_haiku_6_iso", "winner: deeper model, embedding LR nudged")]
     b0 = baseline("indep_opus_6_iso")
-    fig = frame("The smarter researcher wins the race",
+    fig = frame("Opus runs away with the race",
                 "Six agents of one model, each working alone, on the same GPU machine with the same 36 five-minute\n"
                 "training runs. The line is the best result found so far.",
-                f"Same machine for all three (untouched code scores {b0:.4f} bits per byte there). Grey band: run-to-run noise "
-                f"({NOISE_BPB} bits per byte). Agents were sealed off from each other;\n"
-                "the transcript audit found no reads of another agent's scores, logs or code.")
+                f"Same machine for all three (untouched code scores {b0:.4f} bits per byte there). One search per model. Grey band: run-to-run noise "
+                f"measured on another machine ({NOISE_BPB}).\nThis compares models working through this harness, crashes included; "
+                "it is not a separate measure of idea quality. Transcript audit: no agent read another's scores, logs or code.")
     ax = fig.add_axes([0.075, 0.19, 0.60, 0.53])
     style(ax)
     noise = NOISE_BPB / b0 * 100
@@ -173,12 +173,12 @@ def fig2():
         ("Haiku", "shared log", {1: ["open_haiku_1"], 3: ["open_haiku_3"], 6: ["open_haiku_6"]}, False),
         ("Haiku", "rounds", {1: ["haiku_1"], 3: ["haiku_3"], 6: ["haiku_6"]}, True),
     ]
-    fig = frame("Six heads beat one, if the heads are good",
-                "Each line is one model and workflow on one machine. Every team size gets the same 36 experiments,\n"
-                "so extra agents add thinking, not compute. 1x means no better than a single agent.",
-                "Progress = improvement over the untouched code, divided by the one-agent improvement on the same line. Haiku's gains are only 2 to 7 times "
-                "run noise, so its ratios swing on noise.\nRound cells ended short of 36 runs: Opus 34 (3 and 6 agents), Sonnet 32 to 33, Haiku 20 to 28 (hollow). "
-                "Opus shared log at 6 agents is the mean of two seeds (1.17x and 1.26x).")
+    fig = frame("Adding agents is not a reliable multiplier",
+                "Each line is one model and workflow on one machine, with the same 36 experiments at every team size, so extra agents\n"
+                "add thinking, not compute. At three agents, three lines rose and three fell; at six, three rose and both Haiku lines fell.",
+                "Progress = improvement over the untouched code, divided by the one-agent improvement on the same line. One search per point.\n"
+                "Haiku's gains are only 2 to 7 times run noise, so its ratios swing on noise. Round cells ended short of 36 runs: Opus 34 (3 and 6 agents),\n"
+                "Sonnet 32 to 33, Haiku 20 to 28 (hollow). Opus shared log at 6 agents is the mean of two seeds (1.17x and 1.26x).")
     ax = fig.add_axes([0.075, 0.19, 0.56, 0.53])
     style(ax)
     ax.axhline(1, color=INK2, linewidth=1.1, zorder=2)
@@ -318,9 +318,8 @@ def fig4():
     fig = frame("Sharing everything did not beat seeing nothing",
                 "Six Opus agents on one machine, 36 experiments each. One team shared a research log (scores, findings, code).\n"
                 "The other ran in sealed-off copies with no way to see each other.",
-                "One seed per arm. Rerunning one setup with a new seed moved its score by 0.15 and 0.24 points (Monday's machine), so a 0.22 gap cannot be "
-                "told from chance.\nAn earlier 'independent' control leaked (agents could read a shared score table). This rerun replaced it; "
-                "a transcript audit found no peer access.")
+                "One search per arm: the isolated team did not do worse, which is not the same as the two being equal, and no threshold follows from one pair.\n"
+                "An earlier 'independent' control leaked (agents could read a shared score table). This rerun replaced it; a transcript audit found no peer access.")
     ax = fig.add_axes([0.075, 0.19, 0.56, 0.53])
     style(ax)
     rows = [("shared a research log", "open_opus_6_iso", MODEL["Opus"]),
@@ -354,7 +353,7 @@ def fig4():
     ya.set_ylim(0, 0.34)
     ya.axis("off")
     ya.text(0, 0.40, "How big is that gap?", fontsize=12.5, fontweight="bold", color=INK, va="bottom")
-    ya.text(0, 0.375, "in points of improvement", fontsize=9.5, color=MUTED, va="top")
+    ya.text(0, 0.375, "in points; grey bars are from another machine", fontsize=9.5, color=MUTED, va="top")
     bars = [(gap, "this gap", MODEL["Opus"]),
             (wobble_open, "shared log,\nrerun with a\nnew seed", AXIS),
             (wobble_leaky, "earlier control,\nrerun with a\nnew seed", AXIS)]
@@ -399,7 +398,7 @@ def fig5():
                 f"The final model stacks changes found by {len(authors)} of the 6 agents.",
                 f"Grey dots: every experiment ({len(runs) - len(steps)} of {len(runs)} did not set a new best). 'Adopted by': other agents "
                 "pulled that code into their own work after reading its score in the log.\n"
-                "Collaboration clearly happened. On the same budget, six agents that could not see each other scored at least as well (chart 4).")
+                "Collaboration clearly happened. Whether it beats working alone is chart 4: in the one matched pair, the isolated team found the better result.")
     ax = fig.add_axes([0.075, 0.19, 0.50, 0.53])
     style(ax)
     for x, pct, c in runs:
