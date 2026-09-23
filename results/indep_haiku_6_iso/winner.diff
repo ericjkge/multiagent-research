@@ -1,0 +1,22 @@
+# best run of indep_haiku_6_iso: a2 62e2ffb val_bpb 0.999826: Depth 10 + increase EMBEDDING_LR from 0.6 to 0.7
+# against baseline 228791f (diff built from the archived per-run train.py)
+--- /private/tmp/claude-503/-Users-alvin-Projects/f47153f1-ac89-4418-b969-e9e44c45d8ee/scratchpad/train_baseline.py	2026-09-23 11:40:47
++++ results/indep_haiku_6_iso/runs/a2/run020/train.py	2026-09-23 05:18:31
+@@ -436,7 +436,7 @@
+ 
+ # Optimization
+ TOTAL_BATCH_SIZE = 2**19 # ~524K tokens per optimizer step
+-EMBEDDING_LR = 0.6      # learning rate for token embeddings (Adam)
++EMBEDDING_LR = 0.7      # learning rate for token embeddings (Adam)
+ UNEMBEDDING_LR = 0.004  # learning rate for lm_head (Adam)
+ MATRIX_LR = 0.04        # learning rate for matrix parameters (Muon)
+ SCALAR_LR = 0.5         # learning rate for per-layer scalars (Adam)
+@@ -447,7 +447,7 @@
+ FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
+ 
+ # Model size
+-DEPTH = 8               # number of transformer layers
++DEPTH = 10               # number of transformer layers
+ DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
+ 
+ # ---------------------------------------------------------------------------

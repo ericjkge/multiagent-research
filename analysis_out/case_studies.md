@@ -39,10 +39,9 @@ run-to-run noise (0.0008) is not the variability of a whole search; `open_opus_6
 seven attempts and one at five after a budget rebuild; `indep_sonnet_6_s2` executed 37 attempts and the
 37th is excluded from its record.
 
-**Fix in progress.** True isolation for the independent arm: a per-agent score table, a separate git clone
+**Fix done, reruns done (section 9b).** True isolation for the independent arm: a per-agent score table, a separate git clone
 per agent so peers' commits do not exist in its repository, a guard-hook denylist for the shared table,
-peers' logs and worktrees, and a transcript scan that fails verification on any peer read. The two Opus
-independent seeds are to be rerun under it before any communication claim is made again.
+peers' logs and worktrees, and a transcript scan that fails verification on any peer read. Reruns on Sep 23 (section 9b): no effect of sharing detected against a real no-access control; model strength is the larger lever.
 
 ---
 
@@ -276,3 +275,30 @@ Two things are already visible. Truly isolated Opus agents get a long way on the
 larger than any Monday cell's, though on a slower box where the same knobs are worth more. And the
 Sonnet gap to Opus (0.014) is of the same order as Monday's, with the Sonnet crash rate again far higher
 (7 of 36 against 0 of 36). The communication comparison waits for `open_opus_6_iso`.
+
+### 9b. All four isolated cells in (Sep 23, 07:12 finish; written 11:45)
+
+| cell (pod 4, baseline 1.0123) | runs | crashes | final | gain | isolation scan |
+|---|---:|---:|---:|---:|---|
+| `open_opus_6_iso` (sharing on) | 36 | 1 | 0.984417 | 0.0279 | not required |
+| `indep_opus_6_iso` (no access to peers) | 36 | 0 | 0.982146 | 0.0302 | clean, 6 of 6 |
+| `indep_sonnet_6_iso` | 36 | 7 | 0.996232 | 0.0161 | clean, 6 of 6 |
+| `indep_haiku_6_iso` | 36 | 8 | 0.999826 | 0.0125 | clean, 6 of 6 |
+
+**Sharing versus true isolation, one machine, one seed each.** Six Opus agents that could not see each
+other at all finished at 0.9821; six that shared everything through the directory finished at 0.9844.
+The difference, 0.0023 in favour of the isolated agents, is inside the spread measured between seeds
+of one arm on Monday (0.0015 to 0.0024), and a one-seed-per-arm design detects nothing smaller than
+about 0.006. So the statement the reviewer asked for now has its control: at 36 runs of five minutes,
+no effect of sharing was detected, in either direction. The open cell still shows the protocol working
+(adoptions, findings, disconfirmations on its log); it did not show a better number.
+
+**Model strength, now measured properly.** With real isolation the ladder is unambiguous: Opus gained
+0.030, Sonnet 0.016, Haiku 0.013, and the weak models crashed a fifth of their runs. Monday's
+"Haiku matches Opus" was copying; alone, Haiku does not find the width, batch and window changes that
+carry the Opus result. Model strength is worth about twice as much as headcount here (six Opus over
+one Opus was 0.003 to 0.006 on Monday's box), and far more than sharing.
+
+**Caveats that stay.** One seed per arm on this box; the box is slower than Monday's, so its gains are
+larger for the same changes and are compared only within it; the Monday `indep_*` cells remain
+contaminated and are kept only as the record of that.
