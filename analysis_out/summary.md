@@ -1,4 +1,4 @@
-# Results so far (2026-09-22 17:47)
+# Results so far (2026-09-22 23:51)
 
 - indep_haiku_6: OK — all invariants hold for results/indep_haiku_6
 - indep_haiku_6_s2: OK — all invariants hold for results/indep_haiku_6_s2
@@ -14,6 +14,10 @@
 - opus_1: OK — all invariants hold for results/opus_1
 - opus_3: OK — all invariants hold for results/opus_3
 - opus_6: OK — all invariants hold for results/opus_6
+- sonnet_1: OK — all invariants hold for results/sonnet_1
+- sonnet_3: OK — all invariants hold for results/sonnet_3
+- sonnet_6-PILOT-20260922-142048-stopped:   - rounds started but not ended: [4]
+- sonnet_6: OK — all invariants hold for results/sonnet_6
 
 ```
 cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
@@ -32,6 +36,12 @@ open_sonnet_6       6    1   0.997333   0.985651  0.011682    36       1     8.3
 opus_1              1    5   0.997359   0.986277  0.011082    33       7     2.9   0.000    62.20
 opus_3              3    2   0.997359   0.987792  0.009567    34       6     5.6   0.289   235.32
 opus_6              6    1   0.997333   0.980496  0.016837    34       6     0.0   0.297   407.50
+sonnet_1            1    5   1.014027   1.002279  0.011748    32       6     3.3   0.000    16.07
+sonnet_3            3    2   1.014027   0.992950  0.021077    32       5     6.7   0.325    28.86
+sonnet_6-PILOT-20260922-142048-stopped      6    1   1.014027   0.000000  0.000000    24       0    25.0   0.329     0.00
+sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0   0.320    61.22
+
+!! no final metric for: sonnet_6-PILOT-20260922-142048-stopped — run analysis.verify
 ```
 
 ## Best val_bpb reached by run n (equal-compute comparison)
@@ -52,3 +62,7 @@ opus_6              6    1   0.997333   0.980496  0.016837    34       6     0.0
 | opus_1 | 33 | 0.986277 | 0.986277 | 0.986277 | 0.986277 |
 | opus_3 | 34 | 0.987792 | 0.987792 | 0.987792 | 0.987792 |
 | opus_6 | 34 | 0.981817 | 0.980496 | 0.980496 | 0.980496 |
+| sonnet_1 | 32 | 1.002279 | 1.002279 | 1.002279 | 1.002279 |
+| sonnet_3 | 32 | 0.992950 | 0.992950 | 0.992950 | 0.99295 |
+| sonnet_6-PILOT-20260922-142048-stopped | None | 0.998353 | 0.998353 | 0.998353 | None |
+| sonnet_6 | 33 | 0.978041 | 0.978041 | 0.978041 | 0.978041 |

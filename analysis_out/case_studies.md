@@ -176,3 +176,31 @@ argument that is the more useful finding: at fixed compute, a stronger researche
 ideas here, it stops wasting runs on ideas that cannot pay.
 
 Final standing, 14 cells, all at full budget (opus_3 and opus_6 at 34 by protocol). Nothing is still running.
+
+## 8. The teammates' Sonnet rounds family (added Sep 22, 23:55)
+
+Eric pushed three round-protocol Sonnet cells run on his own box: `sonnet_1` (best-of-5), `sonnet_3`
+(best-of-2) and `sonnet_6`, at 32, 32 and 33 runs (the same partial-round limit as our `opus_3` and
+`opus_6`). All three pass verify. A stopped pilot of `sonnet_6` is archived beside them and excluded
+from every table.
+
+**Read gains, not finals, across boxes.** His box measured the untouched baseline at 1.0140 against our
+0.9973, a gap twenty times the run-to-run noise, so absolute finals are not comparable between the two
+boxes. Within his box the ladder is clean and monotone:
+
+| cell (Eric's box, baseline 1.0140) | runs | final | gain |
+|---|---:|---:|---:|
+| `sonnet_1`, best-of-5 | 32 | 1.0023 | 0.0117 |
+| `sonnet_3`, best-of-2 | 32 | 0.9930 | 0.0211 |
+| `sonnet_6` | 33 | 0.9780 | 0.0360 |
+
+Six beat three beat one, and the six-agent gain is the largest of any cell in the study. On our box the
+Sonnet cells gained 0.0117 (`open_sonnet_6`), 0.0090 and 0.0203 (the two independent seeds): Sonnet's
+cell-to-cell spread is wide enough that a single-seed ladder can look either monotone or flat. What his
+ladder does add is a second, independent confirmation of the headcount effect (six over one, here by
+0.024), on a different box, with a different protocol.
+
+**Do not read protocol from this.** `sonnet_6` (rounds, his box) at 0.0360 against `open_sonnet_6`
+(open, our box) at 0.0117 is a cross-box, single-seed comparison and says nothing about rounds versus
+open. The within-box protocol comparison remains the Opus grid: open beat rounds at one, three and six
+agents.
