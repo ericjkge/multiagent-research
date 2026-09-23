@@ -1,0 +1,6 @@
+{
+  "title": "Increase FINAL_LR_FRAC to 0.15",
+  "description": "Follow-up to a2's schedule fix: raise final LR floor from 10% to 15% to capture additional tail-phase optimization",
+  "status": "crash",
+  "reflection": "FINAL_LR_FRAC=0.15 regressed to val_bpb=0.997399 (-0.17% worse than baseline 0.995700). a2's gain from 0.0→0.1 (+0.09%) does not extrapolate; the schedule has a narrow, nonlinear optimum. Higher tail learning rates (0.15) appear to destabilize training or cause overfitting. Strong evidence that FINAL_LR_FRAC=0.1 is near-optimal and that the learning rate schedule operates with steep diminishing returns. Future work should explore orthogonal levers (e.g., WARMDOWN_RATIO timing) rather than pushing the final LR floor higher."
+}

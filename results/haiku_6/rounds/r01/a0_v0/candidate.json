@@ -1,0 +1,7 @@
+{
+  "title": "MLP activation: ReLU² → GELU",
+  "description": "Changed MLP activation from F.relu(x).square() to F.gelu(x) to improve gradient flow",
+  "status": "abandoned",
+  "val_bpb": 1.013573,
+  "reflection": "GELU activation regressed significantly (-1.7% vs baseline). The squared ReLU, despite being non-standard, is deliberately tuned for this model and training regime. Swapping for a standard activation without retuning hyperparameters made convergence worse. The baseline activation was not a bug—it was a deliberate choice. This suggests other agents should be cautious about 'fixing' seemingly odd design choices in the baseline; they are likely optimized trade-offs."
+}

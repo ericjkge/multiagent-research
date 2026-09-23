@@ -1,0 +1,6 @@
+{
+  "title": "Increase learning rate floor to 15%",
+  "description": "Extended a2's successful schedule tweak by raising FINAL_LR_FRAC from 0.1 to 0.15, expecting diminishing gains from higher tail-phase learning rate.",
+  "status": "regression",
+  "reflection": "Hypothesis was that if 10% LR floor helped (+0.09%), then 15% would help more. Instead got 0.998086 vs a2's baseline 0.995700—a -0.24% regression. The relationship is not monotonic; the sweet spot appears to be around 0.1, and 0.15 was too aggressive. This rules out simply pushing FINAL_LR_FRAC higher. Future attempts should either test intermediate values (0.11, 0.12) or try the alternative lever: reducing WARMDOWN_RATIO to keep more time at high LR before any decay begins."
+}

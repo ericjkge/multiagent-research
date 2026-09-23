@@ -1,0 +1,7 @@
+{
+  "title": "Reduce Muon weight decay",
+  "description": "WEIGHT_DECAY 0.2 → 0.15, testing if cautious regularization is too strong for 5-min budget",
+  "status": "ok",
+  "val_bpb": 0.996307,
+  "reflection": "Regression from baseline 0.995700 (+0.061% worse). Hypothesis was that cautious Muon weight decay at 0.2 over-regularizes in the short 5-minute budget, preventing parameter convergence. Result: reducing to 0.15 hurt generalization instead. This shows the baseline's regularization is well-calibrated or even under-strong. Weight decay is ruled out as a productive lever in this direction. Next steps: other agents testing 0.1 (more aggressive reduction) will determine if there's a monotonic relationship, or if weight decay reduction is simply wrong for this regime."
+}

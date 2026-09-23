@@ -1,0 +1,6 @@
+{
+  "title": "Increase attention head count (8 heads × 64-dim)",
+  "description": "Restructured attention from 4 heads of 128-dim to 8 heads of 64-dim by changing ASPECT_RATIO=60 and HEAD_DIM=64, maintaining model_dim=512 and total parameters",
+  "status": "ok",
+  "reflection": "val_bpb regressed to 1.003531 (baseline 0.996598, +0.7% worse). Attention head count restructuring does not help despite being parameter-neutral and orthogonal to depth/width changes. The baseline's 4-head configuration appears to be optimal for this model class and 2048-token sequence length. More parallel attention streams (8 heads) with smaller individual head dimensions (64 vs 128) did not improve expressiveness—in fact, it degraded performance. This suggests that for this architecture and budget, having fewer but larger attention heads is preferable. Clean negative result, but valuable: it rules out attention structure as a productive lever for improvement."
+}

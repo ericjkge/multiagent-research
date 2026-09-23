@@ -1,0 +1,6 @@
+{
+  "title": "Reduce weight decay to 0.18",
+  "description": "Conservative 10% reduction in WEIGHT_DECAY from 0.2 to 0.18, hypothesizing regularization could be relaxed in the final phase to enable more optimization plasticity (analogous to a2's successful FINAL_LR_FRAC floor strategy).",
+  "status": "regression",
+  "reflection": "Weight decay reduction by 10% regressed (-0.057% from baseline 0.995700, new val_bpb 0.996264). This suggests weight decay at 0.2 is appropriately tuned and not over-regularizing the 5-minute budget. The baseline's regularization schedule (decaying from 0.2→0 over training) is already optimal. This rules out weight decay reduction as a productive lever and confirms the baseline is well-balanced on this dimension. The unsuccessful pattern continues: every attempted perturbation to the well-tuned baseline has regressed. The model appears to sit at a tight, multi-dimensional optimum."
+}

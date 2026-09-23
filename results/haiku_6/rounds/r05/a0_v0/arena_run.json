@@ -1,0 +1,18 @@
+{
+  "round": 4,
+  "agent": "a2",
+  "variant": 0,
+  "workdir": "/workspace/multiagent-research/runs/haiku_6-20260923-005459/work/r04_a2_v0",
+  "started_at": 1790133760.9396713,
+  "ended_at": 1790134091.8133187,
+  "elapsed_s": 330.87,
+  "charged_s": 330.87,
+  "queued_s": 0.0,
+  "exit_code": 0,
+  "produced_metric": true,
+  "timed_out": false,
+  "fake": false,
+  "spent_s_after": 7065.71,
+  "runs_after": 27,
+  "commit": ""
+}

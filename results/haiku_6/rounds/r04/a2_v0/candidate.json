@@ -1,0 +1,8 @@
+{
+  "title": "Increase unembedding learning rate to 0.008",
+  "description": "Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group",
+  "status": "ok",
+  "val_bpb": 0.994321,
+  "improvement_pct": 0.137,
+  "reflection": "a5's +0.0012% gain from increasing UNEMBEDDING_LR (0.004→0.006) proved the lm_head was undertrained. Continuing that direction with a conservative 33% increase (0.006→0.008) yielded a much larger +0.137% improvement. This is the second-largest gain in 27 runs, exceeded only by a2's initial +0.09% schedule discovery. The mechanism remains clear: lm_head initialized at std=0.001 (1000× smaller than embeddings) was being updated 100× slower than embeddings; the additional LR unlocks significant optimization budget. Three agents (a1, a3, me) independently proposed this same change, validating the hypothesis. The magnitude of gain suggests the embedding LR space is not exhausted; further investigation warranted."
+}

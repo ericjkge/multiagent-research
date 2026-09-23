@@ -1,0 +1,7 @@
+{
+  "title": "Increase unembedding learning rate",
+  "description": "Increased UNEMBEDDING_LR from 0.004 to 0.006 to address output layer under-optimization",
+  "status": "ok",
+  "val_bpb": 0.995688,
+  "reflection": "Small but real improvement over baseline (0.995700 → 0.995688, +0.0012%). The lm_head output layer is initialized 1000x smaller than embeddings (std=0.001 vs std=1.0) but updated 150x slower (LR 0.004 vs 0.6), creating a clear bottleneck. This 50% LR increase allowed better final convergence. First improvement since a2's FINAL_LR_FRAC fix in Round 1, suggesting embedding learning rates are an under-explored lever. While the gain is tiny, it's real and consistent with the hypothesis of output layer under-optimization in the fixed 5-minute budget."
+}

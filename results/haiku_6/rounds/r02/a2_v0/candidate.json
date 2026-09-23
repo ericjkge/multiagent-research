@@ -1,0 +1,6 @@
+{
+  "title": "Extend high-LR phase by reducing warmdown ratio",
+  "description": "Reduced WARMDOWN_RATIO from 0.5 to 0.3, shifting LR decay start from 2.5 to 3.5 minutes",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.995700 (neutral, equal to baseline). Extending the high-LR phase did not provide further gains. This suggests the current WARMDOWN_RATIO=0.5 schedule may already be well-tuned, or this particular lever (timing of decay start) is not the bottleneck. The baseline architecture and schedule appear to have found a local optimum along this dimension. Future exploration might focus on other schedule parameters (e.g., different decay curves, warmup, or optimizer-level tuning)."
+}

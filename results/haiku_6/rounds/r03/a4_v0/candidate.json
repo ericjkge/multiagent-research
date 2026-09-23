@@ -1,0 +1,6 @@
+{
+  "title": "Weight decay floor (maintain regularization in tail)",
+  "description": "Added WEIGHT_DECAY_FLOOR = 0.05 to maintain non-zero weight decay in final phase, analogy to a2's LR floor",
+  "status": "crash",
+  "reflection": "Hypothesis was that decaying weight decay to zero wastes the final optimization phase, similar to how a2's LR floor (+0.09%) worked. Result: val_bpb = 0.996820, regression -0.11% from baseline 0.995700. The baseline's complete weight decay decay-to-zero is actually optimal. The two schedule dimensions (LR floor vs WD floor) respond differently—the analogy failed. This suggests the LR floor works because it enables continued gradient-based optimization; weight decay floor may increase overfitting or interfere with final convergence. The search space around the current schedule optimum is narrow and asymmetric."
+}

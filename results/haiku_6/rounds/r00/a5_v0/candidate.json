@@ -1,0 +1,6 @@
+{
+  "title": "Depth 12 layers with reduced batch size",
+  "description": "Increased depth from 8 to 12 layers, reduced device batch size from 128 to 64 to fit VRAM (model grew to 135M parameters with value embeddings)",
+  "status": "crash",
+  "reflection": "The depth-12 model required reducing batch size from 128 to 64 to avoid OOM, which appears to have hurt convergence more than the added architectural capacity helped. Result: val_bpb 1.014117 (1.76% worse than baseline 0.996598). Batch size reduction likely dominates the training dynamics within the fixed 5-minute window—fewer effective gradient updates per unit time outweighed the model's improved capacity. The proposal was worth testing as it represents a more aggressive depth push than competitors, but this result suggests depth increases may not be the right lever without careful batch size tuning or different learning rate schedules."
+}

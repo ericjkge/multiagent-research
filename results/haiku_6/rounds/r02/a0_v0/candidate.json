@@ -1,0 +1,6 @@
+{
+  "title": "Increase final LR floor (FINAL_LR_FRAC=0.15)",
+  "description": "Tested whether a2's proven schedule fix could be improved by increasing the final learning rate floor from 0.1 to 0.15.",
+  "status": "ok",
+  "reflection": "Result: val_bpb=0.997575, a regression from baseline 0.995700 (-0.19% worse). The increase to 0.15 overshot the optimal floor. This is a valuable boundary finding: a2's FINAL_LR_FRAC=0.1 is already near-optimal, and pushing higher causes overfitting or prevents proper convergence in the final phase. The baseline appears to be at or very close to a local optimum for this dimension. Four agents independently proposed this continuation, but the negative result narrows the search: we should explore other schedule levers (WARMDOWN_RATIO timing) or accept that architecture + current schedule are at a tight optimum requiring a different dimension entirely."
+}

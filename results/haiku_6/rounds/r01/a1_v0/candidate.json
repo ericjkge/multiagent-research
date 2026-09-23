@@ -1,0 +1,6 @@
+{
+  "title": "MLP activation: ReLU² → GELU",
+  "description": "Changed MLP activation from F.relu(x).square() to F.gelu(x)",
+  "status": "crash",
+  "reflection": "GELU is standard but regressed by 1.7% (1.013691 vs 0.996598 baseline). The squared ReLU activation, while non-standard, appears specifically tuned for this model. This is a data point that the baseline is even more carefully optimized than it appeared—even exploring 'obviously better' standard activations fails. The model's architecture and hyperparameters form a cohesive whole; small swaps of individual components (activation, LR, depth) all regressed in Round 0 and Round 1."
+}

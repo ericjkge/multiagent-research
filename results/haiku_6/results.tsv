@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+b0d25eb	0.000000	0.0	crash	
+e289f5d	1.001242	66.5	ok	Changed DEPTH from 8 to 10, expecting deeper model to improve final loss
+9260a09	1.003033	44.0	ok	Increased EMBEDDING_LR 0.6→0.8, MATRIX_LR 0.04→0.07, reduced WARMDOWN_RATIO 0.5→0.2
+8581b0a	1.001233	66.5	ok	Changed DEPTH from 8 to 10 layers; model scales to 768 dim, 6 heads via ASPECT_RATIO=64
+3b1f672	1.014117	47.8	ok	Increased depth from 8 to 12 layers, reduced device batch size from 128 to 64 to fit VRAM (model grew to 135M parameters with value embeddings)
+efc91b0	1.000827	66.5	ok	Increased transformer depth from 8 to 10 layers, keeping embedding dimension fixed at 640
+0435c5d	1.013573	44.0	ok	Changed MLP activation from F.relu(x).square() to F.gelu(x) to improve gradient flow
+d18fb6d	1.003531	44.1	ok	Restructured attention from 4 heads of 128-dim to 8 heads of 64-dim by changing ASPECT_RATIO=60 and HEAD_DIM=64, maintaining model_dim=512 and total parameters
+03b992c	1.013691	44.0	ok	Changed MLP activation from F.relu(x).square() to F.gelu(x)
+131218d	0.000000	0.0	crash	
+3ff3ae3	1.011091	34.1	ok	DEPTH 8→6, ASPECT_RATIO 64→84 (model_dim stays 512, -25% FLOPs/token, -20% params)
+533ef96	0.995700	44.0	ok	Set FINAL_LR_FRAC = 0.1 to maintain 10% learning rate in the final minute instead of decaying to zero
+ce0112e	0.998086	44.0	ok	Extended a2's successful schedule tweak by raising FINAL_LR_FRAC from 0.1 to 0.15, expecting diminishing gains from higher tail-phase learning rate.
+9557d07	0.995700	44.0	ok	Reduced WARMDOWN_RATIO from 0.5 to 0.3, shifting LR decay start from 2.5 to 3.5 minutes
+dfce06e	0.995700	44.0	ok	Set FINAL_LR_FRAC = 0.1 to maintain 10% learning rate in the final minute instead of decaying to zero
+ef082e3	0.998619	44.0	ok	Reduced WARMDOWN_RATIO from 0.5 to 0.3 to keep LR at 1.0× until progress 70% (3.5 min) instead of 50% (2.5 min), extending the aggressive optimization phase by 1 minute
+44e2c80	0.997399	44.0	ok	Follow-up to a2's schedule fix: raise final LR floor from 10% to 15% to capture additional tail-phase optimization
+0778320	0.997575	44.0	ok	Tested whether a2's proven schedule fix could be improved by increasing the final learning rate floor from 0.1 to 0.15.
+341128f	0.996608	44.0	ok	Reduced weight decay magnitude to test if over-regularization limits convergence in 5-minute budget
+62fb51e	0.995700	44.0	ok	Reduced Muon weight decay coefficient from 0.2 to 0.15 (25% decrease)
+681aef0	0.996307	44.0	ok	WEIGHT_DECAY 0.2 → 0.15, testing if cautious regularization is too strong for 5-min budget
+8069604	0.995688	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.006 to address output layer under-optimization
+17abb6c	0.996264	44.0	ok	Conservative 10% reduction in WEIGHT_DECAY from 0.2 to 0.18, hypothesizing regularization could be relaxed in the final phase to enable more optimization plasticity (analogous to a2's successful FINAL_LR_FRAC floor strategy).
+461cd71	0.996820	44.0	ok	Added WEIGHT_DECAY_FLOOR = 0.05 to maintain non-zero weight decay in final phase, analogy to a2's LR floor
+0c72bf8	0.995688	44.0	ok	Separated value embeddings into their own learning rate group (0.10) instead of sharing EMBEDDING_LR (0.6), addressing initialization-scale asymmetry
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+89b18f2	0.995688	44.0	ok	Increased output layer learning rate by 33% (0.006 → 0.008) to test if a5's UNEMBEDDING_LR discovery has further headroom
+efd818b	0.000000	0.0	crash	Increased UNEMBEDDING_LR from 0.004 to 0.006 to address output layer under-optimization
+c482024	0.994884	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.006 to address output layer under-optimization
+cddc457	0.994333	44.0	ok	Increased UNEMBEDDING_LR from 0.004 to 0.006 to address output layer under-optimization
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group
+627fb06	0.994321	44.0	ok	Raised UNEMBEDDING_LR from 0.006 to 0.008 (33% increase) to further optimize lm_head parameter group

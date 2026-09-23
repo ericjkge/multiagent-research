@@ -1,0 +1,6 @@
+{
+  "title": "Extend high-LR phase (WARMDOWN_RATIO 0.5 → 0.3)",
+  "description": "Reduced WARMDOWN_RATIO from 0.5 to 0.3 to keep LR at 1.0× until progress 70% (3.5 min) instead of 50% (2.5 min), extending the aggressive optimization phase by 1 minute",
+  "status": "ok",
+  "reflection": "Result: val_bpb 0.998619 (regression from baseline 0.995700 by +0.29%). The hypothesis that extending the high-LR phase would improve convergence was incorrect. Unlike a2's successful floor-raising strategy (FINAL_LR_FRAC: 0.0→0.1), shifting when decay starts appears to hurt performance. The data suggests the decay timing window (0.5–1.0 progress) was already optimal; reducing it removed valuable diversity in learning rates during the final phase. The baseline schedule's half-and-half split (high LR for half, decay for half) appears to be better calibrated than all high LR for 70% followed by rapid decay. Learning rate scheduling has orthogonal dimensions; adjusting one independently can break the balance."
+}

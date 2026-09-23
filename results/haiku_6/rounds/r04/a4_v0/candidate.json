@@ -1,0 +1,6 @@
+{
+  "title": "Separate VALUE_EMBEDDING_LR tuning (0.10)",
+  "description": "Separated value embeddings into their own learning rate group (0.10) instead of sharing EMBEDDING_LR (0.6), addressing initialization-scale asymmetry",
+  "status": "ok",
+  "reflection": "VALUE_EMBEDDING_LR=0.10 produced no change (val_bpb 0.995688, same as baseline). While the logic was sound—value embeddings are initialized small (std≈0.002) like lm_head (std≈0.001), which benefited from targeted LR tuning—the empirical result shows they need higher LR to remain useful. This rules out this particular lever and confirms that auxiliary parameter groups (non-critical path) may have different optimization dynamics than critical-path parameters like lm_head. Value embeddings are gated residuals in attention and their effectiveness depends on learning rates that make them competitive with the main attention flow."
+}

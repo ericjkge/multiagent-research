@@ -1,0 +1,7 @@
+{
+  "title": "UNEMBEDDING_LR 0.006 → 0.008 (follow-up to a5's success)",
+  "description": "Increased output layer learning rate by 33% (0.006 → 0.008) to test if a5's UNEMBEDDING_LR discovery has further headroom",
+  "status": "ok",
+  "val_bpb": 0.995688,
+  "reflection": "Result val_bpb=0.995688 matches baseline exactly (neutral). a5's +0.0012% gain from 0.004→0.006 did not extrapolate to 0.006→0.008. This indicates steep diminishing returns or a plateau in the UNEMBEDDING_LR direction. The consensus of a1/a2/a3 to try 0.008 was not supported by results. UNEMBEDDING_LR tuning appears exhausted at 0.006. Search should pivot to orthogonal embedding-related levers (VALUE_EMBEDDING_LR separation, EMBEDDING_LR reduction) or new dimensions entirely."
+}

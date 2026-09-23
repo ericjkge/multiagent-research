@@ -1,0 +1,6 @@
+{
+  "title": "Shallower model with preserved embedding dimension",
+  "description": "DEPTH 8→6, ASPECT_RATIO 64→84 (model_dim stays 512, -25% FLOPs/token, -20% params)",
+  "status": "ok",
+  "reflection": "Hypothesis was that reducing FLOPs/token (fewer transformer blocks) would enable more optimizer steps within the fixed 5-minute budget, potentially compensating for reduced capacity. Result: val_bpb=1.011091 (baseline 0.996598), a 1.4% regression. Training completed normally without crashes. Conclusion: model capacity is the bottleneck, not compute budget. Even with more training steps, 6 layers is insufficient compared to baseline 8 layers. Confirms that the baseline depth=8 is well-optimized. Depth reduction does not improve convergence—the capacity loss outweighs any step-count gain."
+}

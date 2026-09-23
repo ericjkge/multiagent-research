@@ -1,0 +1,7 @@
+{
+  "title": "Increase model depth to 10",
+  "description": "Changed DEPTH from 8 to 10, expecting deeper model to improve final loss",
+  "status": "ok",
+  "val_bpb": 1.001242,
+  "reflection": "Depth increase backfired: val_bpb 1.001242 vs baseline 0.996598 (~0.46% worse). Root cause is unintended capacity growth — increasing DEPTH from 8 to 10 with fixed ASPECT_RATIO=64 simultaneously increased model_dim from 512→640 (25% wider), bloating total params from ~50M to ~86M. Larger model required fewer optimization steps in 5-minute budget, resulting in under-convergence. Key insight: depth scaling alone is insufficient; need to account for the rounding effects of the model building logic, or use a different scaling lever like ASPECT_RATIO only."
+}

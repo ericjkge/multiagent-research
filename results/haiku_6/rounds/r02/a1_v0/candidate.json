@@ -1,0 +1,6 @@
+{
+  "title": "Increase FINAL_LR_FRAC floor",
+  "description": "Set FINAL_LR_FRAC = 0.1 to maintain 10% learning rate in the final minute instead of decaying to zero",
+  "status": "ok",
+  "reflection": "Simple schedule fix: baseline decayed LR to 0% by the end of training, wasting the final minute. Keeping 10% base LR enables continued parameter updates near convergence. Modest but real gain (+0.09% improvement). Learning rate schedules are often overlooked; this shows there's value in optimizing the tail of training. The change is orthogonal to all Round 0 attempts (which focused on capacity and aggr essive scheduling). Next: could try even higher floors (0.2-0.3) or different decay curves."
+}

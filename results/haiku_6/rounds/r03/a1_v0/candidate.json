@@ -1,0 +1,7 @@
+{
+  "title": "Lower weight decay (0.2 → 0.1)",
+  "description": "Reduced weight decay magnitude to test if over-regularization limits convergence in 5-minute budget",
+  "status": "crash",
+  "val_bpb": 0.996608,
+  "reflection": "Regressed 0.09% (0.995700 → 0.996608). Hypothesis was wrong: the baseline weight decay at 0.2 is optimal, not over-constraining. Lower regularization destabilizes or allows overfitting. This closes the weight decay direction as a productive lever. The binding constraint is not regularization; must explore other dimensions (batch size, embedding initialization, or accept the baseline is near a sharp local maximum)."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Reduce weight decay (0.2 → 0.15)",
+  "description": "Reduced Muon weight decay coefficient from 0.2 to 0.15 (25% decrease)",
+  "status": "ok",
+  "reflection": "Weight decay reduction to 0.15 produced val_bpb=0.995700, identical to baseline. This moderate reduction is not a productive lever. Suggests that either: (1) weight decay is not the right dimension, (2) much larger reductions (→0.1 or 0.0) are needed to see effect, or (3) the baseline is already well-tuned in this range. Narrows the search: weight decay between 0.15-0.2 is a local plateau. The 25% reduction was conservative compared to the aggressive 50% reduction (0.2→0.1) proposed by a0 and a1. Future work should test bolder changes (0.1, 0.0) or explore orthogonal dimensions (batch size, embedding LRs, value embedding tuning)."
+}
