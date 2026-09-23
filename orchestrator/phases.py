@@ -143,15 +143,8 @@ def agent_env(
         "ARENA_SEED": str(ctx.cfg.seed),
         "ARENA_UV_ENV": str(ctx.cfg.repo_path / ".venv"),
         "ARENA_FAKE_BASE_BPB": str(ctx.baseline_bpb or 0.9979),
-<<<<<<< HEAD
-        # Claude Code kills a foreground shell command at its timeout (2 min default, 10 min max)
-        # and, in this version, moves it to the background telling the agent "you will be
-        # notified" -- which never happens under `claude -p`. A training run is ~6 min and, with
-        # several agents queued on one GPU, arena-train can wait 30+ min for the card. Raise the
-        # ceiling so the guard hook can pin arena-train calls to a 60-min foreground timeout.
-        # (arena-train also runs detached now, so a killed shell no longer loses the slot.)
-=======
-        # A training run is ~6 minutes; Claude Code's Bash tool kills commands at 2 rate and extend agent timeout)
+        # Allow long foreground waits while arena-train serializes agents
+        # onto one GPU. This does not change the training-run time limit.
         "BASH_DEFAULT_TIMEOUT_MS": "3600000",
         "BASH_MAX_TIMEOUT_MS": "3600000",
     }
