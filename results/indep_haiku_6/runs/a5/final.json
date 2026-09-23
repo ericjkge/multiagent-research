@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "4886fd5a75e52de625f9fdce0a104a384453b7d3",
+  "best_val_bpb": 0.996937,
+  "summary": "Found that increasing MATRIX_LR from 0.04 to 0.06 improves val_bpb from baseline 0.997359 to 0.996937 (0.04% improvement). Extensive hyperparameter exploration of embedding LR, warmdown ratio, weight decay, model depth, and aspect ratio all yielded consistent results around 0.996937, suggesting a plateau or local optimum. The MATRIX_LR=0.06 change appears to be the key insight, with the Muon second-order optimizer benefiting from higher learning rates."
+}

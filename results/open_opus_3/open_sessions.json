@@ -1,0 +1,26 @@
+{
+  "a0": {
+    "session_id": "bdcd3c82-d799-4195-ac68-297e26e5f8f6",
+    "segments": 1,
+    "cost_usd": 6.548168999999999,
+    "done": true,
+    "stop": "agent finished",
+    "final_commit": "e11ddcf1727a7d53d7c1d3dea2ee39f98e971e78"
+  },
+  "a1": {
+    "session_id": "16ba9d4c-f567-4d0d-b989-cc2cded299c9",
+    "segments": 1,
+    "cost_usd": 5.979583500000001,
+    "done": true,
+    "stop": "agent finished",
+    "final_commit": "4b92561303002d83a0d5e487d701303725489a5b"
+  },
+  "a2": {
+    "session_id": "9976b916-7ebc-48f1-818e-13887d904499",
+    "segments": 1,
+    "cost_usd": 6.4628155,
+    "done": true,
+    "stop": "agent finished",
+    "final_commit": "9b3e8a6257da18dfcb1686b7306d4b870c507b87"
+  }
+}

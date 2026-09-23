@@ -178,6 +178,24 @@ def main() -> int:
     ap.add_argument("--title", default="", help="open protocol: what this attempt changes (one line)")
     args = ap.parse_args()
 
+    # Run the real work in a detached worker (its own session). If the agent's shell command that
+    # invoked us is killed, by a tool timeout or a capped session, the worker still finishes the
+    # run, releases the GPU lock and writes the record; the agent can read the result from the log.
+    if os.environ.get("ARENA_DETACHED") != "1":
+        out_path = Path.cwd() / "arena-train.out"
+        env_child = dict(os.environ, ARENA_DETACHED="1")
+        with open(out_path, "w") as out:
+            child = subprocess.Popen([sys.executable, os.path.abspath(__file__), *sys.argv[1:]],
+                                     stdout=out, stderr=subprocess.STDOUT, env=env_child,
+                                     start_new_session=True)
+        try:
+            rc = child.wait()
+        except KeyboardInterrupt:
+            rc = child.wait()
+        sys.stdout.write(out_path.read_text(errors="replace"))
+        sys.stdout.flush()
+        return rc
+
     run_dir = Path(env("ARENA_RUN_DIR")).resolve()
     agent = env("ARENA_AGENT")
     variant = env("ARENA_VARIANT", "0")

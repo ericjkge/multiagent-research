@@ -1,0 +1,28 @@
+# opus x 6 agent(s), OPEN protocol (Park et al. 2609.21032), shared log OFF (independent control)
+# The frontier arm: the takeoff claim is about strong researchers, so the core comparison runs here.
+cell_id: indep_opus_6
+protocol: open
+open_share_log: false
+harness: claude_code
+agents:
+  - {id: a0, model: claude-opus-5, effort: medium}
+  - {id: a1, model: claude-opus-5, effort: medium}
+  - {id: a2, model: claude-opus-5, effort: medium}
+  - {id: a3, model: claude-opus-5, effort: medium}
+  - {id: a4, model: claude-opus-5, effort: medium}
+  - {id: a5, model: claude-opus-5, effort: medium}
+bon: 1
+
+train_run_budget: 36
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""
+
+# Opus is about 5x Sonnet per token; a 6-agent open cell is roughly $150 to $300 of agent calls.
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
+open_session_timeout_s: 21600
+open_max_resumes: 40
+seed: 0

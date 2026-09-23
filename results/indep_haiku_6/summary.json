@@ -1,0 +1,52 @@
+{
+  "cell_id": "indep_haiku_6",
+  "protocol": "open",
+  "share_log": false,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.976806,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 8782.6,
+  "agent_cost_usd": 23.3338,
+  "wall_clock_s": 19775.1,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a0": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 3.2351278000000008,
+      "stop": "agent finished"
+    },
+    "a1": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 2.6100170999999994,
+      "stop": "agent finished"
+    },
+    "a2": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 3.7389074000000018,
+      "stop": "agent finished"
+    },
+    "a4": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 2.7546701000000002,
+      "stop": "agent finished"
+    },
+    "a3": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 9.301213550000007,
+      "stop": "agent finished"
+    },
+    "a5": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 1.6938561000000005,
+      "stop": "share spent"
+    }
+  }
+}

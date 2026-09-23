@@ -1,0 +1,52 @@
+{
+  "cell_id": "indep_opus_6",
+  "protocol": "open",
+  "share_log": false,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.977649,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 11866.2,
+  "agent_cost_usd": 37.2048,
+  "wall_clock_s": 12078.2,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a2": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 6.957338500000002,
+      "stop": "agent finished"
+    },
+    "a1": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 6.619335,
+      "stop": "agent finished"
+    },
+    "a0": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 10.758149999999999,
+      "stop": "agent finished"
+    },
+    "a3": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 5.2895975,
+      "stop": "agent finished"
+    },
+    "a5": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 3.6899435000000005,
+      "stop": "agent finished"
+    },
+    "a4": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 3.890462500000001,
+      "stop": "agent finished"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+# best run of indep_sonnet_6_s2: a0 8eddf4e val_bpb 0.977046: full stack: dim768(depth8,ar96), batch96x2048, window//8, ve first3/last3
+# against baseline 228791f
+diff --git a/train.py b/train.py
+index 2e74397..ead0a8b 100644
+--- a/train.py
++++ b/train.py
+@@ -45,8 +45,8 @@ def norm(x):
+ 
+ 
+ def has_ve(layer_idx, n_layer):
+-    """Returns True if layer should have Value Embedding (alternating, last always included)."""
+-    return layer_idx % 2 == (n_layer - 1) % 2
++    """Returns True if layer should have Value Embedding (first 3 and last 3 layers)."""
++    return layer_idx < 3 or layer_idx >= n_layer - 3
+ 
+ 
+ def apply_rotary_emb(x, cos, sin):
+@@ -196,7 +196,7 @@ class GPT(nn.Module):
+         pattern = config.window_pattern.upper()
+         assert all(c in "SL" for c in pattern)
+         long_window = config.sequence_len
+-        short_window = long_window // 2
++        short_window = long_window // 8
+         char_to_window = {"L": (long_window, 0), "S": (short_window, 0)}
+         window_sizes = []
+         for layer_idx in range(config.n_layer):
+@@ -430,12 +430,12 @@ class MuonAdamW(torch.optim.Optimizer):
+ # ---------------------------------------------------------------------------
+ 
+ # Model architecture
+-ASPECT_RATIO = 64       # model_dim = depth * ASPECT_RATIO
++ASPECT_RATIO = 96       # model_dim = depth * ASPECT_RATIO
+ HEAD_DIM = 128          # target head dimension for attention
+ WINDOW_PATTERN = "SSSL" # sliding window pattern: L=full, S=half context
+ 
+ # Optimization
+-TOTAL_BATCH_SIZE = 2**19 # ~524K tokens per optimizer step
++TOTAL_BATCH_SIZE = 96 * 2048 # ~196K tokens per optimizer step
+ EMBEDDING_LR = 0.6      # learning rate for token embeddings (Adam)
+ UNEMBEDDING_LR = 0.004  # learning rate for lm_head (Adam)
+ MATRIX_LR = 0.04        # learning rate for matrix parameters (Muon)
+@@ -448,7 +448,7 @@ FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
+ 
+ # Model size
+ DEPTH = 8               # number of transformer layers
+-DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
++DEVICE_BATCH_SIZE = 96  # per-device batch size (reduce if OOM)
+ 
+ # ---------------------------------------------------------------------------
+ # Setup: tokenizer, model, optimizer, dataloader

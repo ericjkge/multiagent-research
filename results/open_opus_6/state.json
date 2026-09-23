@@ -1,0 +1,15 @@
+{
+  "cell_id": "open_opus_6",
+  "tag": "open_opus_6-20260922-070010",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "07cfd2031ecf2cb41f1f807324a2cc7d22a849f3",
+  "baseline_bpb": 0.977896,
+  "round_idx": 1,
+  "completed_rounds": [
+    0
+  ],
+  "total_cost_usd": 35.927514,
+  "started_at": 1790060411.0423744,
+  "finished_at": 1790072699.021972,
+  "stop_reason": "all agents finished"
+}

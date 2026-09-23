@@ -1,0 +1,14 @@
+Vocab size: 8,192
+Model config: {'sequence_len': 2048, 'vocab_size': 8192, 'n_layer': 9, 'n_head': 7, 'n_kv_head': 7, 'n_embd': 896, 'window_pattern': 'SSSL'}
+Parameter counts:
+  wte                     : 7,340,032
+  value_embeds            : 44,040,192
+  lm_head                 : 7,340,032
+  transformer_matrices    : 86,705,472
+  scalars                 : 18
+  total                   : 145,425,746
+Estimated FLOPs per token: 6.468484e+08
+Traceback (most recent call last):
+  File "/root/multiagent-research/runs/indep_haiku_6-20260922-125301/work/open_a1/train.py", line 496, in <module>
+    assert TOTAL_BATCH_SIZE % tokens_per_fwdbwd == 0
+AssertionError

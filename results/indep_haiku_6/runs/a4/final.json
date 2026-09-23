@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "596e8d8",
+  "best_val_bpb": 0.979709,
+  "summary": "Successfully reproduced the frontier autoresearch config achieving val_bpb 0.979709 (vs baseline 0.997359, -0.0177 improvement). The winning formula: ASPECT_RATIO=96 (width-focused), TOTAL_BATCH_SIZE=2^18 (half the shipped batch), sliding_window=seq//8 (256), and value_embeddings on first3/last3 layers. Confirmed with 2 runs showing 0.979709 and 0.979237, within expected noise. Early attempts at depth=10 were blocked by model dim rounding to 896 (known worse per memo). No further gains found with batch size reduction."
+}

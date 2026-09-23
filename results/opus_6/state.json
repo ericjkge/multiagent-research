@@ -1,0 +1,20 @@
+{
+  "cell_id": "opus_6",
+  "tag": "opus_6-20260922-070031",
+  "origin_commit": "228791fb499afffb54b46200aca536f79142f117",
+  "baseline_commit": "cfc242bbbb131899bd8252af7bf40373e3930b84",
+  "baseline_bpb": 0.980496,
+  "round_idx": 6,
+  "completed_rounds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "total_cost_usd": 407.50342199999994,
+  "started_at": 1790060431.075549,
+  "finished_at": 1790097777.405453,
+  "stop_reason": "round cap reached"
+}

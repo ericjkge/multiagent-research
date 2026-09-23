@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+8313610	0.996530	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum stays 1); no other changes.
+75e221d	1.001167	44.0	ok	Added 4 zero-init learnable-gated skips (layers 4,5,6,7 each add the output of layer 3,2,1,0) plus a skip_lambdas parameter trained in the x0 scalar AdamW group; 13 lines, no other change.
+ae7d02d	0.997280	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum stays 1); all LRs and schedules untouched.
+1a84ed6	0.993500	44.0	ok	TOTAL_BATCH_SIZE 2**19 -> 2**18 (grad_accum 2 -> 1) plus HEAD_DIM 128 -> 64, giving 8 heads of 64 at unchanged n_embd=512 (identical params, FLOPs and VRAM).
+4ad54fc	0.997942	22.2	ok	TOTAL_BATCH_SIZE 2**19 -> 2**17 and DEVICE_BATCH_SIZE 128 -> 64 (grad_accum stays 1); all LRs and schedules untouched.
+c4400da	0.988076	33.8	ok	DEPTH 8->10 (n_embd 512->640, 5 heads), TOTAL_BATCH_SIZE 2**19->2**18, DEVICE_BATCH_SIZE 128->64 (grad_accum 2) for VRAM headroom.
+f46a7cf	1.033354	33.5	ok	DEPTH 10->14, HEAD_DIM 128->64, DEVICE_BATCH_SIZE 64->32 (grad_accum 4, same 2^18 total batch); no other changes.
+79d404f	1.033838	33.5	ok	DEPTH 10->14 (n_embd 640->896), HEAD_DIM 128->64 (14 heads), DEVICE_BATCH_SIZE 64->32 (grad_accum 2->4, same 2^18 total batch); no other changes.
+7b4ad1d	1.033314	33.5	ok	DEPTH 10->14 (n_embd 640->896 via ASPECT_RATIO 64), HEAD_DIM 128->64 (14 heads of 64), DEVICE_BATCH_SIZE 64->32 (grad_accum 4) for VRAM headroom; all LRs and schedules untouched.
+0fc31e7	1.033433	33.5	ok	DEPTH 10->14 and HEAD_DIM 128->64 (n_embd 640->896, 14 heads), DEVICE_BATCH_SIZE 64->32 so grad_accum goes 2->4; TOTAL_BATCH_SIZE and all LRs unchanged.
+1b8194b	1.054503	43.6	ok	ASPECT_RATIO 64->80 and HEAD_DIM 128->64, DEPTH unchanged at 10: n_embd 640->832, 13 heads of 64, 130.8M params. val_bpb 1.054503 vs 0.988076 baseline.
+cf00af3	1.018287	40.4	ok	ASPECT_RATIO 64 -> 76 and HEAD_DIM 128 -> 64, DEPTH unchanged at 10: 10 layers of dim 768 with 12 heads of 64, vs the baseline's 10 layers of dim 640 with 5 heads of 128.
+5868457	0.994916	27.4	ok	ASPECT_RATIO 64->51 (n_embd 640->512, 8 heads) and HEAD_DIM 128->64 at DEPTH 10; 60.8M params, 0.69x FLOPs/token, 377M tokens in 1439 steps.
+42f95bc	0.995347	33.8	ok	HEAD_DIM 128 -> 64 at DEPTH 10: 10 heads of 64 instead of 5 of 128, n_embd unchanged at 640, nothing else touched.
+e84df58	1.000971	33.8	ok	HEAD_DIM 128->64 (10 heads of 64 at unchanged n_embd 640) plus MATRIX_LR 0.04->0.055; DEPTH 10, ASPECT_RATIO 64, TOTAL_BATCH_SIZE 2**18, DEVICE_BATCH_SIZE 64 and all other LRs unchanged.
+c81c394	0.988076	33.8	ok	DEPTH 8->10 (n_embd 512->640, 5 heads), TOTAL_BATCH_SIZE 2**19->2**18, DEVICE_BATCH_SIZE 128->64 (grad_accum 2) for VRAM headroom.
+8ed50e8	1.000945	33.8	ok	Two constants at depth 10: HEAD_DIM 128->64 (10 heads of 64, n_embd unchanged at 640) and WARMDOWN_RATIO 0.5->0.3; nothing else.
+74d5a8d	0.998596	33.8	ok	HEAD_DIM 128->64 (10 heads of 64 at unchanged n_embd 640) plus MATRIX_LR 0.04->0.06; everything else untouched.
+b533446	0.989041	33.8	ok	One constant: WARMDOWN_RATIO 0.5 -> 1.0, so the LR plateau disappears and lrm = 1 - progress decays linearly to zero from step 0; time-average lrm 0.75 -> 0.50. Nothing else changed (HEAD_DIM 128, DEPTH 10, 2^18 batch, MATRIX_LR 0.04).
+77f0855	0.987227	33.8	ok	One constant: WARMDOWN_RATIO 0.5 -> 0.7 at the unmodified depth-10 / HEAD_DIM 128 baseline; LR plateau ends at 30% of the budget instead of 50%, time-average lrm 0.75 -> 0.65. Nothing else changed.
+b1fd4d6	0.988598	33.8	ok	EMBEDDING_LR 0.6->0.45, UNEMBEDDING_LR 0.004->0.003, MATRIX_LR 0.04->0.03, SCALAR_LR 0.5->0.375; schedule, HEAD_DIM 128, DEPTH 10, batch 2^18 all untouched.
+d2e084e	0.988612	33.8	ok	One constant: Muon MATRIX_LR 0.04 -> 0.028 (-30%) at the true baseline (HEAD_DIM 128, WARMDOWN_RATIO 0.5, DEPTH 10, 2^18, device batch 64). Nothing else. val_bpb 0.988612 vs 0.988076 baseline: a tie, +0.0005.
+54ee2b1	0.989734	33.8	ok	Two constants: WARMDOWN_RATIO 0.5->0.7 and WINDOW_PATTERN "SSSL"->"L", so all 10 layers get the full 2048 context instead of 7 of them seeing 1024; HEAD_DIM stays 128, nothing else changed.
+65dc2ad	0.988490	33.8	ok	Added ATTN_SCALE = 0.12 to the hyperparameter block and passed it as softmax_scale to fa3.flash_attn_func, replacing FA3's default 1/sqrt(head_dim) = 0.0884 at head_dim 128 (x1.357 on attention logits); nothing else changed.
+ac450fa	0.982712	33.8	ok	One character in GPT._compute_window_sizes: short_window = long_window // 2 -> // 4, so the 7 'S' layers attend 512 tokens instead of 1024 (3 layers keep the full 2048); nothing else changed.
+a8b8bc6	0.991196	33.8	ok	One value: _precompute_rotary_embeddings base=10000 -> 1000; nothing else changed. val_bpb 0.991196 vs 0.987227 baseline (+0.0040).
+14139e7	0.985624	66.2	ok	One constant: DEVICE_BATCH_SIZE 64 -> 128, so the 2^18-token optimizer step is one fwd/bwd instead of two accumulated micro-steps; identical math, nothing else changed.
+538cdc2	0.986958	33.8	ok	One string: WINDOW_PATTERN "SSSL" -> "SSSS", so layers 0-8 attend 1024 and only the forced last layer keeps the full 2048 context (was layers 3, 7, 9 global). short_window stays long//2; nothing else changed.
+5f1f983	0.981817	66.2	ok	Two constants: short_window = long_window//4 (S layers attend 512 instead of 1024; 3 of 10 layers keep full 2048) and DEVICE_BATCH_SIZE 64->128 so grad_accum goes 2->1 at the same 2^18 total batch.
+bb94461	0.984406	33.8	ok	One character in _compute_window_sizes: short_window = long_window // 2 -> // 8, so the 7 'S' layers attend 256 tokens instead of 1024; layers 3, 7, 9 keep the full 2048. Nothing else changed.
+cfc242b	0.980496	70.9	ok	One argument: torch.compile(model, dynamic=False) -> torch.compile(model, dynamic=False, mode="max-autotune-no-cudagraphs"); identical math, nothing else changed.
+b2ea105	0.981592	66.2	ok	Deleted one line in GPT.forward: 'logits = logits.float()', so the tanh softcap and F.cross_entropy run on bf16 logits; nothing else changed.
+061538a	0.981817	66.2	ok	Two constants: short_window = long_window//4 (S layers attend 512 instead of 1024; 3 of 10 layers keep full 2048) and DEVICE_BATCH_SIZE 64->128 so grad_accum goes 2->1 at the same 2^18 total batch.
+3372a97	0.984022	64.8	ok	Replaced the 5 per-layer value_embeds tables with a single nn.Embedding looked up once per forward and handed to the same alternating layers (net -4 lines); VE params 26.2M -> 5.2M, model 85.9M -> 64.9M, FLOPs/token unchanged.
+bb70f16	0.983208	67.9	ok	One line: has_ve() returns True, so all 10 layers get a value-residual embedding + gate instead of 5; params 85.9M -> 112.1M, FLOPs/token unchanged.
+b60a8e4	0.981197	66.2	ok	One value: _precompute_rotary_embeddings base=10000 -> 100000; nothing else changed. val_bpb 0.981197 vs 0.981817 baseline (-0.00062, inside the noise floor).

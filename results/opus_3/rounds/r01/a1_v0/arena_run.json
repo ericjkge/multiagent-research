@@ -1,0 +1,18 @@
+{
+  "round": 1,
+  "agent": "a1",
+  "variant": 0,
+  "workdir": "/root/multiagent-research/runs/opus_3-20260922-090637/work/r01_a1_v0",
+  "started_at": 1790072075.5277047,
+  "ended_at": 1790072413.096195,
+  "elapsed_s": 337.56,
+  "charged_s": 337.56,
+  "queued_s": 0.0,
+  "exit_code": 0,
+  "produced_metric": true,
+  "timed_out": false,
+  "fake": false,
+  "spent_s_after": 3970.84,
+  "runs_after": 12,
+  "commit": ""
+}

@@ -1,0 +1,24 @@
+# opus x 6 agent(s).  Compute-matched: 6 agents x BoN=1 candidates per round.
+cell_id: opus_6
+harness: claude_code
+agents:
+  - {id: a0, model: claude-opus-5, effort: medium}
+  - {id: a1, model: claude-opus-5, effort: medium}
+  - {id: a2, model: claude-opus-5, effort: medium}
+  - {id: a3, model: claude-opus-5, effort: medium}
+  - {id: a4, model: claude-opus-5, effort: medium}
+  - {id: a5, model: claude-opus-5, effort: medium}
+bon: 1
+
+# 36 five-minute runs ~ 3.3 GPU-hours, identical across every cell in the grid.
+train_run_budget: 36
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
+seed: 0
+phase_timeout_s: {propose: 900, select: 7200, respond: 1200}   # 6 agents queue on one GPU

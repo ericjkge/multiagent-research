@@ -1,0 +1,39 @@
+# best run of indep_opus_6_s2: a4 627aeb7 val_bpb 0.980071: best known config (dim 768 / depth 8 / batch 2**18 / DB 128) + my variation: short window seq/4
+# against baseline 228791f
+diff --git a/train.py b/train.py
+index 2e74397..8a5c0b9 100644
+--- a/train.py
++++ b/train.py
+@@ -196,7 +196,7 @@ class GPT(nn.Module):
+         pattern = config.window_pattern.upper()
+         assert all(c in "SL" for c in pattern)
+         long_window = config.sequence_len
+-        short_window = long_window // 2
++        short_window = long_window // 4
+         char_to_window = {"L": (long_window, 0), "S": (short_window, 0)}
+         window_sizes = []
+         for layer_idx in range(config.n_layer):
+@@ -430,12 +430,12 @@ class MuonAdamW(torch.optim.Optimizer):
+ # ---------------------------------------------------------------------------
+ 
+ # Model architecture
+-ASPECT_RATIO = 64       # model_dim = depth * ASPECT_RATIO
++ASPECT_RATIO = 96       # model_dim = depth * ASPECT_RATIO (8*96 -> 768, 6 heads)
+ HEAD_DIM = 128          # target head dimension for attention
+ WINDOW_PATTERN = "SSSL" # sliding window pattern: L=full, S=half context
+ 
+ # Optimization
+-TOTAL_BATCH_SIZE = 2**19 # ~524K tokens per optimizer step
++TOTAL_BATCH_SIZE = 2**18 # ~262K tokens per optimizer step (grad_accum=1)
+ EMBEDDING_LR = 0.6      # learning rate for token embeddings (Adam)
+ UNEMBEDDING_LR = 0.004  # learning rate for lm_head (Adam)
+ MATRIX_LR = 0.04        # learning rate for matrix parameters (Muon)
+@@ -448,7 +448,7 @@ FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
+ 
+ # Model size
+ DEPTH = 8               # number of transformer layers
+-DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
++DEVICE_BATCH_SIZE = 128  # per-device batch size (grad_accum=1; never split it)
+ 
+ # ---------------------------------------------------------------------------
+ # Setup: tokenizer, model, optimizer, dataloader

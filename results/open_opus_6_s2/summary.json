@@ -1,0 +1,52 @@
+{
+  "cell_id": "open_opus_6_s2",
+  "protocol": "open",
+  "share_log": true,
+  "rounds_completed": 1,
+  "final_val_bpb": 0.976408,
+  "training_runs": 36,
+  "training_run_budget": 36,
+  "gpu_seconds_spent": 12272.1,
+  "agent_cost_usd": 66.1039,
+  "wall_clock_s": 18014.6,
+  "stop_reason": "all agents finished",
+  "gpu_overlaps": 0,
+  "per_agent": {
+    "a0": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 12.233895999999998,
+      "stop": "share spent"
+    },
+    "a2": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 11.0426935,
+      "stop": "share spent"
+    },
+    "a5": {
+      "runs": 7,
+      "segments": 1,
+      "cost_usd": 9.838061,
+      "stop": "share spent"
+    },
+    "a1": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 10.371938,
+      "stop": "share spent"
+    },
+    "a3": {
+      "runs": 5,
+      "segments": 0,
+      "cost_usd": 8.487486500000003,
+      "stop": "share spent"
+    },
+    "a4": {
+      "runs": 6,
+      "segments": 1,
+      "cost_usd": 14.129860499999996,
+      "stop": "share spent"
+    }
+  }
+}

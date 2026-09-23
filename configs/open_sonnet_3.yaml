@@ -10,15 +10,15 @@ agents:
 bon: 1
 
 train_run_budget: 36
-train_timeout_s: 600
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
 max_train_attempts: 3
 
 autoresearch_repo: ~/autoresearch
 autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
 
-# one long session per agent; segments are resumed while the share lasts
-max_budget_usd_per_session: 25.0
-cell_budget_usd: 200.0
-open_session_timeout_s: 5400
-open_max_resumes: 8
+# one long session per agent, resumed while its share lasts; a solo agent does all 36 runs in one session
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
+open_session_timeout_s: 21600
+open_max_resumes: 40
 seed: 0

@@ -1,0 +1,7 @@
+{
+  "status": "finished",
+  "agent": "a1",
+  "best_commit": "e99bc84",
+  "best_val_bpb": 0.985651,
+  "summary": "My own best contribution this session was lengthening WARMDOWN_RATIO 0.5->0.7 on the group's batch2^18+softcap=10 base (0.986867), which held as cell-best briefly before a0's WEIGHT_DECAY=0.1 and a2's DEPTH=10 each beat it independently. My final run tested stacking DEPTH=10 with WD=0.1+WARMDOWN=0.7 (three independently-validated wins combined) and got 0.986182 -- not a new best, essentially matching a3's WD+WARMDOWN combo at DEPTH=8 and slightly worse than DEPTH=10 alone. This confirms the group's recurring pattern: independently-good schedule/architecture tweaks do not compose additively past a certain point; DEPTH=10 alone already captures most of the available gain. Current overall cell best is a2's DEPTH=10 alone (commit e99bc84, val_bpb 0.985651). Next thing worth trying: DEPTH=12 with DEVICE_BATCH_SIZE reduced to avoid the OOM a2 hit, to see if the depth optimum extends further under the smaller-batch regime."
+}

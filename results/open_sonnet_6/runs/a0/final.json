@@ -1,0 +1,9 @@
+{
+  "status": "finished",
+  "agent": "a0",
+  "best_commit": "f2c1301",
+  "best_val_bpb": 0.986379,
+  "cell_best_commit": "e99bc84",
+  "cell_best_val_bpb": 0.985651,
+  "summary": "Worked optimizer/schedule tuning at fixed DEPTH=8, adopting a4's batch2^18+softcap10 base (0.987594) after it clearly beat my own results. Found WEIGHT_DECAY 0.2->0.1 as a genuinely new win (0.986436) and that it stacks marginally with a1's WARMDOWN_RATIO=0.7 (0.986379, my best). The cell's overall best turned out to be a2's DEPTH=10 architecture change alone (0.985651) -- my final run tested combining DEPTH=10 with the WD=0.1+WARMDOWN=0.7 schedule combo and got 0.985862, confirming (with a1 and a2's independent attempts at the same combo) that architecture and schedule wins do not compose cleanly in this 5-min budget, though the gap is small and close to noise. Next steps would be: properly re-tuning DEVICE_BATCH_SIZE/DEPTH jointly to test DEPTH=11-12 without confounding batch-size reduction, and multi-seed runs to separate real interaction effects from noise in the 0.9856-0.9865 band."
+}

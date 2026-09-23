@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+4886fd5	0.996937	44.0	ok	increase MATRIX_LR from 0.04 to 0.06
+756dabc	1.002711	44.0	ok	reduce warmdown_ratio from 0.5 to 0.2 to train longer at higher LR
+ac0d45e	0.998188	44.0	ok	Reduce embedding LR from 0.6 to 0.4
+80c01ac	0.997722	44.0	ok	Reduce warmdown ratio from 0.5 to 0.3
+a0ac46e	1.002563	66.5	ok	Increase depth from 8 to 10, reduce aspect ratio 64→52
+b8ae069	0.998237	54.1	ok	increase MATRIX_LR to 0.07
+f1d3ce0	0.998683	54.1	ok	MATRIX_LR=0.06, EMBEDDING_LR=0.4 (reduced from 0.6)
+a592970	1.000128	54.1	ok	DEPTH=10 (increased from 8), MATRIX_LR=0.06
+86a01ee	0.998560	54.1	ok	WARMDOWN_RATIO=0.3 (from 0.5), keep LR high for longer
+0e88367	0.998461	54.1	ok	WEIGHT_DECAY=0.3 (increased from 0.2)
+7100826	0.999534	44.0	ok	increase warmdown_ratio to 0.8 for more gradual cooldown
+0d7bf5c	0.996838	44.0	ok	Increase MATRIX_LR from 0.04 to 0.08
+204a7f7	0.993369	43.9	ok	Reduce TOTAL_BATCH_SIZE from 2^19 to 2^18
+26966cd	0.982450	63.9	ok	Increase ASPECT_RATIO from 64 to 96 (wider model)
+5abfeb4	0.980185	64.8	ok	Apply winning config: batch 2^18, width ASPECT_RATIO=96, window=256, VE=first3+last3
+5f02ec8	0.976806	64.8	ok	Apply winning config: ASPECT_RATIO=96, BATCH=2^18, window=1/8, has_ve=first3+last3
+596e8d8	0.979709	64.8	ok	Winning config: ASPECT_RATIO=96, BATCH=2^18, window//8, first3-last3 VE
+a7556f7	0.979850	57.5	ok	Apply winning config: batch 2^18, ASPECT_RATIO=96, DEPTH=8, window 256, VE first/last 3
+88821cc	0.000000	0.0	crash	Reduce sliding window from long_window//2 to long_window//8
+f848036	0.000000	0.0	crash	DEPTH=9 (from 8) with winning config
+0144a33	0.000000	0.0	crash	Apply complete winning config: batch 2^18, width ASPECT_RATIO=96, window=256, VE=first3+last3
+3decdcf	0.000000	0.0	crash	Try DEPTH=10 (base config says helps a little)
+50df6c9	0.980081	57.5	ok	Try DEPTH=7: memory claims -0.0010 improvement vs depth 8
+332a638	0.000000	0.0	crash	Test depth 10 (winning config base, depth 8->10, aspect 96->77)
+163a63d	0.000000	0.0	crash	Try smaller batch size 2^17 with ASPECT_RATIO=96
+79bef41	0.000000	0.0	crash	DEPTH=10 with winning config
+7c18614	0.000000	0.0	crash	Try DEPTH=9 (between 8 baseline and 10 which OOMs)
+cf8784b	0.000000	0.0	crash	Try DEPTH=10: memory says helps a little vs DEPTH=8
+535b6ee	0.000000	0.0	crash	Test TOTAL_BATCH_SIZE=2^17 (half of 2^18 winning config)
+422e7a6	0.000000	0.0	crash	DEPTH=9 + DEVICE_BATCH_SIZE=96 (reduced to avoid OOM)
+d0d1e1f	0.977025	64.8	ok	Verify winning config stability (rerun without changes)
+23afdd1	0.979237	64.8	ok	Final confirmation: Winning config (ASPECT_RATIO=96, BATCH=2^18, window//8, first3-last3 VE)
+50d8820	0.989947	75.0	ok	Try window 1/4 (512 tokens) vs winning config's 1/8 (256)
+9744ff6	0.977564	64.8	ok	Test window size: // 6 (341) instead of // 8 (256)
+8883396	0.979047	64.8	ok	Try ASPECT_RATIO=112: wider model than winning config's 96
+b8735ea	0.978964	64.8	ok	Winning config with EMBEDDING_LR=0.4 (reduced from 0.6)

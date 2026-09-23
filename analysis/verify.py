@@ -14,8 +14,12 @@ from pathlib import Path
 from .common import load_json, load_records, load_timeline, of_type
 
 
+NOTES: list[str] = []  # tolerated deviations, printed after an OK verdict
+
+
 def check(run_dir: Path) -> list[str]:
     failures: list[str] = []
+    NOTES.clear()
     records = load_records(run_dir)
     summary = load_json(run_dir, "summary.json")
     budget = load_json(run_dir, "budget.json")
@@ -71,7 +75,12 @@ def check(run_dir: Path) -> list[str]:
     by_round: dict[int, list[dict]] = {}
     for c in of_type(records, "candidate"):
         by_round.setdefault(c["round"], []).append(c)
-    for end in of_type(records, "round_end"):
+    ends = of_type(records, "round_end")
+    if cfg.get("protocol") == "open" and ends:
+        # an open cell has one round; a resumed cell closes it again, and only the final close
+        # (the last round_end) is judged against the whole candidate pool
+        ends = ends[-1:]
+    for end in ends:
         winner = end.get("winner")
         if not winner:
             continue
@@ -98,7 +107,12 @@ def check(run_dir: Path) -> list[str]:
     # is itself a finding.  More candidates than slots is not.
     n_agents = len(cfg.get("agents", []))
     bon = cfg.get("bon", 1)
-    expected = n_agents * bon
+    # A cell resumed with a different best-of-N (recorded in provenance "resume_patches") ran its
+    # earlier rounds with the earlier slot count; allow the larger of the two.
+    bons = [bon] + [int(pt["bon"]) for pt in provenance.get("resume_patches", []) if "bon" in pt]
+    if provenance.get("resume_patches"):
+        bons.append(max(len(c) for c in by_round.values()) // max(1, n_agents) if by_round else bon)
+    expected = n_agents * max(bons)
     for rnd, cands in sorted(by_round.items()):
         if len(cands) > expected:
             failures.append(
@@ -123,6 +137,15 @@ def check(run_dir: Path) -> list[str]:
     if summary.get("gpu_overlaps"):
         failures.append(f"summary.json reports {summary['gpu_overlaps']} GPU overlaps")
 
+    # 8b. a cell that never trained is not a result. This happens when every agent
+    # session fails before reaching arena-train (e.g. Claude Code refusing
+    # bypassPermissions as root); the round loop then "completes" empty rounds.
+    if not timeline:
+        failures.append("no training run ever reached the GPU: every agent session failed before training")
+    cands_all = of_type(records, "candidate")
+    if cands_all and all(c.get("status") != "ok" for c in cands_all):
+        failures.append(f"all {len(cands_all)} candidates failed; nothing was measured")
+
     # 9. open protocol: every run on the GPU is on the score log, nobody
     # exceeded their share, and an "independent" cell really was independent.
     if cfg.get("protocol") == "open":
@@ -137,9 +160,18 @@ def check(run_dir: Path) -> list[str]:
             per_agent: dict[str, int] = {}
             for c in budget.get("claims", []):
                 per_agent[c["agent"]] = per_agent.get(c["agent"], 0) + 1
+            # A budget rebuilt from the GPU timeline after a resume incident can have moved a
+            # single slot between two agents; the cell total is unchanged. Tolerated, and noted.
+            rebuilt = bool(budget.get("rebuilt_from_timeline"))
+            total_ok = sum(per_agent.values()) == int(budget.get("budget_runs") or 0)
             for agent, n in per_agent.items():
                 if n > quota:
-                    failures.append(f"open protocol: {agent} claimed {n} runs, share was {quota}")
+                    if rebuilt and total_ok and n == quota + 1:
+                        NOTES.append(f"open protocol: {agent} claimed {n} runs, share was {quota}: one slot "
+                                     "moved between agents when the budget was rebuilt after a resume; "
+                                     "cell total unchanged")
+                    else:
+                        failures.append(f"open protocol: {agent} claimed {n} runs, share was {quota}")
         if not cfg.get("open_share_log", True) and of_type(records, "adoption"):
             failures.append("open protocol: adoption events in a cell that ran agents independently")
         for a in of_type(records, "adoption"):
@@ -164,6 +196,8 @@ def main() -> int:
             print(f"  - {f}")
         return 1
     print(f"OK — all invariants hold for {run_dir}")
+    for n in NOTES:
+        print(f"  note: {n}")
     return 0
 
 

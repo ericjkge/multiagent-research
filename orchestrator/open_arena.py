@@ -50,6 +50,15 @@ from .sharedlog import open_log_path
 OPEN_TOOLS = ("Bash", "Read", "Edit", "Write", "Grep", "Glob")
 
 
+FRESH_NOTE = (
+    "**This is a fresh session: you have no memory of your earlier segments.** What you did "
+    "before is on the record: your own entries in the shared directory below (approach, "
+    "scores, findings) and the git log of your checkout. Read them, then continue from your "
+    "last result. Training works: `arena-train` runs in the foreground and returns when the "
+    "five-minute run is done (allow up to 15 minutes for the command).\n"
+)
+
+
 class OpenArena(Arena):
     """Reuses Arena's setup (baseline, budget, provenance, worktrees, harnesses)."""
 
@@ -106,7 +115,10 @@ class OpenArena(Arena):
     def _worktree(self, agent: AgentSpec) -> Path:
         path = self.trees.work_root / f"open_{agent.id}"
         if not path.exists():
-            self.trees.create_named(f"open_{agent.id}", self.state.baseline_commit)
+            # On resume the agent's private checkout was removed at the end of the earlier
+            # segment; recreate it at the agent's own last commit so its memory matches the files.
+            last = (self.sessions.get(agent.id) or {}).get("final_commit") or self.state.baseline_commit
+            self.trees.create_named(f"open_{agent.id}", last)
         return path
 
     def _system_prompt(self, agent: AgentSpec) -> str:
@@ -132,6 +144,10 @@ class OpenArena(Arena):
         worktree = self._worktree(agent)
         info = self.sessions.setdefault(agent.id, {"session_id": "", "segments": 0, "cost_usd": 0.0,
                                                    "done": False})
+        if info.get("done") and self._share_left(agent.id) > 0 and self.runs_left() > 0:
+            # resumed cell: the earlier run let this agent stop early; it still owes runs
+            info["done"] = False; info["segments"] = 0; info["throttled"] = 0
+            info["stop"] = ""
         harness = self.harnesses[agent.id]
         log_path = open_log_path(self.run_dir, agent.id, self.cfg.open_share_log)
 
@@ -152,6 +168,7 @@ class OpenArena(Arena):
 
             first = info["segments"] == 0
             template = "open.md" if first else "open_continue.md"
+            fresh = not first and not info["session_id"]
             prompt = phases.render(
                 template,
                 WORKTREE=str(worktree),
@@ -159,7 +176,9 @@ class OpenArena(Arena):
                 CELL_LEFT=str(self.runs_left()),
                 LOG_MD=log_path.read_text() if log_path.exists() else "",
                 LOG_PATH=str(log_path),
+                FRESH_NOTE=(FRESH_NOTE if fresh else ""),
             )
+            runs_before = self._runs_used_by(agent.id)
             seg = info["segments"]
             print(f"  {agent.id}: session segment {seg} ({left} runs in share) ...", flush=True)
             try:
@@ -189,22 +208,69 @@ class OpenArena(Arena):
                 self.log.append("session_segment", round=0, agent=agent.id, segment=seg,
                                 cost_usd=result.cost_usd, num_turns=result.num_turns,
                                 is_error=result.is_error, duration_s=round(result.duration_s, 1))
+                # A segment that errored out almost immediately is a rate limit or an
+                # auth failure, not the agent stopping: wait, and do not count it as a
+                # resume.  Six Opus sessions on a claude.ai plan hit the 5-hour window;
+                # the window passes, the cell continues.
+                if result.is_error and result.num_turns <= 1:
+                    info["throttled"] = info.get("throttled", 0) + 1
+                    if info["throttled"] > 36:  # 6 hours of waiting: something else is wrong
+                        info["done"] = True
+                        info["stop"] = f"gave up after {info['throttled']} errored segments: {result.text[:120]}"
+                        break
+                    print(f"  ~ {agent.id}: segment errored at once ({result.text[:80]}); waiting 10 min")
+                    time.sleep(600)
+                    continue
             except HarnessError as exc:
                 self.log.append("session_segment", round=0, agent=agent.id, segment=seg,
                                 error=str(exc)[:1000])
                 print(f"  ! {agent.id}: segment {seg} failed: {exc}")
+                info["throttled"] = info.get("throttled", 0) + 1
+                if info["throttled"] > 36:
+                    info["done"] = True
+                    info["stop"] = "gave up after repeated harness failures"
+                    break
+                time.sleep(120)
+                continue
             info["segments"] += 1
             self._save_sessions()
             self.state.save(self.run_dir)
 
             final = worktree / "final.json"
+            declared = False
             if final.exists():
                 try:
                     if json.loads(final.read_text()).get("status") == "finished":
-                        info["done"] = True
-                        info["stop"] = "agent finished"
+                        declared = True
+                        if self._share_left(agent.id) <= 0 or self.runs_left() <= 0:
+                            info["done"] = True
+                            info["stop"] = "agent finished"
+                        else:
+                            # Every cell spends the same 36 runs. An agent that declares itself
+                            # finished with runs left is resumed and told to continue.
+                            final.unlink()
+                            self.log.append("note", round=0, agent=agent.id, source="orchestrator",
+                                            text=f"declared finished with {self._share_left(agent.id)} runs left; resumed")
                 except json.JSONDecodeError:
                     pass
+            # A session that keeps ending after a few turns without training and without
+            # finishing is stuck on a belief from an earlier segment (for example that the
+            # training command is broken). After three such segments the agent continues in
+            # a fresh session: no memory except the shared directory and its own checkout.
+            if not info["done"]:
+                idle = (self._runs_used_by(agent.id) == runs_before
+                        and (declared or result.num_turns <= 6 or result.duration_s < 300))
+                info["idle_segments"] = info.get("idle_segments", 0) + 1 if idle else 0
+                if info["idle_segments"] >= 3:
+                    info["idle_segments"] = 0
+                    info["fresh_sessions"] = info.get("fresh_sessions", 0) + 1
+                    info["session_id"] = ""
+                    self.log.append("note", round=0, agent=agent.id, source="orchestrator",
+                                    text=(f"three session segments in a row ended without a training run; "
+                                          f"fresh session #{info['fresh_sessions']} (no memory beyond the "
+                                          f"shared directory and its checkout)"))
+                    print(f"  ~ {agent.id}: three idle segments; starting a fresh session", flush=True)
+                self._save_sessions()
 
         # pin whatever the agent left behind
         commit = self.trees.commit_all(worktree, f"[{self.tag}] open {agent.id}: final state")

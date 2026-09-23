@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "675f20c",
+  "best_val_bpb": 0.996295,
+  "summary": "Optimal configuration: EMBEDDING_LR=0.8, MATRIX_LR=0.06 achieves val_bpb 0.996295 (0.104% gain over baseline 0.997333). Tested 6 variations: larger models (DEPTH=10, +0.45% worse), tighter softcap (−0.16% worse), aggressive LR cooldown (−0.06% worse), higher embedding/matrix LRs (−0.06% worse), and unembedding LR adjustment (−0.06% worse). Moderate increases to embedding and matrix learning rates proved optimal for the 5-minute training window."
+}

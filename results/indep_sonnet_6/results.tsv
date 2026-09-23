@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+9afb04c	1.001611	66.5	ok	DEPTH=10 (deeper model, ~640 dim) vs baseline DEPTH=8
+5f4efb3	0.000000	0.0	crash	DEPTH=12 (deeper/narrower, baseline width per layer)
+e2c05e6	1.001200	66.5	ok	DEPTH=10 (wider/deeper model, same aspect ratio)
+6139307	1.041227	26.6	ok	DEPTH=6 (smaller/faster model, more steps in 5min budget)
+d69a08f	1.043780	26.6	ok	DEPTH=6 (narrower/shallower, more steps in budget)
+88e4480	1.042401	26.6	ok	DEPTH=6 (shallower/wider, ~384 dim) vs baseline DEPTH=8
+f0bcaa7	1.042821	26.6	ok	DEPTH 8->6: smaller/faster model, more optimizer steps in fixed 5min budget
+c666fae	1.001088	66.5	ok	DEPTH=10 (larger model, fewer steps in 5min budget)
+4aa37d6	1.014614	47.8	ok	DEPTH=12, DEVICE_BATCH_SIZE=64 (fix OOM)
+1cd5fad	0.988582	43.9	ok	DEPTH=8 baseline but TOTAL_BATCH_SIZE halved to 2^18 (more, noisier updates)
+8dd56d8	1.029788	64.2	ok	DEPTH=8, ASPECT_RATIO=96 (wider at same depth, dim=768)
+bfbe0d7	0.995760	44.0	ok	DEPTH=8 baseline, MATRIX_LR 0.04->0.055 (Muon LR bump)
+3e29778	1.043372	26.6	ok	DEPTH=6 (shallower/narrower, more steps/sec)
+ed699f6	0.994878	22.2	ok	DEPTH=8, TOTAL_BATCH_SIZE=2^17, DEVICE_BATCH_SIZE=64 (even more/noisier updates)
+711f50b	0.994598	54.1	ok	DEPTH=8, ASPECT_RATIO=80 (wider at fixed depth, n_embd=640)
+aedc69e	0.000000	0.0	crash	baseline arch, DEVICE_BATCH_SIZE=256 (grad_accum=1, fewer python loop iters/step)
+32ef298	0.997892	44.0	ok	DEPTH=8, MATRIX_LR 0.055->0.07 (push Muon LR further)
+29c0956	1.030786	32.7	ok	DEPTH=8, ASPECT_RATIO=96 (wider at fixed depth, n_embd=768)
+015614d	0.991420	43.9	ok	Best batch (2^18) + shorter warmdown ratio 0.3 (more steps at full LR)
+e3cf903	1.022835	64.2	ok	DEPTH=8, ASPECT_RATIO=96 (n_embd=768, even wider)
+af9ffe3	1.003419	44.1	ok	baseline size (dim=512,depth=8), HEAD_DIM=64 (8 heads instead of 4, same width/memory)
+5cd26ee	0.996555	44.0	ok	MATRIX_LR=0.055 (best) + EMBEDDING_LR 0.6->0.8
+1483cc9	1.025886	34.0	ok	DEPTH=8, ASPECT_RATIO=48 (narrower at fixed depth, n_embd=384)
+896a599	0.988312	43.9	ok	Best batch (2^18) + higher EMBEDDING_LR 0.6->0.8 (final run in my share)
+f3c084c	0.998954	60.5	ok	DEPTH=9, ASPECT_RATIO=71 (n_embd=640, same width as best, depth+1)
+26152b4	0.997949	44.0	ok	baseline size, WARMDOWN_RATIO=0.3 (shorter LR cooldown, more time at peak LR)
+ef7bd23	0.996579	44.0	ok	MATRIX_LR=0.06 (narrow the Muon LR optimum near 0.055)
+dd196e6	1.003372	44.1	ok	baseline shape, HEAD_DIM=64 (8 heads instead of 4, same n_embd)
+ea59529	1.005521	54.2	ok	DEPTH=8, n_embd=640 (best), HEAD_DIM=64 (10 heads instead of 5)
+5ef1464	1.001522	40.4	ok	baseline size, GQA n_kv_head=num_heads//2 (2 kv heads vs 4 q heads)
+9fbf6a2	0.998510	44.0	ok	DEPTH=8 baseline + WARMDOWN_RATIO 0.5->0.3 (shorter cooldown, more time at peak LR)
+ca27e20	0.990769	43.9	ok	TOTAL_BATCH_SIZE=2^18 + EMBEDDING_LR=0.8 (adopting a2's best combo) + WARMDOWN_RATIO=0.3 (my own variation)
+a2bd54e	0.995411	44.0	ok	DEPTH=8 baseline + MATRIX_LR 0.04->0.06 (higher Muon LR) [retry]
+91f0e84	0.000000	0.0	crash	DEPTH=8 baseline + MATRIX_LR 0.04->0.08 (push Muon LR further)
+45d8632	0.996117	43.9	ok	final: batch=2^18 + EMBEDDING_LR=0.8 + MATRIX_LR=0.06 + WARMDOWN=0.3 (combine best levers)
+83ccedc	0.000000	0.0	crash	DEPTH=8 baseline batch/embedding + MATRIX_LR=0.06 + WARMDOWN=0.3 (isolate matrix_lr x warmdown interaction)

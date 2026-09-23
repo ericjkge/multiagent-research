@@ -32,9 +32,18 @@ export PATH="$HOME/.local/bin:$PATH"
 command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
 claude --version
 
-# Agent calls need an API key, not a claude.ai login: the cells run headless
-# and unattended, and an expired OAuth token fails every call in the cell.
-[ -n "${ANTHROPIC_API_KEY:-}" ] || echo "WARNING: ANTHROPIC_API_KEY is unset; agent calls will fail"
+# The orchestrator's own dependencies (analysis needs scikit-learn and matplotlib).
+python3 -c "import yaml, sklearn, matplotlib" 2>/dev/null || \
+  pip install -q pyyaml scikit-learn matplotlib 2>/dev/null || \
+  pip install -q --break-system-packages pyyaml scikit-learn matplotlib
+
+# Agent calls need either an API key or a claude.ai login on this box
+# (`claude auth login`, paste the code).  A login bills the plan, not a card,
+# but the plan's 5-hour window throttles many parallel sessions: run at most
+# two cells at a time on a login.  The orchestrator waits out rate limits.
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then echo "auth: API key"
+elif claude auth status 2>/dev/null | grep -q '"loggedIn": true'; then echo "auth: claude.ai login (plan)"
+else echo "WARNING: no ANTHROPIC_API_KEY and claude is not logged in; run 'claude auth login' before launching cells"; fi
 
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 

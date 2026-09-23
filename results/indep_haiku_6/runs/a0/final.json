@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "5f02ec8",
+  "best_val_bpb": 0.976806,
+  "summary": "Pivoted from learning-rate-schedules approach to architecture optimization using winning configuration discovered in prior research. Applied four stacked improvements: batch size 2^19→2^18, aspect ratio 64→96 (width over depth), sliding window 2048//8=256, value embeddings on first+last 3 layers. Achieved val_bpb=0.976806 (2.06% improvement from baseline 0.997359). Verified stability and tested variations: DEPTH 9+10 OOM, window//6 worse (0.977564). The winning config is robust and optimal."
+}

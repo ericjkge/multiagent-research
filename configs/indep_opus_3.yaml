@@ -1,0 +1,27 @@
+# opus: three independent workers, 12 attempts each, 36 total.
+# Intended control for open_opus_3.
+# BLOCKED for production until the isolation checks in RUNBOOK.md pass.
+# Disabling the shared Markdown log alone does not isolate peer information.
+cell_id: indep_opus_3
+protocol: open
+open_share_log: false
+harness: claude_code
+agents:
+  - {id: a0, model: claude-opus-5, effort: medium}
+  - {id: a1, model: claude-opus-5, effort: medium}
+  - {id: a2, model: claude-opus-5, effort: medium}
+bon: 1
+
+train_run_budget: 36
+train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
+max_train_attempts: 3
+
+autoresearch_repo: ~/autoresearch
+autoresearch_commit: ""
+
+# Keep operational limits aligned with this model's existing open/independent configs.
+max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
+cell_budget_usd: 100000.0
+open_session_timeout_s: 21600
+open_max_resumes: 40
+seed: 0
