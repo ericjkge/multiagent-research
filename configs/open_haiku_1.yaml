@@ -12,7 +12,7 @@ train_timeout_s: 900   # a real run is ~330 s; margin for compile under load
 max_train_attempts: 3
 
 autoresearch_repo: ~/autoresearch
-autoresearch_commit: ""   # pin this before the real runs (setup_gpu_box.sh prints it)
+autoresearch_commit: "228791fb499afffb54b46200aca536f79142f117"   # pin this before the real runs (setup_gpu_box.sh prints it)
 
 # one long session per agent, resumed while its share lasts; a solo agent does all 36 runs in one session
 max_budget_usd_per_session: 1000.0   # no ceiling: spend is notional on the plan
