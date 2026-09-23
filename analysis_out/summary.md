@@ -1,6 +1,16 @@
 # Results so far (2026-09-23 14:01)
 
-**Read the correction at the top of case_studies.md first: the independent (indep_*) cells were not isolated (agents read the shared score table and peers' commits), so they do not measure the absence of communication.**
+**Interpretation and exclusions.** Read [ONE_PAGE.md](ONE_PAGE.md) and [case_studies.md](case_studies.md).
+The six original `indep_{haiku,sonnet,opus}_6` and `_s2` searches cannot serve as independent controls:
+the harness exposed peers' scores and code, with direct contamination documented in the Opus and Haiku
+archives. The three `indep_*_6_iso` reruns are separate repaired controls with clean recorded isolation
+scans; `open_opus_6_iso` intentionally permits sharing. There are 29 archived search summaries below,
+not 29 equally valid causal comparisons. Verifier OK means its implemented checks passed, sometimes
+with tolerated deviations; it does not override these exclusions.
+
+The numerical tables below are retained from the existing report. Round-based crash percentages use
+candidate records and can differ from failed GPU executions. Final scores are descriptive; actual
+attempts, hardware, resumes and validation-selection effects limit comparisons.
 
 - haiku_1: OK — all invariants hold (8 noted deviation(s), see verify)
 - haiku_3: OK — all invariants hold (10 noted deviation(s), see verify)
@@ -66,7 +76,15 @@ sonnet_3            3    2   1.014027   0.992950  0.021077    32       5     6.7
 sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0   0.320    61.22
 ```
 
-## Best val_bpb reached by run n (equal-compute comparison)
+## Legacy progress table by candidate index (not an equal-compute comparison)
+
+**Do not interpret these columns as actual GPU-attempt prefixes for rounds.** The current generator
+sorts candidates by round/agent/variant, rather than GPU execution order, includes phantom candidates,
+and carries scores forward after a search stops. For example, Haiku solo has 20 GPU attempts but
+36 candidate entries. The `best@29/34/36` labels below are retained as legacy output, not validated
+compute-matched measurements. Open records are normally one candidate per attempt, but cross-search
+comparisons still require the execution timeline and the accounting caveats above. No curve or
+significance claim in the revised interpretation relies on this table.
 
 | cell | runs | best@29 | best@34 | best@36 | final |
 |---|---:|---:|---:|---:|---:|

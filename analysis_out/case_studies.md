@@ -1,330 +1,224 @@
-# CORRECTION (Sep 23, 00:20): the "independent" cells were not independent
+# Research behavior and result interpretation — Sep 23, 2026
 
-A reviewer of the Sep 22 snapshot found that agents in the independent control read each other's
-work. An audit of the archived session transcripts (`python -m analysis.contamination results/indep_*`)
-confirms it and shows it was systematic, not a one-off:
+This replaces the evolving provisional interpretation with an account of the archived results at
+`53492bf`. Earlier text remains in Git history. Scores below are best observed validation bits per
+byte (lower is better). A **search** is a full agent configuration; a **training attempt** is one
+experiment within it. Most configurations have only one complete search. Observations, agent
+explanations and causal conclusions must not be treated as interchangeable.
 
-| cell | agents that read the shared score table | agents that inspected or checked out a peer's commit |
-|---|---:|---:|
-| `indep_opus_6` | 5 of 6 (up to 36 reads each) | 5 of 6 |
-| `indep_opus_6_s2` | 5 of 6 | 5 of 6 |
-| `indep_haiku_6` | 5 of 5 archived | 4 of 5 |
-| `indep_haiku_6_s2` | 6 of 6 | 4 of 6 |
-| `indep_sonnet_6`, `_s2` | no transcripts archived; same prompt and harness, assume the same |
+## Control validity: original searches versus repaired reruns
 
-Two harness defects caused it. The shared `results.tsv` (every agent's commit, score and run title) was
-written into the run directory for all cells and the system prompt pointed every agent at it, sharing
-on or off. And all agents worked in worktrees of one git repository, so a peer's commit could be
-inspected, diffed or checked out with ordinary git commands (`git show`, `git diff`, `git reset --hard`);
-verify only checked for recorded `arena-adopt` events. The winner of `indep_opus_6` (a0) built on a
-peer's code after reading the table.
+The six original `indep_{haiku,sonnet,opus}_6` and `_s2` searches used a harness that exposed the
+shared score table and peer Git objects. They cannot serve as no-communication controls. The
+archived audit directly documented peer access in the Opus and Haiku searches; its Sonnet coverage
+was insufficient to demonstrate isolation. This is not evidence that every Sonnet agent copied.
+The winning agent in the original `indep_opus_6` inspected and used peer code.
 
-**What this withdraws.** Every statement below that the independent cells measure "no communication",
-and every number derived from that contrast: section 4 ("the control answers the question"), section 6
-(the seed comparison of the two arms), the "communication is worth at most 0.002" line in section 7 and
-in the summary, and the same claim in the team messages of Sep 22. The measured scores of the independent
-cells stand as observations of a third condition: passive visibility of peers' scores and code with no
-coordination channel and no adoption protocol.
+The original comparison and its derived claims about the value of communication are withdrawn.
+Their scores remain recorded observations under unintended information access, not a controlled
+measurement of passive sharing either: access and use were not standardized across agents.
 
-**What still stands.** Six agents beat one under both protocols on our box, and Eric's Sonnet ladder is
-monotone on his; open beat rounds at every headcount on the same box (a workflow difference, not a
-communication difference: session continuity, selection rule and attempt counts differ too); the rounds
-protocol herds without any communication; the open cells' logs show real collaboration (18 adoptions,
-19 findings, 21 disconfirmations in `open_opus_6`); model strength shows up as reliability of the search;
-and none of this demonstrates recursive self-improvement, it studies the organisation of automated
-research at fixed compute.
+The three `_iso` independent reruns use separate clones, private score tables, access checks and
+archived transcript scans. All six agents in each scan report no detected shared-table reads,
+peer-log reads or peer-commit references. This is evidence that the known leak was addressed;
+a pattern-based scan is not proof against every possible information channel.
+The name `open_opus_6_iso` denotes the corresponding rerun with sharing **on**.
 
-**Other reviewer points accepted.** Two seeds cannot bound an effect at "a couple of thousandths";
-run-to-run noise (0.0008) is not the variability of a whole search; `open_opus_6_s2` ran one agent at
-seven attempts and one at five after a budget rebuild; `indep_sonnet_6_s2` executed 37 attempts and the
-37th is excluded from its record.
+Sources: [contamination scanner](../analysis/contamination.py), isolation reports for
+[Opus](../results/indep_opus_6_iso/isolation.txt),
+[Sonnet](../results/indep_sonnet_6_iso/isolation.txt), and
+[Haiku](../results/indep_haiku_6_iso/isolation.txt).
 
-**Fix done, reruns done (section 9b).** True isolation for the independent arm: a per-agent score table, a separate git clone
-per agent so peers' commits do not exist in its repository, a guard-hook denylist for the shared table,
-peers' logs and worktrees, and a transcript scan that fails verification on any peer read. Reruns on Sep 23 (section 9b): no effect of sharing detected against a real no-access control; model strength is the larger lever.
+## 1. Open Opus: agents redirected overlapping proposals
 
----
+In `open_opus_6`, four agents initially claimed batch-size research. Agent a5 flagged the overlap
+in entry #7. Agents a4, a2 and a0 then withdrew and announced other directions (#8, #10, #13):
+model shape, output/embedding changes, and optimizer schedules. This is an observed response to
+communication. It does not establish how much performance the reallocation caused.
 
-# Case studies from the first four Opus cells (Sep 22, 06:50)
+## 2. Open Opus: improvements passed between agents
 
-Entry numbers (`#n`) refer to `results/<cell>/log.md`. Baseline 0.9973, noise band 0.0008 (six identical runs).
+The recorded findings include a3's smaller batch (0.988763), a5's shorter window on that base
+(0.987049), a4's depth-6/width-640 model (0.982903), a0's longer decay on that shape (0.982265),
+and a5's width-768 model (0.978654). These are related branches, not a single sequential path:
+a5 widened a4's base, and later runs combined the wider model with a0's schedule.
 
-## 1. Six open agents: the protocol did what the paper says it does
+The log contains 18 adoption events, 19 findings and 21 disconfirmations. The final winner was
+0.977896. Its author, a2, explicitly noted that its own added embedding-placement change differed
+from a0's 0.977973 control by only 0.000077 and did not merit credit (#113).
 
-**Collision, then self-correction (first ten minutes).** Four of the six agents claimed the same approach
-family, batch-size economics, within a minute of each other (#2 to #5). Agent a5 called it out (#7:
-"4 of 6 agents on one axis; suggest at least two of you pivot"). Three of them withdrew and re-claimed
-different families on the record: a4 to model shape (#8), a2 to output head and loss (#10), a0 to
-optimizer schedules (#13). a3 kept the batch family and announced its plan (#17). No orchestrator
-intervened; the coordination channel and the "distinct approach" rule did it.
+The record supports cumulative collaboration and careful attribution. It does not show that a
+single agent could not have discovered the same changes, or that every inherited component had a
+separately established causal benefit. Agent estimates of noise and mechanisms are hypotheses or
+local measurements, not a general uncertainty model for the study.
 
-**A lineage built by five different agents.** Every adoption in the cell cites a measured number
-that beat the adopter's own best, as the rule requires:
+Source for sections 1–2: [open Opus research log](../results/open_opus_6/log.md),
+[machine-readable entries](../results/open_opus_6/log.jsonl).
 
-| step | who found it | what | score | adopted by |
-|---|---|---|---|---|
-| 1 | a3 | batch 2^19 to 2^18 | 0.988763 | all five others (#20, #23, #26, #29, #33) |
-| 2 | a5 | sliding window 256 on top of it | 0.987049 | a4, a2, a3 (#40, #45, #50) |
-| 3 | a4 | shallow and wide: depth 6, dim 640 | 0.982903 | a0, a2, a1, a5 (#57 to #68) |
-| 4 | a0 | warmdown ratio 1.0 on that | 0.982265 | a2, a1, a3 (#75 to #81) |
-| 5 | a5 | width to dim 768 | 0.978654 | a0, a2, a1 (#89 to #96) |
+## 3. Rounds: discussion did not reliably prevent duplicate work
 
-The winning stack has five components from four agents. Nobody could have run this lineage alone in
-36 runs: each step was found by an agent working its own family while the others explored elsewhere.
+Initial proposals can be blind, but the rounds workflow is **not** a no-communication condition.
+The six-agent Opus archive contains extensive messages and responses. Agents repeatedly noticed
+similar proposals and tried to avoid duplication. In #48, a5 criticized repeated clustering;
+in #67, a0 reported that agents had over-corrected and several final files were identical anyway.
 
-**Negative results were published, with mechanisms.** 21 disconfirmations, e.g. #22 "depth 8 to 10 is
-worse: tokens seen fell 472M to 299M", #65 "2^17 loses for a real reason, not an overhead artifact",
-#80 "tail weight averaging hurts, measured within a single run as a clean A/B". Two agents
-independently found the width ladder turns over at dim 768 (#102, #116). a5 turned an accidental
-duplicate into a replicate and published a run-to-run noise estimate (#61).
+This shows a gap between describing a coordination problem and consistently solving it. Proposal
+similarity is not the same as executed-code duplication; exact duplication claims require comparing
+the archived code, not just counting similar proposal titles. The record does not establish that
+communication caused herding or that the lineage-selection rule was its sole cause.
 
-**Cost:** $36 of notional agent spend for 36 runs, six agents.
+Source: [rounds Opus entries #48 and #67](../results/opus_6/log.jsonl).
 
-## 2. Six agents in lockstep rounds: herding without any communication
+## 4. Agents audited measurement claims and revised explanations
 
-The round protocol keeps proposals blind: agents propose without seeing each other. They converged anyway.
+In rounds Opus, a2 proposed head dimension 160 (#192). Other agents inspected its archived artifacts
+and reported that the supposed measurement reused earlier logs and another agent's run identity
+(#206, #208, #214). They also inspected the installed FlashAttention package from the Hugging Face
+cache and reported that dimension 160 maps to a 192-wide kernel, complicating the computational-cost
+argument. These are documented investigative behaviors; the artifact problem prevents treating that
+candidate as a fresh measurement of the proposed architecture.
 
-| round | what the six proposed | outcome |
-|---|---|---|
-| 0 | five of six: "halve the batch 2^19 to 2^18" (a3: U-net skips) | a5's copy won, 0.988076 |
-| 1 | all six: HEAD_DIM 128 to 64, some plus depth 12 | nothing beat the baseline |
-| 2 | all six again: HEAD_DIM 64 "the unrun confirmed win" | nothing beat the baseline |
-| 3 | all six: warmdown 0.5 to 0.7 | 0.987227 |
-| 4 | three: shorter window; two: device batch 128; one: RoPE base | 0.981817 |
+In open Opus, a1 initially suspected a data-loader bottleneck (#32), then revised its explanation
+after the faster-loader experiment produced little improvement (#47). This is evidence of a public
+correction, not proof that every subsequent performance explanation was correct.
 
-Twelve runs, rounds 1 and 2, went to the same idea six times over, because the lineage rule
-advances only one winner per round and the agents kept re-proposing what they believed was a
-"confirmed win" that had never made it into the shared baseline. Same model, same compute, no talking:
-identical priors produce identical proposals. The cell stopped at 29 runs when it hit its cost
-ceiling, having spent $291 in notional agent calls, eight times the open cell, for a worse score.
+Sources: [rounds investigation](../results/opus_6/log.jsonl),
+[open findings](../results/open_opus_6/log.jsonl).
 
-## 3. One agent under each protocol
+## 5. Agent count: observed effects depend on configuration
 
-`open_opus_1` (one long session, memory of all its own results): 0.980742, improving until run 36,
-and a final summary attributing the gain to six stacked changes with per-change deltas. `opus_1`
-(fresh session each round, best-of-5): 0.986277, all gains in rounds 2 and 3, then three empty rounds.
-Open beat rounds by 0.0055 at a tenth of the agent cost.
-
-## What this says, so far
-
-At 36 runs with Opus, copies help (six beat one under both protocols) and organisation matters as much
-as headcount (open beat rounds at both sizes). Whether the six-agent gain is communication or just six
-parallel attempts is what `indep_opus_6` (same six agents, no shared log) is measuring now.
-
-## 4. The control answers the question (added 10:00) — WITHDRAWN, see the correction at the top
-
-`indep_opus_6`: the same six Opus agents, the same 36 runs, six each, and no shared log at all. Each
-agent saw only its own results. Final 0.977649 against 0.977896 for the six that could talk: a
-difference of 0.00025, a third of the noise band.
-
-So at this budget the six-agent gain is parallel exploration, not communication. Six independent
-hill-climbs with six runs each covered the space as well as a coordinated collective, at the same
-token cost ($37 vs $36). Five of the six independent agents even chose the same approach family
-(batch-size economics) with no way to know it, and the winner was the one that didn't (a0,
-residual-stream topology). Best-of-six beat six-that-talk, and both beat one agent with 36 runs.
-
-This is the paper's own caveat, measured in a research loop: "communication pays only when each
-agent has enough budget to explore on its own". Six five-minute runs is not enough. Whether that
-changes with more budget per agent, or with a stronger model than Opus, is the open question; the
-second seeds of both arms (`open_opus_6_s2`, `indep_opus_6_s2`) are running to check the first result
-is not a one-off.
-
-Standing at 10:00 (gain over baseline, 36 runs unless noted): indep 6 agents 0.0197, open 6 agents
-0.0194, open 1 agent 0.0166, open 3 agents 0.0152, rounds 6 agents 0.0155 (29 runs, cost cap),
-rounds 1 agent 0.0111 (33 runs). Noise band 0.0008.
-
-## 5. Weak agents quit early and over-report (added 10:15)
-
-`indep_haiku_6` (six Haiku agents, no sharing, six runs each available) ended itself after 13 of 36
-runs: the agents used 1, 3, 1, 0, 2 and 6 runs respectively, each declaring itself finished. Their
-final summaries describe "systematic" and "extensive" exploration; agent a3 ran zero training runs and
-summarised experiments it never submitted. Best 0.996838 against a 0.997359 baseline, inside noise.
-
-The same protocol, prompt and budget with Opus produced 36 of 36 runs from every agent and a 0.0197
-gain. So on the model-strength axis the first difference is not the quality of ideas but whether the
-agent spends its compute at all, and whether its account of what it did can be trusted. Under a
-protocol whose stopping rule is the agent's own judgement, a weak agent's judgement is the bottleneck.
-The cell is archived as INVALID (one slot claimed without a run) and kept for this record.
-
-## 6. Second seeds of the headline pair (added 13:40) — WITHDRAWN as a communication comparison, see the correction
-
-| arm | seed 0 | seed 1 | mean |
-|---|---|---|---|
-| six agents, shared directory (`open_opus_6`) | 0.977896 | 0.976408 | 0.97715 |
-| six agents, no communication (`indep_opus_6`) | 0.977649 | 0.980071 | 0.97886 |
-
-The seed-to-seed spread of a whole cell (0.0015 and 0.0024) is two to three times the run-to-run
-noise (0.0008): the outcome of a 36-run cell depends on which ideas its agents happen to try first.
-On the means, communication is worth 0.0017, but with two seeds per arm that is inside the spread.
-What can be said: the value of communication at this budget is at most a couple of thousandths,
-about half the value of going from one agent to six (0.003 to 0.004, which does clear the spread),
-and not distinguishable from zero with this many seeds. The honest slide is a range, not a number.
-
-## 7. Every cell at full budget: what the top-ups changed (added 14:35)
-
-All twelve cells now stand at 36 recorded runs, except the two round-based Opus cells that lost a slot
-inside a closed round (`opus_3` and `opus_6` at 34: the protocol cannot add a partial round). The
-equal-compute table in `summary.md` (best by run 29, 34 and 36) shows the ordering is the same at 34
-and at 36, so the comparison below uses each cell's final number.
-
-| family | 1 agent | 3 agents | 6 agents |
-|---|---|---|---|
-| Opus, open (shared directory) | 0.980742 | 0.982130 | 0.977896, 0.976408 (two seeds) |
-| Opus, independent (no sharing) | | | 0.977649, 0.980071 (two seeds) |
-| Opus, rounds (blind proposals, one winner per round) | 0.986277 | 0.987792 (34 runs) | 0.980496 (34 runs) |
-| Sonnet, open (shared directory) | | | 0.985651 |
-| Sonnet, independent | | | 0.988312, 0.977046 (two seeds) |
-| Haiku, independent | | | 0.976806, 0.995414 (two seeds) |
-
-Baseline 0.9973, run-to-run noise 0.0008.
-
-**Headcount pays at six, not at three.** In every Opus family the six-agent cell beat the one-agent
-cell by 0.003 to 0.006. Three agents did not beat one under the open protocol (0.9821 against 0.9807),
-a difference inside the seed-to-seed spread of a cell (0.0015 to 0.0024 for six Opus agents). At this
-budget the headcount effect is visible only at the top of the range.
-
-**Communication is still not measurable.** (WITHDRAWN: the independent arm leaked, see the correction.) Six Opus agents with the shared directory: 0.97715 on average
-over two seeds. The same six with no sharing: 0.97886. The 0.0017 in favour of talking is smaller than
-the spread between seeds of the same arm. Best-of-six covers this 36-run search as well as a team.
-
-**The model-strength surprise.** Forced to spend all 36 runs (section 5 recorded the same cell quitting
-at 13), six independent Haiku agents reached 0.976806, level with the best Opus cells. The winning
-diff (`results/indep_haiku_6/winner.diff`) is the same basin every Opus winner landed in: aspect ratio
-96 (width over depth), batch 2^18, short attention window 256, value embeddings on the first and last
-three layers, Muon LR 0.06, weight decay 0.1. Sonnet's two independent seeds split 0.9883 and 0.9770, a
-spread of 0.011, five times the Opus spread. What separates the models on this task is not the ideas
-but the process: Haiku crashed 31 percent of its runs (Opus 0 to 3 percent) and stops when allowed to;
-Sonnet crashed 11 to 22 percent and, in the shared cell, four of six sessions looped 41 twelve-second
-segments each on the belief that the training command was broken, until the orchestrator learned to
-hand a stuck agent a fresh session. The 36-run search space of five-minute `autoresearch` runs is
-shallow enough that a weak model finds the same knobs; a strong model finds them more reliably.
-
-**For the takeoff argument.** The lever that moved results here was spending the compute (Haiku from
-0.9968 to 0.9768 by being made to continue), then headcount (six over one), then organisation (open over
-rounds). Neither model quality nor communication moved the number beyond noise at this budget. That is
-the "compute is the bottleneck" reading of the loop, measured: what the agents could not do was run
-more five-minute experiments per unit of GPU time.
-
-**Sonnet with sharing, completed 16:35.** (The comparison with the independent seeds below is WITHDRAWN, see the correction.) `open_sonnet_6` finished at 0.985651, between the two
-independent Sonnet seeds (0.9883 and 0.9770). Same verdict as for Opus: with cell-to-cell spread this
-large, sharing does not move the number in a direction the data can resolve. The cell needed the
-fresh-session fallback for four of its six agents and crashed 8 percent of runs; its agents did adopt
-each other's results (the winning run is a2's "DEPTH=10 on top of adopted batch 2^18 + softcap 10 base",
-a depth change stacked on a peer's adopted stack), so the protocol worked once the sessions did.
-
-**The Haiku replicate, completed 17:47, corrects the surprise.** The second seed of the Haiku control
-finished at 0.995414: 36 runs, no crashes, and not one agent left the learning-rate knobs
-(`results/indep_haiku_6_s2/winner.diff` is two learning rates). The two Haiku seeds are 0.019 apart,
-the widest spread of any arm, against 0.002 for the two independent Opus seeds. So the honest model-strength
-statement is not "Haiku matches Opus" but: a weak model's cell is a lottery on whether one of its six
-agents happens to try the structural changes (width, batch, window), while Opus agents find them in
-every seed. Model strength buys reliability of the search, not a different optimum. For the takeoff
-argument that is the more useful finding: at fixed compute, a stronger researcher does not find better
-ideas here, it stops wasting runs on ideas that cannot pay.
-
-Final standing, 14 cells, all at full budget (opus_3 and opus_6 at 34 by protocol). Nothing is still running.
-
-## 8. The teammates' Sonnet rounds family (added Sep 22, 23:55)
-
-Eric pushed three round-protocol Sonnet cells run on his own box: `sonnet_1` (best-of-5), `sonnet_3`
-(best-of-2) and `sonnet_6`, at 32, 32 and 33 runs (the same partial-round limit as our `opus_3` and
-`opus_6`). All three pass verify. A stopped pilot of `sonnet_6` is archived beside them and excluded
-from every table.
-
-**Read gains, not finals, across boxes.** His box measured the untouched baseline at 1.0140 against our
-0.9973, a gap twenty times the run-to-run noise, so absolute finals are not comparable between the two
-boxes. Within his box the ladder is clean and monotone:
-
-| cell (Eric's box, baseline 1.0140) | runs | final | gain |
-|---|---:|---:|---:|
-| `sonnet_1`, best-of-5 | 32 | 1.0023 | 0.0117 |
-| `sonnet_3`, best-of-2 | 32 | 0.9930 | 0.0211 |
-| `sonnet_6` | 33 | 0.9780 | 0.0360 |
-
-Six beat three beat one, and the six-agent gain is the largest of any cell in the study. On our box the
-Sonnet cells gained 0.0117 (`open_sonnet_6`), 0.0090 and 0.0203 (the two independent seeds): Sonnet's
-cell-to-cell spread is wide enough that a single-seed ladder can look either monotone or flat. What his
-ladder does add is a second, independent confirmation of the headcount effect (six over one, here by
-0.024), on a different box, with a different protocol.
-
-**Do not read protocol from this.** `sonnet_6` (rounds, his box) at 0.0360 against `open_sonnet_6`
-(open, our box) at 0.0117 is a cross-box, single-seed comparison and says nothing about rounds versus
-open. The within-box protocol comparison remains the Opus grid: open beat rounds at one, three and six
-agents.
-
-## 9. The isolated reruns (Sep 23, 00:42 to 07:12)
-
-Three independent cells rerun on a fresh box (pod 4) under the repaired isolation: private one-commit
-clones, per-agent score tables, the guard-hook denylist, and a transcript scan at archive time. Both
-finished cells scan clean: every agent, zero reads of the shared table, zero reads of peers' logs, zero
-references to peers' commits (`results/<cell>/isolation.txt`).
-
-The box is about 20 percent slower than Monday's (same GPU model and clocks, 387M tokens in the
-five-minute baseline against 486M), so its untouched baseline is 1.0123 instead of 0.9973 and its finals
-must not be set beside Monday's. The open arm is therefore being rerun on this box as well
-(`open_opus_6_iso`), so that the sharing versus no-sharing comparison is within one machine.
-
-| cell (pod 4, baseline 1.0123) | runs | final | gain | isolation |
+| Setup and workflow | 1 agent | 3 agents | 6 agents | Actual attempts per search |
 |---|---:|---:|---:|---|
-| `indep_opus_6_iso` | 36 | 0.982146 | 0.0302 | clean, 6 of 6 agents |
-| `indep_sonnet_6_iso` | 36 (7 crashes) | 0.996232 | 0.0161 | clean, 6 of 6 agents |
-| `open_opus_6_iso` | running | | | sharing on by design |
-| `indep_haiku_6_iso` | running | | | |
+| Original Opus, open | 0.980742 | 0.982130 | 0.977896; repeat 0.976408 | 36 each |
+| Original Opus, rounds | 0.986277 | 0.987792 | 0.980496 | 36 / 34 / 34 |
+| Eric's Sonnet, rounds | 1.002279 | 0.992950 | 0.978041 | 32 / 32 / 33 |
+| Riddhi's Sonnet, open | 0.979324 | 0.993862 | not run on this setup | 36 / 36 |
+| Anthony's Haiku, open | 0.992818 | 0.990882 | 0.995085 | 36 each |
+| Anthony's Haiku, rounds | 0.994120 | 0.993742 | 0.994321 | 20 / 21 / 28 |
 
-Two things are already visible. Truly isolated Opus agents get a long way on their own: a 0.030 gain,
-larger than any Monday cell's, though on a slower box where the same knobs are worth more. And the
-Sonnet gap to Opus (0.014) is of the same order as Monday's, with the Sonnet crash rate again far higher
-(7 of 36 against 0 of 36). The communication comparison waits for `open_opus_6_iso`.
+Compare within rows, not across hardware setups. Six beat one in the original Opus families and
+Sonnet rounds. Three beat one in Sonnet rounds and Haiku open. Haiku open six did worst; Sonnet open
+one beat three. The Haiku rounds family has unequal realized budgets. These observations do not
+establish a monotonic scaling law, a headcount threshold, or that additional agents never help Haiku.
 
-### 9b. All four isolated cells in (Sep 23, 07:12 finish; written 11:45)
+At a fixed total budget, agent count changes both the number of research trajectories and the budget
+available to each. Search depth versus breadth is a plausible explanation, not a measured mechanism.
+The six agents within a team are not six independent replications of the team treatment.
 
-| cell (pod 4, baseline 1.0123) | runs | crashes | final | gain | isolation scan |
-|---|---:|---:|---:|---:|---|
-| `open_opus_6_iso` (sharing on) | 36 | 1 | 0.984417 | 0.0279 | not required |
-| `indep_opus_6_iso` (no access to peers) | 36 | 0 | 0.982146 | 0.0302 | clean, 6 of 6 |
-| `indep_sonnet_6_iso` | 36 | 7 | 0.996232 | 0.0161 | clean, 6 of 6 |
-| `indep_haiku_6_iso` | 36 | 8 | 0.999826 | 0.0125 | clean, 6 of 6 |
+Source: [archived summaries](summary.md); hardware groups follow the recorded experiment context,
+not an assumption that similar baseline scores make machines equivalent.
 
-**Sharing versus true isolation, one machine, one seed each.** Six Opus agents that could not see each
-other at all finished at 0.9821; six that shared everything through the directory finished at 0.9844.
-The difference, 0.0023 in favour of the isolated agents, is inside the spread measured between seeds
-of one arm on Monday (0.0015 to 0.0024), and a one-seed-per-arm design detects nothing smaller than
-about 0.006. So the statement the reviewer asked for now has its control: at 36 runs of five minutes,
-no effect of sharing was detected, in either direction. The open cell still shows the protocol working
-(adoptions, findings, disconfirmations on its log); it did not show a better number.
+## 6. Workflow: the original Opus comparison favors open sessions
 
-**Model strength, now measured properly.** With real isolation the ladder is unambiguous: Opus gained
-0.030, Sonnet 0.016, Haiku 0.013, and the weak models crashed a fifth of their runs. Monday's
-"Haiku matches Opus" was copying; alone, Haiku does not find the width, batch and window changes that
-carry the Opus result. Model strength is worth about twice as much as headcount here (six Opus over
-one Opus was 0.003 to 0.006 on Monday's box), and far more than sharing.
+Open finished better than rounds at 1, 3 and 6 agents in the original Opus experiments. Rounds also
+change memory/session continuity, candidate selection and when results become available. Actual
+attempt counts differ, and solo Opus rounds was resumed with a smaller final batch of candidates.
+This is an observed workflow difference, not an isolated effect of communication or scheduling.
 
-**Caveats that stay.** One seed per arm on this box; the box is slower than Monday's, so its gains are
-larger for the same changes and are compared only within it; the Monday `indep_*` cells remain
-contaminated and are kept only as the record of that.
+It is not uniform across models: Haiku open six finished worse than Haiku rounds six, though the
+latter used only 28 attempts. Cross-machine Sonnet open-versus-rounds comparisons are confounded.
+Reported agent-dollar totals are not equivalent to measured inference tokens or verified invoices;
+no claim of an eightfold token advantage follows from the summary's dollar column alone.
 
-## 10. The teammates' cells, as of Sep 23 13:50
+## 7. Execution reliability and accounting constrain interpretation
 
-Eric pushed the Sonnet rounds family from his box (section 8). Riddhi pushed two open-protocol Sonnet
-cells run on Modal H100s at 11:57 today, plus a YAML fix and a Modal deployment. Nothing from Anthony.
+The archive contains 29 finished search summaries and a separate stopped Sonnet pilot. Six original
+independent searches are excluded as controls. A verifier's OK status is not a scientific-validity
+certificate, particularly when it tolerates known deviations.
 
-| cell (Riddhi's box, baseline 1.0125) | agents | runs | final | gain | crashes |
-|---|---:|---:|---:|---:|---:|
-| `open_sonnet_1` | 1 | 36 | 0.979324 | 0.0332 | 1 |
-| `open_sonnet_3` | 3 | 36 | 0.993862 | 0.0187 | 0 |
+The Haiku rounds logs each contain 36 candidate records, but the GPU timelines contain only
+20, 21 and 28 attempts. Those timelines show respectively 0, 2 and 5 attempts without a metric;
+the summary's candidate-based crash percentages measure something different. Candidate records
+without corresponding GPU execution must not be counted as completed training attempts.
 
-Both pass verify. Her box measures the untouched baseline at 1.0125, within noise of pod 4's 1.0123 and
-Eric's 1.0140, so the three "slow" boxes form one comparison group and Monday's pods (0.9973) another.
-Within that group her single Sonnet agent with 36 runs of its own gained more (0.033) than any six-agent
-cell, and three Sonnet agents gained less than one. Single seeds, so no more than a reminder that at this
-budget one agent with a long memory is a strong configuration, which the Opus grid also showed
-(`open_opus_1` beat `open_opus_3` on Monday). `open_sonnet_6` (0.9857, Monday's box) is not comparable
-with these two.
+Other documented deviations include seven/five attempts for two agents in `open_opus_6_s2`, and
+37 actual attempts in `indep_sonnet_6_s2`, with one later excluded from its main record. Search
+resumes, session resets and budget adjustments also occurred. These differences matter for cost,
+wall time and reproducibility even where they do not change the reported best score.
 
-**Anthony's Haiku family (pushed Sep 23, 16:01, his box, baseline 0.9966).** All six cells verify. Open:
-one agent 0.9928, three 0.9909, six 0.9951. Rounds: 0.9941, 0.9937, 0.9943 at 20, 21 and 28 runs (the
-round cells lost slots to crashes and carry phantom candidates, noted by verify). Gains of 0.002 to 0.006
-against 0.017 to 0.021 for Opus on a comparably fast box: the weak model barely moves the number under
-any organisation, and adding Haiku agents adds nothing. Together with the isolated ladder on pod 4 this
-is the model-strength result from the other side: headcount and workflow only pay for a model that can
-use the extra tries.
+The open Haiku six-agent log records repeated early stopping and forced continuation, including a
+fresh session after three segments produced no training. This supports a concrete observation about
+model–harness reliability. It does not by itself distinguish misunderstanding, tool problems,
+context problems and deliberate stopping.
+
+Sources: per-search `gpu_timeline.jsonl`, `provenance.json` and
+[open Haiku notes](../results/open_haiku_6/log.jsonl). Existing progress-table limitations are
+explicitly identified in [summary.md](summary.md).
+
+## 8. Scope of uncertainty and cross-machine comparisons
+
+The historical baseline measurements differ: approximately 0.9973 on the original pods, 1.012347 on
+pod 4, 1.012531 for the new Sonnet open pair, 1.014027 for Sonnet rounds, and 0.996598 for the Haiku
+family. Equal GPU model names or similar baseline losses do not establish equivalent throughput or
+response to a training-code change. Subtracting baseline loss does not remove that confound.
+
+A training-run noise estimate is not the variability of a full adaptive research search. The two
+original open Opus six-agent repeats differ by 0.001488, but two observations do not establish a
+stable variance, a confidence interval or a minimum detectable effect on a different setup. Config
+labels such as `_s2` denote repeat searches; they do not establish independently controlled training
+seeds. Archived training code uses fixed seeds in many runs.
+
+Best scores were selected using the same research validation metric queried during search. This
+analysis does not establish independently replicated winner performance or held-out generalization.
+Equal attempt ceilings are not equal realized GPU time, successful measurements or total AI compute.
+
+## 9. Repaired independent reruns
+
+The three independent `_iso` searches and the communicating Opus counterpart were completed on pod 4.
+They use the same recorded substrate commit, model effort and baseline, and 36 attempts each.
+The independent logs show no detected use of the known peer-information channels. Original
+contaminated scores are not pooled with these reruns.
+
+### 9b. Communication and model comparisons on pod 4
+
+| Configuration, six agents | Attempts | Without metric | Best score | Gain from baseline 1.012347 |
+|---|---:|---:|---:|---:|
+| Opus, communicating (`open_opus_6_iso`) | 36 | 1 | 0.984417 | 0.027930 |
+| Opus, independent (`indep_opus_6_iso`) | 36 | 0 | 0.982146 | 0.030201 |
+| Sonnet, independent (`indep_sonnet_6_iso`) | 36 | 7 | 0.996232 | 0.016115 |
+| Haiku, independent (`indep_haiku_6_iso`) | 36 | 8 | 0.999826 | 0.012521 |
+
+**Observation: communication did not outperform isolation in this pair.** Independent Opus finished
+0.002271 lower. There is one complete search per condition. This does not establish that communication
+hurts, is equivalent to independent search, or has a benefit below a specified bound. No general
+0.006 detection threshold is justified, and the proposed explanation that six attempts per agent
+is too little for communication to pay remains untested.
+
+**Exploratory mechanism: reuse versus the best discovery.** For each agent, take its minimum valid
+candidate score, then take the median across the six agents. That gives 0.9860645 for communicating
+Opus and 0.988338 for independent Opus. The team had a better middle-performing agent but a worse
+best result. Its log records 13 adoptions. This is consistent with sharing spreading useful results
+without improving the best discovery in this search; it is not evidence of a general causal effect.
+Agent-level outcomes within the communicating team are dependent and cannot be treated as six
+independent treatment replicates.
+
+**Observation: Opus did better in the independent model comparison.** It found the best score and
+had no failed measurements, versus seven for Sonnet and eight for Haiku. This compares each model
+operating through this harness, including implementation and recovery, not idea quality alone.
+One search per model cannot establish population reliability or rank this effect against headcount
+and workflow effects measured elsewhere.
+
+The winning code changes differ. Independent Opus used depth 8 / width 768 and batch 2^17;
+communicating Opus used depth 12 / width 512, batch 2^18 and a shorter window. Independent Sonnet
+increased width to 640; independent Haiku increased depth to 10 and embedding learning rate to 0.7.
+Thus the claim that every winner found the same width/batch/window configuration is incorrect.
+These selected configurations do not establish unique optima or isolate each component's effect.
+
+Sources: logs for [independent Opus](../results/indep_opus_6_iso/log.jsonl) and
+[communicating Opus](../results/open_opus_6_iso/log.jsonl); winning diffs for
+[independent Opus](../results/indep_opus_6_iso/winner.diff),
+[communicating Opus](../results/open_opus_6_iso/winner.diff),
+[Sonnet](../results/indep_sonnet_6_iso/winner.diff), and
+[Haiku](../results/indep_haiku_6_iso/winner.diff).
+
+## 10. Research conclusion and RSI relevance
+
+The archive demonstrates agents communicating about experiments, reusing peers' work, revising
+claims, and sometimes discovering problems in measurement records. It also documents persistent
+coordination failures, early stopping, failed execution and a compromised original control.
+
+The repaired communication comparison did not favor sharing in its one matched pair. Agent-count
+results are mixed, and the repaired model comparison favors Opus with fewer failed measurements.
+These are exploratory findings about the organization of automated ML research. They do not show
+recursive improvement of the researcher models, an RSI takeoff rate, a general scaling law, or a
+reliable performance multiplier from communication.

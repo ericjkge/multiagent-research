@@ -1,53 +1,60 @@
-# Can AI agents collaborate on ML research? One page, Sep 23 2026
+# Can AI agents collaborate on ML research? Evidence as of Sep 23, 2026
 
-**Setup.** Karpathy's `autoresearch`: agents edit `train.py`, every run trains for five minutes on one H100,
-score is validation bits per byte (lower is better). Every cell gets 36 runs. Two workflows: **rounds**
-(blind proposals, one winner per round; Riddhi's protocol) and **open** (one long session per agent, a
-shared directory of findings, scores and adoptions; Park et al. 2609.21032). Controls: agents that cannot
-see each other at all. Models: Opus, Sonnet, Haiku. 29 valid cells on main, four GPU boxes.
+**Finding.** Agents demonstrably shared discoveries, reused code, and criticized one another's
+claims. A performance advantage from communication is not established: in the one repaired Opus
+comparison, isolated agents found the better result. Adding agents helped in some configurations
+and hurt in others. These are exploratory observations, not a scaling law.
 
-**Read only within one box.** Untouched baselines: Monday's pods 0.9973; pod 4, Riddhi's Modal box and
-Eric's box 1.012 to 1.014 (same GPU, slower hosts). Run-to-run noise 0.0008; seed-to-seed spread of a
-whole cell 0.0015 to 0.0024. One seed per arm cannot detect a difference under about 0.006.
+**Setup and scope.** Agents modify `train.py` in Karpathy's `autoresearch` and minimize validation
+bits per byte (lower is better). Each search has a nominal ceiling of 36 training attempts, with a
+five-minute timed training loop per attempt; failures and incomplete searches reduce successful
+training. Rounds use staged proposals, experiments and responses with a selected common baseline;
+open sessions exchange findings and code continuously. Rounds also permit communication.
+There are 29 archived search summaries, including six original independent searches that cannot
+serve as no-communication controls, plus a stopped pilot outside that count. This interpretation
+uses the results at commit `53492bf`; see [case studies](case_studies.md) for evidence and limitations.
 
-| box | cell | final | gain |
-|---|---|---:|---:|
-| Monday (0.9973) | Opus open 1 / 3 / 6 / 6 (seed 2) | 0.9807 / 0.9821 / 0.9779 / 0.9764 | 0.017 / 0.015 / 0.019 / 0.021 |
-| Monday | Opus rounds 1 / 3 / 6 | 0.9863 / 0.9878 / 0.9805 | 0.011 / 0.010 / 0.017 |
-| Monday | Sonnet open 6 | 0.9857 | 0.012 |
-| pod 4 (1.0123) | Opus open 6 vs Opus isolated 6 | 0.9844 vs 0.9821 | 0.028 vs 0.030 |
-| pod 4 | Sonnet isolated 6 / Haiku isolated 6 | 0.9962 / 0.9998 | 0.016 / 0.013 |
-| Riddhi (1.0125) | Sonnet open 1 / 3 | 0.9793 / 0.9939 | 0.033 / 0.019 |
-| Eric (1.0140) | Sonnet rounds 1 / 3 / 6 | 1.0023 / 0.9930 / 0.9780 | 0.012 / 0.021 / 0.036 |
-| Anthony (0.9966) | Haiku open 1 / 3 / 6 | 0.9928 / 0.9909 / 0.9951 | 0.004 / 0.006 / 0.002 |
-| Anthony | Haiku rounds 1 / 3 / 6 (20 / 21 / 28 runs) | 0.9941 / 0.9937 / 0.9943 | 0.002 / 0.003 / 0.002 |
+**The repaired comparison.** All four searches below used pod 4, baseline 1.012347, and 36 recorded
+attempts. The three independent archives report clean isolation scans for all six agents. Each
+configuration has only one complete search here.
 
-**What the data supports**
+| Six-agent configuration | Best validation score | Gain from baseline | Attempts without a metric |
+|---|---:|---:|---:|
+| Opus, independent | 0.982146 | 0.030201 | 0/36 |
+| Opus, communicating | 0.984417 | 0.027930 | 1/36 |
+| Sonnet, independent | 0.996232 | 0.016115 | 7/36 |
+| Haiku, independent | 0.999826 | 0.012521 | 8/36 |
 
-1. **Model strength is the largest lever.** Isolated on one box: Opus 0.030, Sonnet 0.016, Haiku 0.013,
-   and the weak models crash a fifth of their runs. All winners land in one basin (width over depth,
-   batch 2^18, short window); the strong model finds it, the weak ones do not.
-2. **Six agents beat one for the strong models, not for the weak one.** Open Opus, rounds Opus and Eric's
-   Sonnet rounds all show six over one; Anthony's Haiku ladder is flat under rounds (0.002 to 0.003 at
-   every size) and non-monotone under open (six agents did worst). Three agents do not beat one anywhere.
-   Headcount is a threshold effect that needs a model able to use the extra tries.
-3. **Workflow matters as much as headcount.** Open beat rounds at 1, 3 and 6 agents. Rounds herd without
-   any communication: 5 of 6 identical proposals in round 0, 6 of 6 in rounds 1 to 3, eight times the
-   tokens for a worse score.
-4. **Sharing was not detectable, against two different controls.** Six Opus that share vs six that see
-   nothing: 0.9844 vs 0.9821 on one box (isolated slightly better, inside seed spread). Best-of-six covers
-   a 36-run search as well as a team does; the paper's own caveat (communication needs enough budget per
-   agent) measured in a research loop.
-5. **Collaboration happened anyway.** The open logs show a collision on batch size, a called-out pivot,
-   an adoption lineage across four agents, 21 published negative results. It did not buy a better number.
+**What the observations support**
 
-**For the takeoff argument.** At fixed compute the multipliers came from a stronger model and from not
-wasting runs, not from copies talking to each other. This measures the organisation of automated research
-at a tiny budget; it does not demonstrate recursive self-improvement.
+1. **Communication did not win the matched Opus pair.** The independent search finished 0.002271
+   lower. One search per arm does not establish equivalence, a harmful effect of communication,
+   or an upper bound on its benefit. No defensible detection threshold follows from this design.
+2. **Agent count has mixed effects.** Six beat one in the original Opus open and rounds families
+   and in Sonnet rounds. Three beat one in Sonnet rounds and Haiku open. In Haiku open, six did worst;
+   in the new Sonnet open pair, one beat three (0.979324 versus 0.993862). Sonnet open six ran on
+   another setup. Most configurations have one search; there is no established threshold or
+   monotonic headcount effect.
+3. **Model choice and execution reliability both matter.** In the repaired independent searches,
+   Opus found the best result and lost no attempts; Sonnet and Haiku lost about a fifth. This is a
+   comparison of models operating through this harness, not a separate measurement of idea quality.
+   It does not quantify model strength relative to headcount effects measured on other setups.
+4. **Workflow comparisons are suggestive.** Original Opus open searches finished better than rounds
+   at all three headcounts. The workflows differ in memory, selection and realized attempt counts,
+   so this does not isolate communication. The result does not hold uniformly across models.
+5. **Collaboration is observable.** The original six-agent open Opus log contains 18 adoptions,
+   19 findings and 21 disconfirmations. In the repaired pair, the communicating group's median
+   agent-best score was better, but its overall winner was worse. Sharing useful discoveries and
+   finding the single best discovery are distinct outcomes; the proposed mechanism remains a hypothesis.
 
-**Caveats, stated on the slide.** Seed spread exceeds most effects: single cells prove nothing, and
-"no difference" means "not detected at 0.006". Cross-box finals are not comparable. Monday's `indep_*`
-cells were contaminated (agents read the shared score table and peers' commits) and are kept only as the
-record of that; the isolated reruns replace them. Round cells carry a few phantom candidates at the
-baseline score (harness bug, never a winner). Full detail: `case_studies.md` sections 1 to 10, the
-correction at its top, `summary.md` for every cell.
+**Limits.** Compare effects within a hardware/software setup; similar baselines or baseline-subtracted
+scores do not make different machines interchangeable. Training noise is not whole-search variability.
+The few repeats do not support reliable confidence intervals, significance claims or an equivalence
+bound. Scores are selected on the research validation metric, not an independently confirmed final
+benchmark. Actual GPU time, API usage, failures, resumes and attempt counts differ. Some rounds have
+phantom candidate records; use GPU timelines rather than candidate counts for compute accounting.
+Original contaminated controls remain excluded. [Summary and accounting caveats](summary.md).
+
+**RSI relevance.** This studies the organization of automated ML research under a small experimental
+budget. It demonstrates research behaviors and identifies reliability problems, but does not show
+recursive improvement of the researcher models, a takeoff rate, or a general benefit from adding agents.
