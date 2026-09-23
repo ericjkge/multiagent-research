@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "caae7f9",
+  "best_val_bpb": 0.996159,
+  "summary": "Systematic architecture exploration (depth, width, window patterns, head dimensions) revealed LLLL window pattern outperforms baseline (+0.000439 improvement to 0.996159). All architectural scaling changes hurt performance. Final run replicating a0's best config (0.8/0.006/0.06 LRs, scalar_lr 0.35, WD 0.1) achieved 0.996535, suggesting training variance or config sensitivity. Group findings confirm learning rates are primary optimization lever; architecture well-optimized at current values; convergence plateau near 0.9952-0.9956 for this 5-minute budget appears fundamental."
+}

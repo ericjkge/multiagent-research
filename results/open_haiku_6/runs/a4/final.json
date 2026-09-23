@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "228791f",
+  "best_val_bpb": 0.996598,
+  "summary": "Tested six distinct optimization directions: learning rate adjustments (both higher and lower), MLP activation function changes (GELU vs relu().square()), model depth variations (6, 8, 10 layers), and attention window patterns (LLLL vs SSSL). All modifications degraded performance relative to the baseline. The baseline hyperparameters with depth=8, relu().square() activation, SSSL window pattern, and the specified learning rates appear to be well-tuned for the 5-minute training budget. The most harmful change was switching to GELU activation (1.013 vs 0.996), suggesting relu().square() is a key component of this architecture."
+}

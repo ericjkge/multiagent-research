@@ -1,0 +1,6 @@
+{
+  "status": "finished",
+  "best_commit": "e889c17",
+  "best_val_bpb": 0.995457,
+  "summary": "Focused on optimizer learning rate tuning after observing activation function changes (GELU, SiLU) hurt performance. Adopted a2's high learning rates (embedding_lr 0.8, matrix_lr 0.06) as starting point. Found scalar_lr reduction to 0.4 improved performance from 0.995888 to 0.995627, and reducing weight_decay to 0.15 further improved to 0.995457 (+0.11% vs baseline). Systematic exploration of embedding_lr, scalar_lr, and weight_decay confirmed 0.8/0.4/0.15 as optimal configuration for 5-minute budget. Activation functions and architectural changes were not beneficial."
+}

@@ -1,0 +1,37 @@
+commit	val_bpb	memory_gb	status	description
+2299736	1.013937	44.0	ok	Test GELU activation instead of ReLU^2
+f48cc15	1.013283	44.0	ok	MLP activation: GELU instead of relu().square()
+af035c2	0.998285	44.0	ok	Increase embedding/matrix LR, reduce weight decay, add small warmup
+aad0ddc	1.000700	66.5	ok	Increase depth to 10 layers (explore deeper architectures)
+ec26ef9	0.995888	44.0	ok	Increase embedding and matrix learning rates (0.8, 0.006, 0.06)
+511cf86	1.008931	44.0	ok	Test SiLU activation instead of ReLU^2
+aad0ddc	1.043937	26.6	ok	Increase depth to 10 layers (explore deeper architectures)
+8f7da8a	0.997120	44.0	ok	MLP activation: SiLU instead of relu().square()
+4f1bf69	0.997858	44.0	ok	Lower embedding/matrix LR, increase weight decay
+14d649a	0.995627	44.0	ok	Increase embedding LR to 0.8, matrix LR to 0.05, reduce weight decay to 0.1, add 5% warmup
+4059a20	0.998223	44.0	ok	Decrease depth to 6 layers (test shallower model)
+9822174	1.043133	26.6	ok	More aggressive LRs: embedding 1.0, unembedding 0.008, matrix 0.08, beta1 0.75
+eecbf83	1.009565	22.3	ok	a2's LRs (0.8, 0.006, 0.06) + batch=64 + decay=0.15
+e2b6c84	0.996480	44.0	ok	Use a2's winning LRs (0.8/0.006/0.06) with 2% warmup variation
+fd85111	1.010507	64.2	ok	Conservative LRs with warmup/warmdown schedule: embedding 0.7, matrix 0.05, WD 0.1, beta2 0.93
+caae7f9	0.996159	49.0	ok	Adopt a2 high-LR (0.8/0.006/0.06), test window pattern LLLL vs baseline SSSL
+acafba4	0.995952	44.0	ok	A2's LRs (0.8/0.006/0.06) with reduced scalar LR (0.4 vs 0.5)
+f3e57e1	0.996342	49.1	ok	Reduce depth to 6 layers with best LRs (0.8, 0.006, 0.06)
+08b7fbe	1.013393	44.0	ok	MLP activation: switch from relu().square() to GELU
+2755be5	0.999784	44.0	ok	Test narrower model: ASPECT_RATIO 64→48, adopt a3's best LRs (0.8/0.006/0.05, WD 0.1)
+e889c17	0.995457	44.0	ok	A2's LRs with scalar_lr 0.35 (further reduction from 0.4)
+d88a948	0.996122	44.0	ok	Verify a2 original: batch=128, decay=0.2, LRs 0.8/0.006/0.06
+008039e	0.996238	44.0	ok	Adopt a3 formula (0.8/0.006/0.06, WD 0.1) with scalar_lr 0.3 (lower than 0.35)
+dcec5a4	1.000671	66.5	ok	Increase model depth from 8 to 10 layers
+f46a0ca	0.996446	49.1	ok	a3's best: embedding 0.8, matrix 0.06, scalar 0.4, WD 0.15, no warmup
+9d2b2f4	0.999106	44.0	ok	Test weight decay 0.05 with scalar_lr 0.35 and a2 LRs
+4041d60	1.043784	26.6	ok	Reduce model depth from 8 to 6 layers
+23b0df5	0.996737	49.1	ok	Final run: scalar_lr 0.35, WD 0.15 (attempting to match a3's 0.995457)
+c9f05d2	0.998617	44.0	ok	Test no weight decay (0.0) with scalar_lr 0.35 and a2 LRs
+b051cf6	0.999095	44.0	ok	Change window pattern from SSSL to LLLL (full attention)
+9eeaf53	0.995675	44.0	ok	Test scalar_lr=0.36, bracketing a3's 0.35 optimum from above
+09d04e7	0.995253	44.0	ok	Confirm a3's optimal: LRs 0.8/0.006/0.06, decay 0.1, scalar_lr 0.35 (best in cell)
+e4dce43	0.996397	44.0	ok	Test scalar_lr=0.34, bracketing a3's 0.35 optimum from below
+60ab92e	0.996535	44.0	ok	Final: Replicate a0's best (0.8/0.006/0.06, scalar_lr 0.35, WD 0.1) - cell's best configuration
+2cb7f13	0.995085	44.0	ok	Reproduce a0's best: exact config (0.8/0.006/0.06, scalar_lr 0.35, decay 0.1) for reproducibility validation
+a888a2b	0.995183	44.0	ok	Test FINAL_LR_FRAC=0.1: maintain 10% residual LR at end instead of decaying to zero
