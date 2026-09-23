@@ -1,4 +1,4 @@
-# Results so far (2026-09-22 23:51)
+# Results so far (2026-09-22 23:56)
 
 - indep_haiku_6: OK — all invariants hold for results/indep_haiku_6
 - indep_haiku_6_s2: OK — all invariants hold for results/indep_haiku_6_s2
@@ -11,13 +11,12 @@
 - open_opus_6: OK — all invariants hold for results/open_opus_6
 - open_opus_6_s2:   note: open protocol: a5 claimed 7 runs, share was 6: one slot moved between agents when the budget was rebuilt after a resume; cell total unchanged
 - open_sonnet_6: OK — all invariants hold for results/open_sonnet_6
-- opus_1: OK — all invariants hold for results/opus_1
-- opus_3: OK — all invariants hold for results/opus_3
-- opus_6: OK — all invariants hold for results/opus_6
+- opus_1:   note: phantom candidate: round 5 a0/v2 scored 0.986277 with no GPU run behind it (excluded from nothing: it never won)
+- opus_3:   note: phantom candidate: round 1 a1/v1 scored 0.992664 with no GPU run behind it (excluded from nothing: it never won)
+- opus_6:   note: phantom candidate: round 5 a2/v0 scored 0.981817 with no GPU run behind it (excluded from nothing: it never won)
 - sonnet_1: OK — all invariants hold for results/sonnet_1
 - sonnet_3: OK — all invariants hold for results/sonnet_3
-- sonnet_6-PILOT-20260922-142048-stopped:   - rounds started but not ended: [4]
-- sonnet_6: OK — all invariants hold for results/sonnet_6
+- sonnet_6:   note: phantom candidate: round 1 a4/v0 scored 0.998671 with no GPU run behind it (excluded from nothing: it never won)
 
 ```
 cell           agents  BoN   baseline      final      gain  runs  rounds  crash%  simil.  agent $
@@ -33,15 +32,12 @@ open_opus_3         3    1   0.997359   0.982130  0.015229    36       1     2.8
 open_opus_6         6    1   0.997333   0.977896  0.019437    36       1     0.0   0.183    35.93
 open_opus_6_s2      6    1   0.997359   0.976408  0.020951    36       1     0.0   0.139    66.10
 open_sonnet_6       6    1   0.997333   0.985651  0.011682    36       1     8.3   0.207  1223.50
-opus_1              1    5   0.997359   0.986277  0.011082    33       7     2.9   0.000    62.20
+opus_1              1    3   0.997359   0.986277  0.011082    36       8     2.6   0.000    69.29
 opus_3              3    2   0.997359   0.987792  0.009567    34       6     5.6   0.289   235.32
 opus_6              6    1   0.997333   0.980496  0.016837    34       6     0.0   0.297   407.50
 sonnet_1            1    5   1.014027   1.002279  0.011748    32       6     3.3   0.000    16.07
 sonnet_3            3    2   1.014027   0.992950  0.021077    32       5     6.7   0.325    28.86
-sonnet_6-PILOT-20260922-142048-stopped      6    1   1.014027   0.000000  0.000000    24       0    25.0   0.329     0.00
 sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0   0.320    61.22
-
-!! no final metric for: sonnet_6-PILOT-20260922-142048-stopped — run analysis.verify
 ```
 
 ## Best val_bpb reached by run n (equal-compute comparison)
@@ -59,10 +55,9 @@ sonnet_6            6    1   1.014027   0.978041  0.035986    33       5     0.0
 | open_opus_6 | 36 | 0.978654 | 0.977973 | 0.977896 | 0.977896 |
 | open_opus_6_s2 | 36 | 0.977171 | 0.976408 | 0.976408 | 0.976408 |
 | open_sonnet_6 | 36 | 0.985651 | 0.985651 | 0.985651 | 0.985651 |
-| opus_1 | 33 | 0.986277 | 0.986277 | 0.986277 | 0.986277 |
+| opus_1 | 36 | 0.986277 | 0.986277 | 0.986277 | 0.986277 |
 | opus_3 | 34 | 0.987792 | 0.987792 | 0.987792 | 0.987792 |
 | opus_6 | 34 | 0.981817 | 0.980496 | 0.980496 | 0.980496 |
 | sonnet_1 | 32 | 1.002279 | 1.002279 | 1.002279 | 1.002279 |
 | sonnet_3 | 32 | 0.992950 | 0.992950 | 0.992950 | 0.99295 |
-| sonnet_6-PILOT-20260922-142048-stopped | None | 0.998353 | 0.998353 | 0.998353 | None |
 | sonnet_6 | 33 | 0.978041 | 0.978041 | 0.978041 | 0.978041 |
