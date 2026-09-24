@@ -1,6 +1,6 @@
 # Can AI agents collaborate on ML research?
 
-CS 2881R mini-experiment, September 24, 2026.
+CS 2881R mini-experiment.
 Team: Anthony Shen, Eric Ge, Riddhi Bhagwat, Alvin Ekelund.
 
 ## Research question
@@ -20,8 +20,7 @@ researcher itself.
 
 **The [RUNBOOK.md matrix](RUNBOOK.md#one-matrix) is the authoritative plan.** It specifies identical
 conditions for Haiku 4.5, Sonnet 5 and Opus 5: rounds and open protocols at 1/3/6 agents, plus required
-independent-three and independent-six controls for each model. There are 24 distinct conditions. Existing teammate runs are
-preserved; the same design extends to Opus rather than treating it as an unmatched showcase.
+independent-three and independent-six controls for each model. There are 24 distinct conditions, and the same design applies to all three models.
 
 The primary contrast is open-six versus independent-six within each model. A planned secondary
 contrast compares open-three with independent-three, testing sharing at the smaller team size.
@@ -34,7 +33,7 @@ also differ, so their contrast with open cells does not isolate communication ti
 Each condition has a 36-attempt ceiling on a pinned autoresearch substrate; failures consume attempts.
 Actual completed attempts, GPU time, API usage and wall time are reported separately. The current
 rounds solo configuration can finish at 35 attempts, so equal ceilings must not be mislabeled as equal
-completed training. See the runbook for ownership, execution priority, replication and launch checks.
+completed training. See the runbook for execution order, replication and launch checks.
 
 ## Related work and intended contribution
 
@@ -85,4 +84,4 @@ other organizations. Differences across models would be evidence about these mod
 law of model size. Five-minute training recipes need not transfer to longer training.
 
 We do not infer a takeoff rate, a copies-scaling exponent or superhuman-researcher behavior from this
-experiment. The presentation will separate measured outcomes, observed mechanisms and speculation.
+experiment. The analysis separates measured outcomes, observed mechanisms and speculation.

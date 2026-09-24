@@ -1,10 +1,10 @@
 # Experiment plan and runbook
 
-CS 2881R, presentation September 24, 2026. Updated September 21.
+Updated September 21, 2026.
 
-**This file is the single source of truth for the experiment matrix, priorities and ownership.**
-The README describes the software; PROPOSAL.md explains the scientific question. Earlier
-"tonight" tables are superseded. Preserve runs already underway and their exact configurations.
+**This file is the single source of truth for the experiment matrix and its execution.**
+The README describes the software; PROPOSAL.md explains the scientific question. Preserve runs
+and their exact configurations.
 
 ## Question
 
@@ -31,8 +31,8 @@ in this experiment.
 | Independent control | 6 | `indep_haiku_6` | `indep_sonnet_6` | `indep_opus_6` |
 
 **24 unique conditions: 18 rounds/open cells plus six required independent controls.**
-This preserves the team's 1/3/6-agent runs under both protocols, completes the same Opus row,
-and includes independent controls at both three and six agents. Each config is one full search,
+This covers 1/3/6-agent runs under both protocols for every model and includes independent
+controls at both three and six agents. Each config is one full search,
 not one training attempt; the first pass is 24 searches, not nine.
 Independent controls are required to make a claim about the contribution of communication;
 their implementation must pass the isolation checks below before they are launched.
@@ -53,20 +53,6 @@ open solo condition: there is no peer to communicate with. Do not duplicate that
 
 At three workers, open and independent allocate 12 attempts per worker; at six they allocate six.
 The 36-attempt ceiling is per cell, not per worker. The rounds batching is described below.
-
-### Ownership and existing commitments
-
-| Family / responsibility | Lead | Allocation |
-|---|---|---|
-| Haiku | Eric | Existing rounds and open 1/3/6 runs |
-| Sonnet | Anthony | Existing rounds 1/3/6 claim; open 1/3/6 still needs explicit assignment if not already running |
-| Opus | Alvin | Rounds and open 1/3/6, following the same design as Haiku/Sonnet |
-| Independent controls / overflow | Unassigned; Riddhi and family leads to claim | Independent 3/6 for each family after isolation is repaired; confirm exact configs and capacity in the channel |
-
-Family leads are responsible for ensuring their matching controls are covered. Riddhi has not
-claimed a specific group in the provided chat; do not silently assign all remaining runs to her.
-This allocation records the known claims and a proposed division of remaining work; it does not
-assert that unclaimed runs have started. Record the actual owner, run ID and commit when claiming.
 
 ## Comparisons and interpretation
 
@@ -99,9 +85,9 @@ need a new version and separate labeling.
 
 1. Keep already-running cells and archive them with their original provenance.
 2. Repair and verify independent isolation. While that work proceeds, communicating cells may run.
-3. Complete the six-agent open/independent pair and open solo for each model. For Alvin, prioritize
-   `open_opus_6` and its `indep_opus_6` control, then `open_opus_1`; cover the remaining Opus cells next.
-   Coordinate paired ownership so a communicating result is not left without its control.
+3. Complete the six-agent open/independent pair and open solo for each model. Prioritize
+   the six-agent open/independent pair, then open solo; run each communicating cell together with
+   its control so no communicating result is left without one.
 4. Obtain **three fresh complete-search repetitions of each primary open-six/independent-six arm**
    for each model before expanding beyond this matrix. Replication of the primary comparison takes
    precedence over unstarted secondary cells when resources conflict. Never gate stronger-model runs
@@ -110,7 +96,7 @@ need a new version and separate labeling.
    independent-three cells are required for the three-agent communication comparison, not optional
    replacements for independent-six. Single-repetition secondary cells are descriptive; if more
    capacity remains, repeat the three-agent pairs before adding any further conditions.
-6. Freeze selected recipes, independently re-evaluate them, then analyze and prepare slides.
+6. Freeze selected recipes, independently re-evaluate them, then analyze.
 
 Fresh repetitions use new agent sessions, empty histories, unique run IDs, and the same starting
 code. Workers and successive attempts inside a cell are not independent experimental repetitions.
@@ -193,7 +179,7 @@ Do not reuse a destination. Keep configs, provenance, model metadata, transcript
 logs, timing, baseline measurements and re-evaluation results. Publish results through ordinary Git
 commits after reviewing the archive. A planned or claimed cell is not a completed measurement.
 
-## Analysis and presentation
+## Analysis
 
 Primary outcome: quality of the recipe selected from each whole search after the attempt allowance,
 including the baseline. Show search-time best validation BPB trajectories and independently
@@ -212,7 +198,5 @@ change and subsequent result. Inspect actual code-change families when discussin
 Text similarity alone does not demonstrate collapse; a crash alone does not demonstrate propagated
 misinformation. Existing analysis helpers may need adapting for open-protocol traces.
 
-Presentation: question and prior work; this matrix and budget accounting; primary repeated comparison;
-one evidence-backed mechanism or failure case; limitations. This studies a component of AI R&D
-relevant to RSI. It does not establish recursive self-improvement, a takeoff exponent, or a universal
+This studies a component of AI R&D relevant to RSI. It does not establish recursive self-improvement, a takeoff exponent, or a universal
 scaling law from one small training task.

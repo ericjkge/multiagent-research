@@ -12,7 +12,7 @@ harness/tooling interaction that wasted roughly half of the attempts:
   and `candidate.json` inherited from the lineage commit and records a phantom "ok" candidate at
   exactly the baseline score. (Same bug exists in the Opus cells at low rate: 1 phantom each in
   opus_6 and opus_1.) Phantoms are identifiable by a `run.log` byte-identical to an earlier round.
-- Alvin's Opus agents saw the same message 84 times across opus_6/opus_1 and always kept polling
+- The Opus agents in opus_6/opus_1 saw the same message 84 times and always kept polling
   the output file until training finished, so the Opus cells were not affected.
 
 Fix applied before the fresh restart (see git history): agent environment raises Claude Code's

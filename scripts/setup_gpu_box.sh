@@ -76,7 +76,7 @@ cat baseline.json
 # Run-to-run spread on identical code.  Any "improvement" smaller than this is
 # indistinguishable from noise, and since every cell is scored by single runs,
 # a wide spread invalidates the whole grid rather than one cell.  Measure it
-# once, on this box, and put the number on the slide.
+# once, on this box, and report the number with the results.
 if [ "$NOISE_GATE" = "1" ]; then
   if [ ! -f noise_gate.json ]; then
     echo "noise gate: 5 more baseline runs (~25 minutes) ..."
@@ -107,7 +107,7 @@ g=json.load(open('noise_gate.json'))
 print()
 if g['verdict']=='OK':
     print(f\"noise gate PASSED: spread {g['spread']:.6f} <= 0.003.\")
-    print('Improvements smaller than that are still not results. Quote it on the slide.')
+    print('Improvements smaller than that are still not results. Report it with the results.')
 else:
     print(f\"noise gate FAILED: spread {g['spread']:.6f} > 0.003.\")
     print('Single runs cannot distinguish ideas on this box. Either lengthen runs')

@@ -183,7 +183,7 @@ def check(run_dir: Path) -> list[str]:
 
     # 10. phantom candidates (round protocol): an "ok" candidate with no GPU run behind it. Happens
     # when an agent's session ends without training and the orchestrator reads the stale run.log
-    # of the lineage commit (found by Eric Ge, Sep 22). Never a round winner in our cells; noted.
+    # of the lineage commit (found in the stopped sonnet_6 pilot, Sep 22). Never a round winner here; noted.
     if cfg.get("protocol", "rounds") != "open" and timeline:
         seen = {(r.get("round"), r.get("agent"), r.get("variant")) for r in timeline}
         for c in of_type(records, "candidate"):

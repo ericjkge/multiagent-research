@@ -89,12 +89,12 @@ Sources: [rounds investigation](../results/opus_6/log.jsonl),
 
 | Setup and workflow | 1 agent | 3 agents | 6 agents | Actual attempts per search |
 |---|---:|---:|---:|---|
-| Original Opus, open | 0.980742 | 0.982130 | 0.977896; repeat 0.976408 | 36 each |
-| Original Opus, rounds | 0.986277 | 0.987792 | 0.980496 | 36 / 34 / 34 |
-| Eric's Sonnet, rounds | 1.002279 | 0.992950 | 0.978041 | 32 / 32 / 33 |
-| Riddhi's Sonnet, open | 0.979324 | 0.993862 | not run on this setup | 36 / 36 |
-| Anthony's Haiku, open | 0.992818 | 0.990882 | 0.995085 | 36 each |
-| Anthony's Haiku, rounds | 0.994120 | 0.993742 | 0.994321 | 20 / 21 / 28 |
+| Opus, open (baseline 0.9973) | 0.980742 | 0.982130 | 0.977896; repeat 0.976408 | 36 each |
+| Opus, rounds (baseline 0.9973) | 0.986277 | 0.987792 | 0.980496 | 36 / 34 / 34 |
+| Sonnet, rounds (baseline 1.0140) | 1.002279 | 0.992950 | 0.978041 | 32 / 32 / 33 |
+| Sonnet, open (baseline 1.0125) | 0.979324 | 0.993862 | not run on this setup | 36 / 36 |
+| Haiku, open (baseline 0.9966) | 0.992818 | 0.990882 | 0.995085 | 36 each |
+| Haiku, rounds (baseline 0.9966) | 0.994120 | 0.993742 | 0.994321 | 20 / 21 / 28 |
 
 Compare within rows, not across hardware setups. Six beat one in the original Opus families and
 Sonnet rounds. Three beat one in Sonnet rounds and Haiku open. Haiku open six did worst; Sonnet open
